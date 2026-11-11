@@ -1,0 +1,43 @@
+{
+  "name": "creator-led-hiring-influencer-monetization-platform",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "node ./scripts/build-server.mjs",
+    "build:pm2": "node ./scripts/build-server.mjs",
+    "build:hostinger": "node ./scripts/prepare-dist.mjs",
+    "build:dist": "node ./scripts/prepare-dist.mjs",
+    "dist": "npm run build:dist",
+    "reinstall": "powershell -ExecutionPolicy Bypass -File ./scripts/clean-install.ps1",
+    "prestart": "node ./scripts/ensure-server-build.mjs",
+    "start": "next start",
+    "lint": "eslint app components lib",
+    "test:smoke": "powershell -ExecutionPolicy Bypass -File ../scripts/frontend-smoke.ps1"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "framer-motion": "^14.3.0",
+    "lucide-react": "^1.48.0",
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-icons": "^5.7.0",
+    "react-slick": "^0.31.0",
+    "slick-carousel": "^2.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/react-slick": "^0.23.13",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

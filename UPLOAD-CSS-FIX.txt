@@ -1,0 +1,39 @@
+JobOrio CSS fix (joborio.com)
+=============================
+
+Problem
+-------
+https://joborio.com HTML loads, but CSS/JS under /_next/static/chunks/ return 404.
+Fonts under /_next/static/media/ work — so the chunks folder was not fully uploaded
+(or HTML is from a different build than the chunks on the server).
+
+Note: https://joborio.sevenapps.in already serves CSS correctly (Hostinger static).
+joborio.com is a different host (Cloudflare + Next.js). Fix that server’s files.
+
+Fix (FileZilla / upload)
+------------------------
+1. On your PC open:  E:\upsidcnew\frontend\dist\
+2. Upload the ENTIRE folder named  _next
+   into the SAME folder as index.html on joborio.com
+   (usually public_html or the Next app public root).
+3. Overwrite all files when asked.
+4. Also re-upload index.html (and other *.html) from dist\ so HTML and chunks match.
+5. In Cloudflare dashboard → Caching → Purge Everything for joborio.com.
+6. Hard refresh browser: Ctrl+Shift+R
+
+Quick package
+-------------
+E:\upsidcnew\frontend\joborio-next-static-fix.zip
+  → unzip and upload the _next folder to the site root.
+
+Verify
+------
+After upload, this URL must return 200 (not 404):
+  https://joborio.com/_next/static/chunks/0arsk30ressv-.css
+(If you rebuilt again, use the CSS filename shown in dist\index.html.)
+
+If you run Next with PM2 (next start)
+-------------------------------------
+Upload the full frontend build (.next + public + package.json), then:
+  pm2 restart joborio-web
+and purge Cloudflare cache.
