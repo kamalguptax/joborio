@@ -377,14 +377,23 @@ export default function Header() {
       setAuthReady(true);
       return;
     }
-    setAuthReady(false);
+    // Keep the current user/buttons on screen while re-checking (no flicker on navigation).
+    let cancelled = false;
     fetchMe()
       .then((u) => {
+        if (cancelled) return;
         rememberPublicCode(u);
         setUser(u);
       })
-      .catch(() => setUser(null))
-      .finally(() => setAuthReady(true));
+      .catch(() => {
+        if (!cancelled) setUser(null);
+      })
+      .finally(() => {
+        if (!cancelled) setAuthReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [pathname]);
 
   // Close menus on route change
@@ -431,9 +440,9 @@ export default function Header() {
     return () => window.removeEventListener("keydown", onKey);
   }, [closeAllMenus]);
 
-  // Close drawer when crossing to desktop (≥1024)
+  // Close drawer when crossing to desktop (≥1280, Tailwind `xl`)
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
+    const mq = window.matchMedia("(min-width: 1280px)");
     const onChange = (e: MediaQueryListEvent) => {
       if (e.matches) {
         setDrawerOpen(false);
@@ -460,22 +469,30 @@ export default function Header() {
     <>
       <header
         ref={headerRef}
-        className={`fixed inset-x-0 top-0 z-[100] w-full border-b transition-all duration-300 ${
-          solid
-            ? "border-white/10 bg-[#0B1D4F]/90 shadow-lg shadow-black/15 backdrop-blur-xl"
-            : "border-transparent bg-transparent"
-        }`}
+        className="fixed inset-x-0 top-0 z-[100] w-full"
       >
+        {/*
+          Background lives on its own layer. A backdrop-filter on <header> itself makes it the
+          containing block of `position: fixed` children, which collapsed the mobile drawer.
+        */}
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-0 border-b transition-all duration-300 ${
+            solid
+              ? "border-white/10 bg-[linear-gradient(135deg,#0B1D4F_0%,#14296B_45%,#3F2AA8_100%)] shadow-[0_10px_30px_-12px_rgba(5,10,40,0.6)] backdrop-blur-xl"
+              : "border-transparent bg-transparent"
+          }`}
+        />
         <nav
-          className={`mx-auto flex max-w-[1600px] items-center justify-between gap-2 px-3 transition-[height] duration-300 sm:gap-3 sm:px-6 lg:px-8 xl:px-10 ${
-            scrolled ? "h-16" : "h-16 sm:h-20"
+          className={`relative mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 transition-[height] duration-300 sm:px-8 xl:px-10 ${
+            scrolled || drawerOpen ? "h-16" : "h-16 sm:h-20"
           }`}
           aria-label="Primary"
         >
           <Logo compact={scrolled} />
 
-          {/* Desktop (≥1024) */}
-          <ul className="hidden items-center gap-5 lg:flex xl:gap-7">
+          {/* Desktop (≥1280) */}
+          <ul className="hidden items-center gap-7 xl:flex 2xl:gap-9">
             {visibleTopLinks.map((l) => {
               const active = isActive(l.href);
               return (
@@ -513,7 +530,7 @@ export default function Header() {
           {/* Right CTAs + account */}
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {authReady && user ? (
-              <div className="relative hidden sm:block" ref={accountRef}>
+              <div className="relative hidden md:block" ref={accountRef}>
                 <button
                   type="button"
                   onClick={() => setAccountOpen((v) => !v)}
@@ -584,13 +601,13 @@ export default function Header() {
               <>
                 <Link
                   href="/hiring"
-                  className="btn-tap hidden min-h-11 items-center justify-center rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 lg:inline-flex"
+                  className="btn-tap hidden min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 md:inline-flex"
                 >
                   I&apos;m Hiring
                 </Link>
                 <Link
                   href="/signup"
-                  className="btn-tap hidden min-h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 lg:inline-flex"
+                  className="btn-tap hidden min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 sm:inline-flex"
                 >
                   Start Earning
                   <Arrow />
@@ -598,14 +615,14 @@ export default function Header() {
               </>
             ) : null}
 
-            {/* Hamburger <1024 */}
+            {/* Hamburger <1280 */}
             <button
               type="button"
               onClick={() => setDrawerOpen((v) => !v)}
               aria-expanded={drawerOpen}
               aria-controls="mobile-nav-drawer"
               aria-label={drawerOpen ? "Close menu" : "Open menu"}
-              className="tap-target flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-[#0B1D4F]/70 text-white lg:hidden"
+              className="tap-target flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white xl:hidden"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 {drawerOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
@@ -617,18 +634,18 @@ export default function Header() {
         {/* Mobile / tablet drawer */}
         <div
           id="mobile-nav-drawer"
-          className={`lg:hidden ${drawerOpen ? "block" : "hidden"}`}
+          className={`xl:hidden ${drawerOpen ? "block" : "hidden"}`}
         >
           {/* Backdrop */}
           <button
             type="button"
             aria-label="Close menu"
-            className="fixed inset-0 top-16 z-[90] bg-black/50 backdrop-blur-[2px] sm:top-20"
+            className="fixed inset-0 top-16 z-[90] cursor-default bg-black/50 backdrop-blur-[2px]"
             onClick={() => setDrawerOpen(false)}
           />
 
           <div
-            className="fixed inset-x-0 bottom-0 top-16 z-[95] flex flex-col overflow-hidden border-t border-white/10 bg-[#0B1D4F] sm:top-20"
+            className="fixed inset-x-0 bottom-0 top-16 z-[95] flex flex-col overflow-hidden border-t border-white/10 bg-[#0B1D4F] md:left-auto md:w-[420px] md:rounded-bl-3xl md:border-l"
             role="dialog"
             aria-modal="true"
             aria-label="Site menu"
@@ -735,7 +752,7 @@ export default function Header() {
             </div>
 
             {/* Sticky CTAs at bottom */}
-            <div className="shrink-0 space-y-2 border-t border-white/10 bg-[#0B1D4F] px-4 py-4 sm:px-6">
+            <div className="shrink-0 space-y-2 border-t border-white/10 bg-[#0B1D4F] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-6">
               <Link
                 href="/signup"
                 onClick={() => setDrawerOpen(false)}

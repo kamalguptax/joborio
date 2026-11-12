@@ -1,17 +1,11 @@
 "use client";
 
 // Images: /public/images/how-it-works/step-01.png … step-06.png
-// Sticky stack: heading scrolls away; only the 6 cards use position:sticky.
+// Sticky stack: heading scrolls away; each full-height card sticks and the next one slides over it.
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useReducedMotion } from "framer-motion";
 import SectionHeading from "@/components/layout/SectionHeading";
 
 type Theme = {
@@ -43,7 +37,7 @@ const themes: Record<string, Theme> = {
     chip: "bg-violet-600 text-white",
     panel: "from-violet-200/80 via-violet-100/60 to-white",
     glow: "bg-violet-400/30",
-    num: "text-violet-600/[0.07]",
+    num: "text-violet-600/[0.10]",
     check: "bg-violet-600",
     dot: "bg-violet-600",
   },
@@ -53,7 +47,7 @@ const themes: Record<string, Theme> = {
     chip: "bg-sky-600 text-white",
     panel: "from-sky-200/80 via-sky-100/60 to-white",
     glow: "bg-sky-400/30",
-    num: "text-sky-600/[0.07]",
+    num: "text-sky-600/[0.10]",
     check: "bg-sky-600",
     dot: "bg-sky-600",
   },
@@ -63,7 +57,7 @@ const themes: Record<string, Theme> = {
     chip: "bg-pink-600 text-white",
     panel: "from-pink-200/80 via-pink-100/60 to-white",
     glow: "bg-pink-400/30",
-    num: "text-pink-600/[0.07]",
+    num: "text-pink-600/[0.10]",
     check: "bg-pink-600",
     dot: "bg-pink-600",
   },
@@ -73,7 +67,7 @@ const themes: Record<string, Theme> = {
     chip: "bg-emerald-600 text-white",
     panel: "from-emerald-200/80 via-emerald-100/60 to-white",
     glow: "bg-emerald-400/30",
-    num: "text-emerald-600/[0.07]",
+    num: "text-emerald-600/[0.10]",
     check: "bg-emerald-600",
     dot: "bg-emerald-600",
   },
@@ -83,7 +77,7 @@ const themes: Record<string, Theme> = {
     chip: "bg-amber-600 text-white",
     panel: "from-amber-200/80 via-amber-100/60 to-white",
     glow: "bg-amber-400/30",
-    num: "text-amber-600/[0.08]",
+    num: "text-amber-600/[0.11]",
     check: "bg-amber-600",
     dot: "bg-amber-600",
   },
@@ -93,7 +87,7 @@ const themes: Record<string, Theme> = {
     chip: "bg-indigo-600 text-white",
     panel: "from-indigo-200/80 via-indigo-100/60 to-white",
     glow: "bg-indigo-400/30",
-    num: "text-indigo-600/[0.07]",
+    num: "text-indigo-600/[0.10]",
     check: "bg-indigo-600",
     dot: "bg-indigo-600",
   },
@@ -168,12 +162,14 @@ const steps: Step[] = [
   },
 ];
 
-/** Extra px each next card sticks below the previous (shows edges of cards behind). */
-const STACK_STEP = 28;
-/** Gap below fixed navbar when a card sticks. */
-const NAV_GAP = 16;
 /** Approx scrolled navbar height (h-16). */
 const NAV_H = 64;
+/** Each next sheet sticks this many px lower, so the rounded edges of earlier sheets peek out. */
+const PEEK = 0;
+/** Space kept free at the bottom of the viewport while a sheet is stuck. */
+const BOTTOM_GAP = 8;
+
+const stickyTop = (i: number) => NAV_H + i * PEEK;
 
 /* ------------------------------------------------------------------ */
 /*  Fallback art                                                       */
@@ -312,95 +308,95 @@ function ClockIcon() {
 function StepCard({
   item,
   index,
-  sticky,
-  reduceMotion,
+  covered,
   cardRef,
 }: {
   item: Step;
   index: number;
-  sticky: boolean;
-  reduceMotion: boolean | null;
+  /** true once a later sheet has climbed on top of this one */
+  covered: boolean;
   cardRef?: (el: HTMLElement | null) => void;
 }) {
-  const imageOnLeft = index % 2 === 1;
+  const imageRight = index % 2 === 1;
   const t = item.theme;
-  const top = NAV_H + NAV_GAP + index * STACK_STEP;
-  const maxH = `calc(100svh - ${NAV_H + NAV_GAP + index * STACK_STEP + 12}px)`;
 
   return (
     <article
       ref={cardRef}
       data-step-card
       data-step-index={index}
-      className={`relative w-full ${sticky ? "sticky" : "relative"} ${sticky && !reduceMotion ? "" : ""}`}
+      className="sticky w-full"
       style={{
-        top: sticky ? top : undefined,
-        zIndex: sticky ? index + 1 : undefined,
+        top: stickyTop(index),
+        zIndex: index + 1,
+        height: `calc(100svh - ${stickyTop(index) + BOTTOM_GAP}px)`,
+        minHeight: 560,
       }}
     >
       <div
-        className={`group relative flex w-full flex-col overflow-hidden rounded-[28px] border border-white/80 bg-gradient-to-br ${t.card} px-5 py-6 shadow-[0_-14px_40px_-14px_rgba(60,30,160,0.28)] ring-1 ring-inset ${t.ring} sm:rounded-[32px] sm:px-8 sm:py-8 md:px-10 md:py-10`}
-        style={{
-          maxHeight: sticky ? maxH : undefined,
-        }}
+        className={`relative h-full w-full bg-gradient-to-br ${t.card}  transition-[filter] duration-500 motion-reduce:transition-none ${
+          covered ? "brightness-[0.965]" : ""
+        }`}
       >
-        <span
-          aria-hidden
-          className={`pointer-events-none absolute -top-6 select-none text-[140px] font-extrabold leading-none tracking-tighter sm:text-[200px] md:text-[240px] ${t.num} ${
-            imageOnLeft ? "right-2 md:right-8" : "right-2 md:left-6 md:right-auto"
-          }`}
-        >
-          {item.step}
-        </span>
+        {/* Decorative background (clipped separately so content is never cut) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-[inherit]">
+          <div className={`absolute -left-24 top-1/4 h-80 w-80 rounded-full blur-[90px] ${t.glow}`} />
+          <div className={`absolute -right-24 bottom-0 h-96 w-96 rounded-full blur-[110px] ${t.glow}`} />
+          <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(60,30,160,0.14)_1px,transparent_1.5px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
+        </div>
 
-        {/* Mobile: image on top. md+: side by side (compact). lg+: roomy. */}
-        <div
-          className={`relative flex min-h-0 flex-1 flex-col gap-5 md:items-center md:gap-8 lg:gap-12 ${
-            imageOnLeft ? "md:flex-row-reverse" : "md:flex-row"
-          }`}
-        >
-          {/* Image first in DOM so on mobile it sits above text */}
-          <div
-            className={`relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-[22px] bg-gradient-to-br ${t.panel} ring-1 ring-white/80 sm:rounded-[28px] md:aspect-auto md:h-56 md:w-1/2 lg:h-72`}
-          >
-            <div
-              aria-hidden
-              className="absolute inset-0 opacity-50 [background-image:radial-gradient(rgba(60,30,160,0.18)_1px,transparent_1.5px)] [background-size:16px_16px]"
-            />
-            <div aria-hidden className={`absolute -bottom-10 -right-10 h-40 w-40 rounded-full blur-3xl ${t.glow}`} />
-            <div className="relative h-full w-full p-4 sm:p-5">
+        <div className="relative mx-auto grid h-full max-w-[1400px] grid-rows-[minmax(0,1fr)_auto] gap-4 px-5 pb-6 pt-6 sm:px-8 sm:pb-8 sm:pt-8 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-10 md:px-12 lg:gap-20 lg:px-16">
+          {/* Image */}
+          <div className={`relative h-full min-h-[160px] md:h-[min(100%,560px)] ${imageRight ? "md:order-last" : ""}`}>
+            <div aria-hidden className="absolute inset-[6%] rounded-full bg-gradient-to-br from-white/90 via-white/50 to-white/0 blur-[2px]" />
+            <div aria-hidden className={`absolute inset-[20%] rounded-full blur-3xl ${t.glow}`} />
+            <div className="relative h-full w-full transition-transform duration-500 ease-out hover:scale-[1.03] motion-reduce:transition-none">
               <StepImage item={item} index={index} />
             </div>
+
+            <span className="absolute bottom-2 left-2 inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 text-sm font-semibold text-[#2A2A40] shadow-[0_10px_30px_-10px_rgba(40,20,120,0.35)] backdrop-blur-md sm:bottom-4 sm:left-4">
+              <span className={`flex h-6 w-6 items-center justify-center rounded-full text-white ${t.check}`}>
+                <ClockIcon />
+              </span>
+              {item.time}
+            </span>
           </div>
 
-          <div className="min-w-0 w-full md:w-1/2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`inline-block rounded-full px-4 py-1.5 text-sm font-semibold shadow-sm sm:px-5 sm:py-2 sm:text-base ${t.chip}`}>
+          {/* Copy */}
+          <div className="relative min-w-0">
+            <span
+              aria-hidden
+              className={`pointer-events-none absolute -top-6 left-0 select-none text-[110px] font-extrabold leading-none tracking-tighter sm:-top-10 sm:text-[170px] lg:text-[220px] ${t.num}`}
+            >
+              {item.step}
+            </span>
+
+            <div className="relative">
+              <span className={`inline-block rounded-full px-5 py-2 text-sm font-semibold tracking-wide shadow-sm sm:text-base ${t.chip}`}>
                 Step {item.step}
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1.5 text-xs font-medium text-[#55556B] ring-1 ring-black/5 sm:px-3.5 sm:py-2 sm:text-sm">
-                <ClockIcon />
-                {item.time}
-              </span>
+
+              <h3 className="text-section-heading mt-4 max-w-[20ch] sm:mt-6">
+                {item.title}
+              </h3>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-[#5E5E74] sm:mt-5 sm:text-base sm:leading-7 lg:text-lg lg:leading-8">
+                {item.description}
+              </p>
+
+              <ul className="mt-5 grid gap-2.5 sm:mt-7 sm:gap-3 lg:max-w-lg">
+                {item.points.map((p) => (
+                  <li
+                    key={p}
+                    className="flex items-center gap-3 rounded-2xl bg-white/65 px-4 py-3 text-sm font-medium text-[#2A2A40] shadow-[0_8px_24px_-12px_rgba(40,20,120,0.25)] backdrop-blur-sm sm:text-base"
+                  >
+                    <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white ${t.check}`}>
+                      <CheckIcon />
+                    </span>
+                    {p}
+                  </li>
+                ))}
+              </ul>
             </div>
-
-            <h3 className="text-section-heading mt-4 max-w-[22ch] sm:mt-5">
-              {item.title}
-            </h3>
-            <p className="mt-3 max-w-lg text-sm leading-6 text-[#5E5E74] sm:mt-4 sm:text-base sm:leading-7 md:text-lg md:leading-8">
-              {item.description}
-            </p>
-
-            <ul className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
-              {item.points.map((p) => (
-                <li key={p} className="flex items-start gap-2.5 text-sm font-medium text-[#2A2A40] sm:items-center sm:gap-3 sm:text-base">
-                  <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-white sm:mt-0 sm:h-6 sm:w-6 ${t.check}`}>
-                    <CheckIcon />
-                  </span>
-                  {p}
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </div>
@@ -413,81 +409,43 @@ function StepCard({
 /* ------------------------------------------------------------------ */
 
 export default function HowItWorks() {
-  const stackRef = useRef<HTMLDivElement>(null);
   const cardEls = useRef<(HTMLElement | null)[]>([]);
-  const reduceMotion = useReducedMotion();
   const [active, setActive] = useState(0);
-  const [useSticky, setUseSticky] = useState(true);
 
   const setCardRef = useCallback((index: number) => (el: HTMLElement | null) => {
     cardEls.current[index] = el;
   }, []);
 
-  /** Disable sticky when a card won't fit in the sticky viewport (esp. mobile). */
+  /** Update 01 / 06 from which sticky sheet is currently on top. */
   useEffect(() => {
-    const measure = () => {
-      if (reduceMotion) {
-        setUseSticky(false);
-        return;
-      }
-      const available =
-        window.innerHeight - NAV_H - NAV_GAP - (steps.length - 1) * STACK_STEP - 24;
-      let tooTall = false;
-      for (const el of cardEls.current) {
-        if (!el) continue;
-        const inner = el.firstElementChild as HTMLElement | null;
-        // Temporarily ignore max-height clamp for measurement
-        const prev = inner?.style.maxHeight;
-        if (inner) inner.style.maxHeight = "none";
-        const h = inner?.scrollHeight ?? el.offsetHeight;
-        if (inner) inner.style.maxHeight = prev ?? "";
-        if (h > available + 48) {
-          tooTall = true;
-          break;
-        }
-      }
-      setUseSticky(!tooTall);
-    };
-
-    const raf = requestAnimationFrame(() => requestAnimationFrame(measure));
-    window.addEventListener("resize", measure);
-    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
-    cardEls.current.forEach((el) => el && ro?.observe(el));
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", measure);
-      ro?.disconnect();
-    };
-  }, [reduceMotion]);
-
-  /** Update 01 / 06 from which sticky card is currently “on top”. */
-  useEffect(() => {
-    const onScroll = () => {
-      const pivot = NAV_H + NAV_GAP + 8;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
       let current = 0;
       cardEls.current.forEach((el, i) => {
-        if (!el) return;
-        const top = el.getBoundingClientRect().top;
-        if (top <= pivot + i * STACK_STEP + 4) current = i;
+        if (el && el.getBoundingClientRect().top <= stickyTop(i) + 4) current = i;
       });
       setActive((prev) => (prev === current ? prev : current));
     };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
 
-    onScroll();
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [useSticky]);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
 
   const progress = (active + 1) / steps.length;
 
   return (
     // No overflow-y / overflow:hidden on parents — sticky would break
-    <section id="how-it-works" className="section-pad relative bg-white">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-40 bottom-0 h-[420px] w-[420px] rounded-full bg-[#ECE8FF] opacity-60 blur-3xl"
-      />
-
+    <section id="how-it-works" className="relative bg-white pt-16 md:pt-24">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         {/* Heading: normal document flow — scrolls away, never sticky */}
         <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
@@ -502,73 +460,20 @@ export default function HowItWorks() {
             title="How it Works?"
             description="Six simple steps turn every useful share into measurable impact and meaningful earnings."
           />
-
-          <div className="flex flex-wrap items-center justify-between gap-4 sm:flex-col sm:items-end sm:gap-3">
-            <div
-              className="flex items-center gap-1.5"
-              aria-label={`Step ${active + 1} of ${steps.length}`}
-              aria-live="polite"
-            >
-              {steps.map((s, i) => (
-                <span
-                  key={s.step}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    i === active
-                      ? `w-7 ${s.theme.dot}`
-                      : i < active
-                        ? "w-2 bg-violet-300"
-                        : "w-2 bg-slate-200"
-                  }`}
-                />
-              ))}
-              <span className="ml-2 text-sm font-semibold tabular-nums text-[#6B6B80]">
-                {String(active + 1).padStart(2, "0")} /{" "}
-                {String(steps.length).padStart(2, "0")}
-              </span>
-            </div>
-            <Link
-              href="/opportunities"
-              className="text-sm font-semibold text-[#5B35D5] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#5B35D5]"
-            >
-              View all opportunities →
-            </Link>
-          </div>
         </div>
+      </div>
 
-        {/* Progress bar (non-sticky, sits under heading until cards take over) */}
-        <div
-          aria-hidden
-          className="mb-6 h-[3px] overflow-hidden rounded-full bg-violet-100 sm:mb-8"
-        >
-          <div
-            className="h-full origin-left rounded-full bg-gradient-to-r from-violet-600 via-pink-500 to-sky-500 transition-[width] duration-300 ease-out motion-reduce:transition-none"
-            style={{ width: `${progress * 100}%` }}
+      {/* Full-width sheets: every one is sticky + full height, the next slides over the previous */}
+      <div className="relative flex flex-col">
+        {steps.map((item, i) => (
+          <StepCard
+            key={item.step}
+            item={item}
+            index={i}
+            covered={i < active}
+            cardRef={setCardRef(i)}
           />
-        </div>
-
-        {/* Stacking cards — sticky when it fits; else normal vertical list */}
-        <div ref={stackRef} className="relative flex flex-col">
-          {steps.map((item, i) => (
-            <div
-              key={item.step}
-              className={
-                useSticky
-                  ? i < steps.length - 1
-                    ? "pb-[min(42vh,22rem)]" // scroll runway so the next card can climb over
-                    : "pb-6 sm:pb-10"
-                  : "mb-6 sm:mb-8"
-              }
-            >
-              <StepCard
-                item={item}
-                index={i}
-                sticky={useSticky}
-                reduceMotion={reduceMotion}
-                cardRef={setCardRef(i)}
-              />
-            </div>
-          ))}
-        </div>
+        ))}
       </div>
     </section>
   );

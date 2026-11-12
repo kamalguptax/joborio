@@ -231,3 +231,34 @@ export async function fetchHomeOpportunities(
 
   return unique.slice(0, limit);
 }
+
+/**
+ * Pick `count` cards for the home slider, mixing categories (hiring / course / tools)
+ * round-robin. If a category has no cards, the remaining slots are filled from the
+ * categories that do, so a single-category feed still yields `count` cards.
+ */
+export function mixOpportunitiesByCategory(
+  cards: HomeOpportunityCard[],
+  count = 6,
+): HomeOpportunityCard[] {
+  const order: OpportunityCategory[] = ["hiring", "course", "tools"];
+  const buckets = new Map<OpportunityCategory, HomeOpportunityCard[]>(
+    order.map((c) => [c, []]),
+  );
+  for (const card of cards) buckets.get(card.category)?.push(card);
+
+  const picked: HomeOpportunityCard[] = [];
+  while (picked.length < count) {
+    let added = false;
+    for (const cat of order) {
+      const next = buckets.get(cat)?.shift();
+      if (next) {
+        picked.push(next);
+        added = true;
+        if (picked.length >= count) break;
+      }
+    }
+    if (!added) break;
+  }
+  return picked;
+}
