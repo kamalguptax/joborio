@@ -16,7 +16,7 @@ const roles: RoleCardProps[] = [
   {
     theme: "sky",
     badge: "For Employers",
-    title: "I'm Hiring",
+    title: "Live Campaigns",
     description:
       "Launch campaigns, set budgets and reach verified creators who fit your brand.",
     cta: "Launch Campaign",

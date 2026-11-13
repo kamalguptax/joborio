@@ -32,7 +32,7 @@ type Step = {
 
 const themes: Record<string, Theme> = {
   violet: {
-    card: "from-[#F7F3FF] to-[#EBE4FF]",
+    card: "from-[#8f5cff] to-[#EBE4FF]",
     ring: "ring-violet-200/70",
     chip: "bg-violet-600 text-white",
     panel: "from-violet-200/80 via-violet-100/60 to-white",
@@ -42,7 +42,7 @@ const themes: Record<string, Theme> = {
     dot: "bg-violet-600",
   },
   sky: {
-    card: "from-[#F1F9FF] to-[#DFF0FF]",
+    card: "from-[#F1F9FF] to-[#1a86fc]",
     ring: "ring-sky-200/70",
     chip: "bg-sky-600 text-white",
     panel: "from-sky-200/80 via-sky-100/60 to-white",
@@ -52,7 +52,7 @@ const themes: Record<string, Theme> = {
     dot: "bg-sky-600",
   },
   pink: {
-    card: "from-[#FFF3FA] to-[#FFE3F2]",
+    card: "from-[#FFF3FA] to-[#ff9fd3]",
     ring: "ring-pink-200/70",
     chip: "bg-pink-600 text-white",
     panel: "from-pink-200/80 via-pink-100/60 to-white",
@@ -62,7 +62,7 @@ const themes: Record<string, Theme> = {
     dot: "bg-pink-600",
   },
   emerald: {
-    card: "from-[#F0FCF6] to-[#DAF6E8]",
+    card: "from-[#F0FCF6] to-[#9cfbcb]",
     ring: "ring-emerald-200/70",
     chip: "bg-emerald-600 text-white",
     panel: "from-emerald-200/80 via-emerald-100/60 to-white",
@@ -72,7 +72,7 @@ const themes: Record<string, Theme> = {
     dot: "bg-emerald-600",
   },
   amber: {
-    card: "from-[#FFF9EC] to-[#FFEFCC]",
+    card: "from-[#FFF9EC] to-[#ffaf00]",
     ring: "ring-amber-200/70",
     chip: "bg-amber-600 text-white",
     panel: "from-amber-200/80 via-amber-100/60 to-white",
@@ -82,7 +82,7 @@ const themes: Record<string, Theme> = {
     dot: "bg-amber-600",
   },
   indigo: {
-    card: "from-[#F2F3FF] to-[#E1E4FF]",
+    card: "from-[#F2F3FF] to-[#979fff]",
     ring: "ring-indigo-200/70",
     chip: "bg-indigo-600 text-white",
     panel: "from-indigo-200/80 via-indigo-100/60 to-white",
@@ -101,7 +101,7 @@ const steps: Step[] = [
       "Create your account, pick your interests and connect your social accounts. It takes less than two minutes.",
     points: ["Free to join, no hidden fees", "Connect Instagram, YouTube & more"],
     time: "2 min",
-    image: "/images/how-it-works/step-01.png",
+    image: "/images/how-it-works/step-01.webp",
     alt: "Creator profile card with social icons and a laptop",
     theme: themes.violet,
   },
@@ -112,7 +112,7 @@ const steps: Step[] = [
       "A quick profile check tells brands you are real, so you get access to better and higher paying campaigns.",
     points: ["Verified badge on your profile", "Priority access to top campaigns"],
     time: "24 hrs",
-    image: "/images/how-it-works/step-02.png",
+    image: "/images/how-it-works/step-02.webp",
     alt: "Verified creator shield with checklist",
     theme: themes.sky,
   },
@@ -123,7 +123,7 @@ const steps: Step[] = [
       "Browse campaigns, jobs and courses matched to your audience and niche, all in one place.",
     points: ["Matched to your interests", "New opportunities added daily"],
     time: "Anytime",
-    image: "/images/how-it-works/step-03.png",
+    image: "/images/how-it-works/step-03.webp",
     alt: "Brand collaboration opportunities list",
     theme: themes.pink,
   },
@@ -134,7 +134,7 @@ const steps: Step[] = [
       "Pick what fits you, send your application and track its status live from your dashboard.",
     points: ["One-tap applications", "Real-time status updates"],
     time: "1 min",
-    image: "/images/how-it-works/step-04.png",
+    image: "/images/how-it-works/step-04.webp",
     alt: "Creator with laptop and application sent badge",
     theme: themes.emerald,
   },
@@ -145,7 +145,7 @@ const steps: Step[] = [
       "Post using your unique link. Every click and every apply is tracked, so you always know what works.",
     points: ["Unique tracking link", "Live clicks and apply stats"],
     time: "Your pace",
-    image: "/images/how-it-works/step-05.png",
+    image: "/images/how-it-works/step-05.webp",
     alt: "Creator with phone tripod and content performance stats",
     theme: themes.amber,
   },
@@ -156,7 +156,7 @@ const steps: Step[] = [
       "Watch your earnings grow with every successful hire and cash out straight to your bank or UPI.",
     points: ["Transparent earnings report", "Fast payouts to UPI / bank"],
     time: "Weekly",
-    image: "/images/how-it-works/step-06.png",
+    image: "/images/how-it-works/step-06.webp",
     alt: "Total earnings chart with coins",
     theme: themes.indigo,
   },
@@ -348,7 +348,7 @@ function StepCard({
         <div className="relative mx-auto grid h-full max-w-[1400px] grid-rows-[minmax(0,1fr)_auto] gap-4 px-5 pb-6 pt-6 sm:px-8 sm:pb-8 sm:pt-8 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-10 md:px-12 lg:gap-20 lg:px-16">
           {/* Image */}
           <div className={`relative h-full min-h-[160px] md:h-[min(100%,560px)] ${imageRight ? "md:order-last" : ""}`}>
-            <div aria-hidden className="absolute inset-[6%] rounded-full bg-gradient-to-br from-white/90 via-white/50 to-white/0 blur-[2px]" />
+            <div aria-hidden className="absolute inset-[6%] rounded-full bg-gradient-to-br from-white/90 via-white/50 to-white/0" />
             <div aria-hidden className={`absolute inset-[20%] rounded-full blur-3xl ${t.glow}`} />
             <div className="relative h-full w-full transition-transform duration-500 ease-out hover:scale-[1.03] motion-reduce:transition-none">
               <StepImage item={item} index={index} />

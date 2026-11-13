@@ -154,7 +154,6 @@ export default function Hero() {
       phase: Number(n.dataset.phase ?? 0),
       tilt: Number(n.dataset.tilt ?? 0),
     }));
-    const magnets = Array.from(root.querySelectorAll<HTMLElement>("[data-magnet]"));
     const glow = glowRef.current;
     const finePointer = window.matchMedia("(pointer: fine)").matches;
 
@@ -223,25 +222,7 @@ export default function Hero() {
 
     // magnetic buttons
     const cleanups: Array<() => void> = [];
-    if (finePointer) {
-      magnets.forEach((el) => {
-        const move = (e: PointerEvent) => {
-          const r = el.getBoundingClientRect();
-          const mx = (e.clientX - (r.left + r.width / 2)) * 0.18;
-          const my = (e.clientY - (r.top + r.height / 2)) * 0.3;
-          el.style.transform = `translate(${mx.toFixed(1)}px,${my.toFixed(1)}px)`;
-        };
-        const out = () => {
-          el.style.transform = "";
-        };
-        el.addEventListener("pointermove", move);
-        el.addEventListener("pointerleave", out);
-        cleanups.push(() => {
-          el.removeEventListener("pointermove", move);
-          el.removeEventListener("pointerleave", out);
-        });
-      });
-    }
+
 
     root.addEventListener("pointermove", onMove);
     root.addEventListener("pointerleave", onLeave);
@@ -326,11 +307,11 @@ export default function Hero() {
             Share trusted jobs, courses, campaigns and opportunities with your community. Track real results. Get paid.
           </p>
           <div className="hero-in mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:gap-4" style={d(400)}>
-            <Link href="/signup" data-magnet className="btn-tap group inline-flex h-12 w-full min-h-11 items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-8 text-base font-semibold shadow-lg shadow-indigo-900/40 transition hover:brightness-110 hover:shadow-xl hover:shadow-violet-500/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:h-[52px] sm:w-auto sm:px-10">
+            <Link href="/signup" className="btn-tap group inline-flex h-12 w-full min-h-11 items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-8 text-base font-semibold shadow-lg shadow-indigo-900/40 transition hover:brightness-110 hover:shadow-xl hover:shadow-violet-500/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:h-[52px] sm:w-auto sm:px-10">
               Start Earning <Arrow />
             </Link>
-            <Link href="/hiring" data-magnet className="btn-tap group inline-flex h-12 w-full min-h-11 items-center justify-center gap-3 rounded-full bg-white px-8 text-base font-semibold text-slate-900 transition hover:bg-slate-100 hover:shadow-xl hover:shadow-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:h-[52px] sm:w-auto sm:px-10">
-              I&apos;m Hiring <Arrow />
+            <Link href="/hiring" className="btn-tap group inline-flex h-12 w-full min-h-11 items-center justify-center gap-3 rounded-full bg-white px-8 text-base font-semibold text-slate-900 transition hover:bg-slate-100 hover:shadow-xl hover:shadow-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:h-[52px] sm:w-auto sm:px-10">
+              Live Campaigns <Arrow />
             </Link>
           </div>
 

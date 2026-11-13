@@ -34,7 +34,7 @@ const cards: Card[] = [
   },
   {
     tag: "For Employers",
-    title: "I'm hiring",
+    title: "Live Campaigns",
     text: "Reach the right communities and get qualified candidates through trusted creators.",
     cta: "Launch Campaign",
     href: "/hiring",
@@ -178,47 +178,43 @@ export default function ChooseGrow() {
 
               {/* Photo band — shared 4:3 aspect across all cards */}
               <div className="relative z-0 mt-auto w-full overflow-hidden">
-                <div
-                  className="relative aspect-[4/3] w-full"
-                  style={{
-                    transform:
-                      "translate3d(calc(var(--px, 0) * -6px), calc(var(--py, 0) * -4px), 0)",
-                    transition: "transform .4s ease-out",
-                  }}
-                >
-                  <Image
-                    src={c.img}
-                    alt={c.alt}
-                    fill
-                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                    loading="lazy"
-                    className="object-cover object-[center_20%] transition-transform duration-500 group-hover:scale-105"
-                  />
-                  {/* Soft gradient so note text stays readable */}
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent"
-                  />
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0F1B3D]/35 to-transparent"
-                  />
-                </div>
+  <div
+    className="relative ml-auto h-[210px] w-[65%]"
+    style={{
+      transform:
+        "translate3d(calc(var(--px, 0) * -6px), calc(var(--py, 0) * -4px), 0)",
+      transition: "transform .4s ease-out",
+    }}
+  >
+    <Image
+      src={c.img}
+      alt={c.alt}
+      fill
+      sizes="(min-width: 1024px) 22vw, (min-width: 768px) 33vw, 65vw"
+      loading="lazy"
+      className="rounded-tl-[160px] object-cover object-[center_20%] transition-transform duration-500 group-hover:scale-105"
+    />
+    {/* Soft gradient */}
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 rounded-tl-[160px] bg-gradient-to-t from-[#0F1B3D]/25 to-transparent"
+    />
+  </div>
 
-                <p
-                  className="font-hand pointer-events-none absolute bottom-5 left-5 z-10 whitespace-pre-line text-card-heading leading-snug text-white drop-shadow-md sm:bottom-6 sm:left-6 xl:bottom-8 xl:left-8"
-                  style={
-                    {
-                      "--rot": `${c.rot}deg`,
-                      transform:
-                        "translate3d(calc(var(--px, 0) * 8px), calc(var(--py, 0) * 6px), 0) rotate(var(--rot))",
-                      transition: "transform .4s ease-out",
-                    } as CSSProperties
-                  }
-                >
-                  {c.note}
-                </p>
-              </div>
+  <p
+    className="font-hand pointer-events-none absolute bottom-5 left-5 z-10 max-w-[32%] whitespace-pre-line text-card-heading leading-snug text-[#0F1B3D] sm:bottom-6 sm:left-6 xl:bottom-8 xl:left-8"
+    style={
+      {
+        "--rot": `${c.rot}deg`,
+        transform:
+          "translate3d(calc(var(--px, 0) * 8px), calc(var(--py, 0) * 6px), 0) rotate(var(--rot))",
+        transition: "transform .4s ease-out",
+      } as CSSProperties
+    }
+  >
+    {c.note}
+  </p>
+</div>
             </div>
           </div>
         ))}

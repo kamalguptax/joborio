@@ -140,23 +140,187 @@ function FeatureIcon({ name }: { name: (typeof features)[number]["icon"] }) {
   );
 }
 
-/* Chart sample points across the follower range (syncs highlight with slider %) */
-function chartPoints(pct: number) {
-  const samples = 7;
-  return Array.from({ length: samples }, (_, i) => {
-    const samplePct = (i / (samples - 1)) * 100;
-    const f = followersAt(samplePct);
-    const e = earningsFor(f);
-    return {
-      x: (i / (samples - 1)) * 100,
-      earnings: e,
-      active:
-        Math.abs(samplePct - pct) <= 100 / (samples - 1) / 2 + 0.01 ||
-        i === Math.round((pct / 100) * (samples - 1)),
-      samplePct,
-    };
-  });
+/* ------------------------------------------------------------------ */
+/*  Earnings line chart                                                */
+/* ------------------------------------------------------------------ */
+
+const CH = { w: 320, h: 168, x0: 14, x1: 306, top: 34, base: 128 };
+const SAMPLES = 64;
+const AXIS = ["1K", "10K", "100K", "1M", "2M+"];
+
+// Curve ko dikhne layak banane ke liye y-axis par halka compression.
+// Linear chahiye to exponent 0.5 ko 1 kar do.
+const yScale = (e: number, max: number) => Math.pow(e / max, 0.5);
+
+function EarningsChart({
+  pct,
+  earnings,
+  label,
+  active,
+}: {
+  pct: number;
+  earnings: number;
+  label: string;
+  active: boolean;
+}) {
+  const gid = useId().replace(/:/g, "");
+
+  const { pts, max } = useMemo(() => {
+    const arr = Array.from({ length: SAMPLES }, (_, i) => {
+      const sp = (i / (SAMPLES - 1)) * 100;
+      return { sp, e: earningsFor(followersAt(sp)) };
+    });
+    return { pts: arr, max: arr[arr.length - 1].e };
+  }, []);
+
+  const X = (sp: number) => CH.x0 + (sp / 100) * (CH.x1 - CH.x0);
+  const Y = (e: number) => CH.base - yScale(e, max) * (CH.base - CH.top);
+
+  const line = pts
+    .map((p, i) => `${i ? "L" : "M"}${X(p.sp).toFixed(1)} ${Y(p.e).toFixed(1)}`)
+    .join(" ");
+  const area = `${line} L${CH.x1} ${CH.base} L${CH.x0} ${CH.base} Z`;
+
+  // Marker slider ke exact position par (snap nahi hota)
+  const hx = X(pct);
+  const hy = Y(earnings);
+
+  // Tooltip
+  const tw = 92;
+  const tx = Math.min(Math.max(hx - tw / 2, 4), CH.w - tw - 4);
+  const above = hy - 46 > 4;
+  const ty = above ? hy - 46 : hy + 14;
+
+  return (
+    <svg
+      viewBox={`0 0 ${CH.w} ${CH.h}`}
+      className="h-auto w-full overflow-visible"
+      role="img"
+      aria-label={`Earnings curve: ${label} followers, about ₹${inr.format(earnings)} per month`}
+    >
+      <defs>
+        <linearGradient id={`${gid}-area`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#C4B5FD" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#C4B5FD" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={`${gid}-line`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#A5B4FC" />
+          <stop offset="55%" stopColor="#C4B5FD" />
+          <stop offset="100%" stopColor="#F0ABFC" />
+        </linearGradient>
+        <clipPath id={`${gid}-done`}>
+          <rect x={0} y={0} width={hx} height={CH.h} />
+        </clipPath>
+      </defs>
+
+      {/* Horizontal guides */}
+      {[0.25, 0.5, 0.75, 1].map((g) => {
+        const y = CH.base - g * (CH.base - CH.top);
+        return (
+          <line
+            key={g}
+            x1={CH.x0}
+            x2={CH.x1}
+            y1={y}
+            y2={y}
+            stroke="white"
+            strokeOpacity={0.07}
+            strokeDasharray="2 5"
+          />
+        );
+      })}
+      <line x1={CH.x0} x2={CH.x1} y1={CH.base} y2={CH.base} stroke="white" strokeOpacity={0.18} />
+
+      {/* Marker ke aage ka hissa — dim */}
+      <path
+        d={line}
+        fill="none"
+        stroke="white"
+        strokeOpacity={0.28}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        pathLength={1}
+        strokeDasharray={1}
+        style={{
+          strokeDashoffset: active ? 0 : 1,
+          transition: "stroke-dashoffset 1.2s ease-out",
+        }}
+      />
+
+      {/* Marker tak ka hissa — bright + area fill */}
+      <g clipPath={`url(#${gid}-done)`}>
+        <path d={area} fill={`url(#${gid}-area)`} />
+        <path
+          d={line}
+          fill="none"
+          stroke={`url(#${gid}-line)`}
+          strokeWidth={3.2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
+
+      {/* Vertical guide */}
+      <line
+        x1={hx}
+        x2={hx}
+        y1={hy}
+        y2={CH.base}
+        stroke="#F0ABFC"
+        strokeOpacity={0.55}
+        strokeDasharray="3 4"
+      />
+      <circle cx={hx} cy={CH.base} r={2.5} fill="#F0ABFC" />
+
+      {/* Marker */}
+      <circle cx={hx} cy={hy} r={13} fill="#F0ABFC" fillOpacity={0.2} />
+      <circle cx={hx} cy={hy} r={6.5} fill="#fff" stroke="#E879F9" strokeWidth={3} />
+
+      {/* Tooltip */}
+      <g style={{ transform: `translate(${tx}px, ${ty}px)` }}>
+        <rect
+          width={tw}
+          height={32}
+          rx={9}
+          fill="#0F0A3C"
+          fillOpacity={0.85}
+          stroke="white"
+          strokeOpacity={0.2}
+        />
+        <text x={tw / 2} y={13} textAnchor="middle" fontSize={8.5} fill="#DDD6FE">
+          {label} followers
+        </text>
+        <text x={tw / 2} y={25} textAnchor="middle" fontSize={11.5} fontWeight={700} fill="#fff">
+          ₹{inr.format(earnings)}
+        </text>
+      </g>
+
+      {/* X-axis labels */}
+      {AXIS.map((t, i) => {
+        const near = Math.abs(pct - i * 25) < 12.5;
+        return (
+          <text
+            key={t}
+            x={X(i * 25)}
+            y={CH.base + 17}
+            textAnchor={i === 0 ? "start" : i === 4 ? "end" : "middle"}
+            fontSize={9.5}
+            fontWeight={near ? 700 : 400}
+            fill={near ? "#fff" : "#C4B5FD"}
+            fillOpacity={near ? 1 : 0.7}
+          >
+            {t}
+          </text>
+        );
+      })}
+    </svg>
+  );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Right-side visual                                                  */
+/* ------------------------------------------------------------------ */
 
 function EarningsVisual({
   pct,
@@ -173,9 +337,6 @@ function EarningsVisual({
   label: string;
   active: boolean;
 }) {
-  const gid = useId().replace(/:/g, "");
-  const points = useMemo(() => chartPoints(pct), [pct]);
-  const maxEarn = Math.max(...points.map((p) => p.earnings), earnings, 1);
   const keep = Math.round(shown * CREATOR_KEEP);
   const fee = Math.round(shown * PLATFORM_FEE);
 
@@ -183,23 +344,6 @@ function EarningsVisual({
   const clicks = Math.max(120, Math.round(followers * 0.042));
   const applies = Math.max(8, Math.round(followers * 0.0018));
   const hires = Math.max(1, Math.round(followers * 0.00022));
-
-  const pathLine = points
-    .map((pt, i) => {
-      const x = 20 + (pt.x / 100) * 280;
-      const y = 118 - (pt.earnings / maxEarn) * 88;
-      return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
-    })
-    .join(" ");
-
-  const areaPath = `${pathLine} L300 128 L20 128 Z`;
-
-  const highlightIdx = Math.min(
-    points.length - 1,
-    Math.max(0, Math.round((pct / 100) * (points.length - 1))),
-  );
-  const hx = 20 + (points[highlightIdx].x / 100) * 280;
-  const hy = 118 - (points[highlightIdx].earnings / maxEarn) * 88;
 
   return (
     <div className="relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-[28px] bg-gradient-to-br from-[#1B1464] via-[#2A1B7A] to-[#5B2BE0] p-5 text-white shadow-xl sm:min-h-[500px] sm:rounded-[32px] sm:p-6 lg:min-h-full">
@@ -230,72 +374,15 @@ function EarningsVisual({
         </M>
       </div>
 
-      {/* Area / bar chart */}
+      {/* Line chart */}
       <div className="relative mt-5 flex-1 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm sm:p-4">
-        <div className="mb-2 flex items-center justify-between gap-2 text-[11px] text-violet-200/80">
+        <div className="mb-3 flex items-center justify-between gap-2 text-[11px] text-violet-200/80">
           <span>Earnings vs audience</span>
-          <span>1K → 2M+</span>
+          <span className="rounded-full bg-white/10 px-2 py-0.5 font-medium text-white">
+            {label} followers
+          </span>
         </div>
-        <svg viewBox="0 0 320 140" className="h-auto w-full" role="img" aria-label="Earnings chart by audience size">
-          <defs>
-            <linearGradient id={`${gid}-fill`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#A78BFA" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#A78BFA" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id={`${gid}-stroke`} x1="0" y1="0" x2="1" y2="0">
-              <stop stopColor="#C4B5FD" />
-              <stop offset="1" stopColor="#F0ABFC" />
-            </linearGradient>
-          </defs>
-
-          {/* soft bars under the curve */}
-          {points.map((pt, i) => {
-            const x = 20 + (pt.x / 100) * 280;
-            const h = (pt.earnings / maxEarn) * 88;
-            const lit = i === highlightIdx;
-            return (
-              <rect
-                key={i}
-                x={x - 10}
-                y={118 - h}
-                width={20}
-                height={h}
-                rx={6}
-                fill={lit ? "rgba(244,114,182,0.35)" : "rgba(167,139,250,0.12)"}
-                className="transition-all duration-300"
-              />
-            );
-          })}
-
-          <path
-            d={areaPath}
-            fill={`url(#${gid}-fill)`}
-            className="transition-all duration-300"
-          />
-          <path
-            d={pathLine}
-            fill="none"
-            stroke={`url(#${gid}-stroke)`}
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pathLength={1}
-            strokeDasharray={1}
-            style={{
-              strokeDashoffset: active ? 0 : 1,
-              transition: "stroke-dashoffset 1.2s ease-out",
-            }}
-          />
-          <circle
-            cx={hx}
-            cy={hy}
-            r={7}
-            fill="#F0ABFC"
-            stroke="#fff"
-            strokeWidth={2.5}
-            className="transition-all duration-300"
-          />
-        </svg>
+        <EarningsChart pct={pct} earnings={earnings} label={label} active={active} />
       </div>
 
       {/* 75 / 25 breakdown */}
