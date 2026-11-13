@@ -201,7 +201,12 @@ export default function OnboardingPage() {
         niche_ids: selectedNicheIds,
         audience_countries: countryCode ? [countryCode] : undefined,
         promote_job_types: jobTypes,
-        referral_code: getReferralCode() ?? undefined,
+        referral_code:
+          getReferralCode() ??
+          (typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("ref")?.toUpperCase()
+            : undefined) ??
+          undefined,
       });
       savePromoteJobTypes(jobTypes);
       clearReferralCode();

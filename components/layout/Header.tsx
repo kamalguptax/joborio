@@ -123,6 +123,12 @@ const navGroups: NavGroup[] = [
         icon: <IconCampaigns />,
       },
       {
+        label: "Promote a post",
+        href: "/promote",
+        description: "Creators like, comment and repost your post",
+        icon: <IconCampaigns />,
+      },
+      {
         label: "Courses",
         href: "/courses",
         description: "Learning products your audience can take",

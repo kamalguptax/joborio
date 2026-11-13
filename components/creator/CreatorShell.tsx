@@ -8,15 +8,11 @@ import {
   Briefcase,
   Megaphone,
   Wallet,
-  Landmark,
   Settings,
   ExternalLink,
   LogOut,
-  UserPlus,
   Gift,
-  Sparkles,
-  Shield,
-  SlidersHorizontal,
+  BarChart3,
 } from "lucide-react";
 import CreatorNotificationBell from "@/components/creator/CreatorNotificationBell";
 import { clearAuthToken } from "@/lib/auth/session";
@@ -25,21 +21,21 @@ import { creatorProfilePath } from "@/lib/staticExport";
 
 const nav = [
   { href: "/creator/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/creator/performance", label: "Performance", icon: BarChart3 },
   { href: "/creator/clicks", label: "Clicks", icon: MousePointerClick },
   { href: "/creator/opportunities", label: "Opportunities", icon: Briefcase },
-  {
-    href: "/creator/job-preferences",
-    label: "Job preferences",
-    icon: SlidersHorizontal,
-  },
   { href: "/creator/campaigns", label: "Campaigns", icon: Megaphone },
-  { href: "/creator/registrations", label: "Registrations", icon: UserPlus },
   { href: "/creator/referrals", label: "Referrals", icon: Gift },
-  { href: "/creator/ai-studio", label: "AI Post Studio", icon: Sparkles },
-  { href: "/creator/trust-tier", label: "Account features", icon: Shield },
   { href: "/creator/earnings", label: "Earnings", icon: Wallet },
-  { href: "/creator/payout", label: "Payout account", icon: Landmark },
   { href: "/creator/settings", label: "Settings", icon: Settings },
+];
+
+const mobileNav = [
+  { href: "/creator/dashboard", label: "Home", icon: LayoutDashboard },
+  { href: "/creator/performance", label: "Perf", icon: BarChart3 },
+  { href: "/creator/opportunities", label: "Jobs", icon: Briefcase },
+  { href: "/creator/campaigns", label: "Campaigns", icon: Megaphone },
+  { href: "/creator/earnings", label: "Earn", icon: Wallet },
 ];
 
 export default function CreatorShell({
@@ -65,7 +61,16 @@ export default function CreatorShell({
 
             <nav className="mt-6 space-y-1">
               {nav.map(({ href, label, icon: Icon }) => {
-                const active = pathname === href;
+                const active =
+                  pathname === href ||
+                  (href === "/creator/settings" &&
+                    (pathname.startsWith("/creator/job-preferences") ||
+                      pathname.startsWith("/creator/settings"))) ||
+                  (href === "/creator/performance" &&
+                    pathname.startsWith("/creator/registrations")) ||
+                  (href === "/creator/earnings" &&
+                    (pathname.startsWith("/creator/payout") ||
+                      pathname.startsWith("/creator/trust-tier")));
                 return (
                   <Link
                     key={href}
@@ -97,14 +102,14 @@ export default function CreatorShell({
             <button
               type="button"
               onClick={async () => {
-              try {
-                await logoutApi();
-              } catch {
-                /* ignore */
-              }
-              clearAuthToken();
-              window.location.href = "/login";
-            }}
+                try {
+                  await logoutApi();
+                } catch {
+                  /* ignore */
+                }
+                clearAuthToken();
+                window.location.href = "/login";
+              }}
               className="mt-6 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 hover:text-red-600"
             >
               <LogOut size={16} />
@@ -114,10 +119,7 @@ export default function CreatorShell({
         </aside>
 
         <div className="min-w-0 flex-1">
-          <div className="mb-4 flex justify-end lg:hidden">
-            <CreatorNotificationBell />
-          </div>
-          <div className="mb-6 hidden justify-end lg:flex">
+          <div className="mb-4 flex items-center justify-end lg:mb-6">
             <CreatorNotificationBell />
           </div>
           {children}
@@ -125,7 +127,7 @@ export default function CreatorShell({
       </div>
 
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-slate-200 bg-white/95 backdrop-blur lg:hidden">
-        {nav.map(({ href, label, icon: Icon }) => {
+        {mobileNav.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
             <Link
@@ -136,7 +138,7 @@ export default function CreatorShell({
               }`}
             >
               <Icon size={20} />
-              {label.split(" ")[0]}
+              {label}
             </Link>
           );
         })}

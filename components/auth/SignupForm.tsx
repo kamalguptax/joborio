@@ -23,6 +23,17 @@ const field =
 
 const SIGNUP_ROLE_KEY = "joborio_signup_role";
 
+function readRefFromUrl(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return (new URLSearchParams(window.location.search).get("ref") ?? "")
+      .trim()
+      .toUpperCase();
+  } catch {
+    return "";
+  }
+}
+
 export function getSignupRoleIntent(): SignupRole | null {
   if (typeof window === "undefined") return null;
   const v = sessionStorage.getItem(SIGNUP_ROLE_KEY);
@@ -47,11 +58,26 @@ export default function SignupForm() {
   const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  /** Hide Employer / Partner only when signup opened with ?ref=CODE */
+  const [inviteFromUrl, setInviteFromUrl] = useState(false);
 
   useEffect(() => {
+    const fromUrl = readRefFromUrl();
+    if (fromUrl) {
+      setInviteFromUrl(true);
+      setRole("creator");
+      setReferralCode(fromUrl);
+      saveReferralCode(fromUrl);
+      return;
+    }
+    setInviteFromUrl(false);
     const existing = getReferralCode();
     if (existing) setReferralCode(existing);
   }, []);
+
+  const visibleRoles = inviteFromUrl
+    ? roles.filter((r) => r.value === "creator")
+    : roles;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -70,17 +96,25 @@ export default function SignupForm() {
       return;
     }
 
+    const effectiveRole: SignupRole = inviteFromUrl ? "creator" : role;
+
     setLoading(true);
     try {
-      if (referralCode.trim()) {
-        saveReferralCode(referralCode);
+      const refCode = referralCode.trim().toUpperCase();
+      if (refCode) {
+        saveReferralCode(refCode);
       }
-      const data = await register({ name, email, password });
+      const data = await register({
+        name,
+        email,
+        password,
+        ...(refCode ? { referral_code: refCode } : {}),
+      });
       setAuthToken(data.token);
       rememberPublicCode(data.user);
       savePromoteJobTypes(jobTypes);
-      sessionStorage.setItem(SIGNUP_ROLE_KEY, role);
-      if (role === "employer") {
+      sessionStorage.setItem(SIGNUP_ROLE_KEY, effectiveRole);
+      if (effectiveRole === "employer") {
         router.push("/employer/onboarding");
       } else {
         router.push("/onboarding");
@@ -106,8 +140,12 @@ export default function SignupForm() {
 
       <fieldset>
         <legend className="text-sm font-semibold text-[#0F1B3D]">I am a</legend>
-        <div className="mt-2 grid grid-cols-1 gap-2 min-[420px]:grid-cols-3">
-          {roles.map((r) => (
+        <div
+          className={`mt-2 grid grid-cols-1 gap-2 ${
+            visibleRoles.length > 1 ? "min-[420px]:grid-cols-3" : ""
+          }`}
+        >
+          {visibleRoles.map((r) => (
             <label
               key={r.value}
               className={`flex min-h-11 cursor-pointer flex-col justify-center rounded-xl border px-3 py-3 text-center transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-violet-500/20 ${
@@ -121,7 +159,9 @@ export default function SignupForm() {
                 name="role"
                 value={r.value}
                 checked={role === r.value}
-                onChange={() => setRole(r.value)}
+                onChange={() => {
+                  if (!inviteFromUrl) setRole(r.value);
+                }}
                 className="sr-only"
               />
               <span className="block text-sm font-semibold">{r.label}</span>
@@ -188,7 +228,10 @@ export default function SignupForm() {
           placeholder="Enter a creator’s code"
           value={referralCode}
           onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-          className={`${field} uppercase tracking-wide`}
+          readOnly={inviteFromUrl}
+          className={`${field} uppercase tracking-wide ${
+            inviteFromUrl ? "bg-slate-50 text-slate-700" : ""
+          }`}
         />
         <p className="mt-1.5 text-xs text-slate-500">
           Have a friend’s invite? Enter it here, or open their referral link.{" "}

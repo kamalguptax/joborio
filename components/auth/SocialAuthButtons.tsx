@@ -4,7 +4,13 @@ import { FcGoogle } from "react-icons/fc";
 import { FaLinkedinIn } from "react-icons/fa";
 import { getApiBaseUrl } from "@/lib/config";
 
-export default function SocialAuthButtons() {
+export default function SocialAuthButtons({
+  intent = "continue",
+}: {
+  intent?: "login" | "continue";
+}) {
+  const verb = intent === "login" ? "Login with" : "Continue with";
+
   const startOAuth = (provider: "google" | "linkedin") => {
     window.location.href = `${getApiBaseUrl()}/api/v1/auth/${provider}/redirect`;
   };
@@ -17,7 +23,7 @@ export default function SocialAuthButtons() {
         className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
       >
         <FcGoogle className="text-xl" />
-        <span>Continue with Google</span>
+        <span>{verb} Google</span>
       </button>
 
       <button
@@ -28,7 +34,7 @@ export default function SocialAuthButtons() {
         <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-[#0A66C2]">
           <FaLinkedinIn className="text-[12px] text-white" />
         </span>
-        <span>Continue with LinkedIn</span>
+        <span>{verb} LinkedIn</span>
       </button>
     </>
   );

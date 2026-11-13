@@ -190,18 +190,36 @@ export function goLiveEmployerProgram(programId: number) {
   );
 }
 
+export function syncEmployerProgramAds(
+  programId: number,
+  platforms?: Array<"meta" | "linkedin">,
+) {
+  return apiFetch<{
+    ad_syncs: Array<Record<string, unknown>>;
+    message?: string;
+  }>(`/api/v1/employer/programs/${programId}/sync-ads`, {
+    method: "POST",
+    auth: true,
+    body: JSON.stringify(platforms ? { platforms } : {}),
+  });
+}
+
 export function createEmployerProgram(body: {
   title: string;
   description?: string;
   destination_url: string;
-  pricing_model: "ppc" | "ppr" | "ppa";
-  promotion_type?: "job" | "course" | "tool" | "branding" | "other";
+  pricing_model: "ppc" | "ppr" | "ppa" | "ppe";
+  promotion_type?: "job" | "course" | "tool" | "branding" | "post_promote" | "other";
   rate_usd: number;
   budget_total_usd: number;
   trial_without_ip?: boolean;
   target_niche_ids?: number[];
   target_countries?: string[];
   min_trust_tier?: string;
+  auto_ads_platforms?: Array<"meta" | "linkedin">;
+  post_url?: string;
+  engagement_actions?: Array<"like" | "comment" | "repost">;
+  engage_brief?: string;
 }) {
   return apiFetch<{
     program: Record<string, unknown>;
@@ -248,6 +266,55 @@ export function disputePpaApplication(
       method: "POST",
       auth: true,
       body: JSON.stringify({ reason }),
+    },
+  );
+}
+
+export type PostPromoteSubmissionRow = {
+  id: number;
+  status: string;
+  actions_done?: string[];
+  proof_url?: string | null;
+  proof_note?: string | null;
+  review_note?: string | null;
+  reviewed_at?: string | null;
+  created_at?: string;
+  creator?: { id: number; handle?: string };
+};
+
+export function fetchPostPromoteSubmissions(programId: number) {
+  return apiFetch<{ submissions: PostPromoteSubmissionRow[] }>(
+    `/api/v1/employer/programs/${programId}/post-promote`,
+    { auth: true },
+  ).then((d) => d.submissions);
+}
+
+export function approvePostPromoteSubmission(
+  programId: number,
+  submissionId: number,
+  reviewNote?: string,
+) {
+  return apiFetch<{ submission: PostPromoteSubmissionRow }>(
+    `/api/v1/employer/programs/${programId}/post-promote/${submissionId}/approve`,
+    {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify({ review_note: reviewNote }),
+    },
+  );
+}
+
+export function rejectPostPromoteSubmission(
+  programId: number,
+  submissionId: number,
+  reviewNote?: string,
+) {
+  return apiFetch<{ submission: PostPromoteSubmissionRow }>(
+    `/api/v1/employer/programs/${programId}/post-promote/${submissionId}/reject`,
+    {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify({ review_note: reviewNote }),
     },
   );
 }

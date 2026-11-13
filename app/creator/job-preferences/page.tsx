@@ -1,11 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import JobPreferencesForm, {
   type JobPreferencesValues,
 } from "@/components/job-preferences/JobPreferencesForm";
 import PreferredJobsList from "@/components/job-preferences/PreferredJobsList";
-import PromoteJobsList from "@/components/job-preferences/PromoteJobsList";
 import {
   fetchCreatorJobPreferences,
   fetchCreatorPreferredJobs,
@@ -16,7 +16,6 @@ import type { Listing } from "@/lib/api/types";
 export default function CreatorJobPreferencesPage() {
   const [initial, setInitial] = useState<JobPreferencesValues | null>(null);
   const [jobs, setJobs] = useState<Listing[]>([]);
-  const [jobTypes, setJobTypes] = useState<string[]>([]);
 
   const loadJobs = () => {
     fetchCreatorPreferredJobs().then(setJobs).catch(() => setJobs([]));
@@ -45,7 +44,6 @@ export default function CreatorJobPreferencesPage() {
       prefer_remote: values.remoteOnly,
       job_types: values.job_types,
     });
-    setJobTypes(values.job_types);
     setInitial(values);
     loadJobs();
   };
@@ -53,13 +51,19 @@ export default function CreatorJobPreferencesPage() {
   return (
     <>
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wider text-purple-600">
-          Matching
+        <Link
+          href="/creator/settings"
+          className="text-sm font-semibold text-purple-600"
+        >
+          ← Settings
+        </Link>
+        <p className="mt-4 text-sm font-semibold uppercase tracking-wider text-purple-600">
+          Settings
         </p>
         <h1 className="mt-1 text-3xl font-bold">Job preferences</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
-          Choose niches and locations. Matching jobs appear below and sync to your
-          creator page opportunities.
+          Choose niches, job types, and locations. Matching jobs sync to your
+          campaigns and opportunities.
         </p>
       </div>
 
@@ -68,13 +72,10 @@ export default function CreatorJobPreferencesPage() {
           initial={initial}
           remoteLabel="Remote jobs only"
           onSave={onSave}
-          onJobTypesChange={setJobTypes}
         />
       ) : (
         <p className="text-sm text-slate-500">Loading…</p>
       )}
-
-      <PromoteJobsList types={jobTypes} />
 
       <div className="mt-10">
         <h2 className="text-lg font-bold">Preferred jobs for you</h2>

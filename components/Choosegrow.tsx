@@ -25,7 +25,7 @@ const cards: Card[] = [
     title: "I have an audience",
     text: "Share relevant opportunities, courses and campaigns. Earn from every qualified action.",
     cta: "Start Earning",
-    href: "/creators",
+    href: "/signup",
     bg: "bg-[#F0E8FE]",
     img: "/images/grow/creator.jpg",
     alt: "Young Indian content creator holding a smartphone and camera light",

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchNiches } from "@/lib/api/creator";
 import NicheSearch from "@/components/jobs/NicheSearch";
 import PromoteJobTypes from "@/components/jobs/PromoteJobTypes";
-import { readPromoteJobTypes } from "@/lib/jobs/promoteTypes";
+import { readPromoteJobTypes, savePromoteJobTypes } from "@/lib/jobs/promoteTypes";
 
 const COUNTRY_OPTIONS = [
   { code: "US", label: "United States" },
@@ -64,17 +64,18 @@ export default function JobPreferencesForm({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (nicheIds.length === 0) {
-      setMsg("Pick at least one niche.");
+    if (nicheIds.length === 0 && jobTypes.length === 0) {
+      setMsg("Pick at least one skill niche or job type to promote.");
       return;
     }
     setSaving(true);
     setMsg(null);
     try {
       await onSave({ niche_ids: nicheIds, countries, remoteOnly, job_types: jobTypes });
+      savePromoteJobTypes(jobTypes);
       setMsg("Preferences saved. Your job feed is updated.");
     } catch {
-      setMsg("Could not save preferences.");
+      setMsg("Could not save preferences. Check you are signed in as a creator.");
     } finally {
       setSaving(false);
     }

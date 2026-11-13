@@ -31,7 +31,7 @@ export default function Footer() {
               </p>
 
               <Link
-                href="/signup"
+                href="/creator/register"
                 className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-bold text-[#172b63] transition hover:bg-blue-50"
               >
                 Get Started
@@ -48,7 +48,7 @@ export default function Footer() {
               <div className="mt-5 flex flex-col gap-3">
                 {[
                   ["Find Jobs", "/jobs"],
-                  ["Creators", "/signup"],
+                  ["Creators", "/creator/register"],
                   ["How It Works", "/how-it-works"],
                   ["About", "/about"],
                 ].map(([label, href]) => (
@@ -97,6 +97,7 @@ export default function Footer() {
                 {[
                   ["Hire Creators", "/employer/onboarding"],
                   ["Post a Job", "/employer/programs/new"],
+                  ["Promote a post", "/promote"],
                   ["Partner With Us", "/contact"],
                   ["Support", "/contact"],
                 ].map(([label, href]) => (

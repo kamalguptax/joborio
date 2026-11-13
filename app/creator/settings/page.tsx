@@ -93,6 +93,20 @@ export default function CreatorSettingsPage() {
         </section>
 
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="font-bold">Job preferences</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Choose skills, job types, and countries so campaigns and XML jobs
+            match your audience.
+          </p>
+          <Link
+            href="/creator/job-preferences"
+            className="mt-4 inline-block rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white"
+          >
+            Edit job preferences
+          </Link>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="font-bold">Payout account</h2>
           <p className="mt-1 text-sm text-slate-500">
             Account type: <strong>Creator</strong>. Add UPI, a bank account, or

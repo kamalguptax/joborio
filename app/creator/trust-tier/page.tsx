@@ -43,7 +43,13 @@ export default function AccountFeaturesPage() {
   return (
     <>
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wider text-purple-600">
+        <Link
+          href="/creator/earnings"
+          className="text-sm font-semibold text-purple-600 hover:text-blue-600"
+        >
+          ← Earnings
+        </Link>
+        <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-purple-600">
           Account type
         </p>
         <h1 className="mt-1 text-3xl font-bold">Creator features</h1>

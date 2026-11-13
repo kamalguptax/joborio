@@ -10,6 +10,7 @@ type Row = {
   handle: string;
   trust_tier: string;
   verified_clicks_30d: number;
+  earnings_usd_30d?: number;
 };
 
 export default function LeaderboardPage() {
@@ -41,7 +42,14 @@ export default function LeaderboardPage() {
               @{r.handle}
             </Link>
             <span className="text-xs uppercase text-slate-400">{r.trust_tier}</span>
-            <span className="text-sm font-bold tabular-nums">{r.verified_clicks_30d} clicks</span>
+            <span className="text-right text-sm font-bold tabular-nums">
+              {r.verified_clicks_30d} clicks
+              {typeof r.earnings_usd_30d === "number" ? (
+                <span className="mt-0.5 block text-xs font-semibold text-emerald-700">
+                  ${r.earnings_usd_30d.toFixed(2)}
+                </span>
+              ) : null}
+            </span>
           </li>
         ))}
       </ol>
