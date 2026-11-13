@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ChevronDown, HelpCircle } from "lucide-react";
-import SectionHeading from "@/components/layout/SectionHeading";
+import { useId, useState } from "react";
+import { Plus } from "lucide-react";
 
 const faqs = [
   {
@@ -50,6 +49,7 @@ const faqs = [
 
 export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const baseId = useId();
 
   const toggle = (i: number) => {
     setOpenIndex((prev) => (prev === i ? null : i));
@@ -57,78 +57,108 @@ export default function FAQSection() {
 
   return (
     <section id="faq" className="section-pad w-full overflow-x-clip bg-white">
-      <div className="mx-auto max-w-[820px] px-4 sm:px-8">
-        <div className="mb-8 flex items-start gap-3 sm:mb-10">
-          <HelpCircle
-            size={26}
-            strokeWidth={1.8}
-            className="mt-1 shrink-0 text-[#633BFF]"
-          />
+      <div className="mx-auto grid max-w-[1400px] gap-8 px-4 sm:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] lg:gap-12 xl:gap-20">
+        {/* ---------- Left: label + heading ---------- */}
+        <div className="min-w-0 lg:sticky lg:top-28 lg:self-start">
+          <span className="inline-flex items-center gap-2.5 rounded-full bg-slate-100 py-1.5 pl-1.5 pr-4 text-sm font-semibold text-slate-600">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-xs font-bold text-[#633BFF] shadow-sm">
+              ?
+            </span>
+            FAQ
+          </span>
 
-          <SectionHeading
-            className="min-w-0"
-            eyebrow="Support"
-            title="Frequently Asked Questions"
-            description="Earnings, referrals, and how JobOrio pays creators."
-          />
+          <h2 className="mt-5 max-w-[16ch] text-balance text-[clamp(1.75rem,1.2rem+2.2vw,2.75rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-[#0F1B3D]">
+            Frequently Asked Questions
+          </h2>
+          <p className="mt-4 max-w-sm text-base leading-relaxed text-slate-500">
+            Earnings, referrals, and how JobOrio pays creators.
+          </p>
+
+          <div className="mt-8 hidden max-w-sm rounded-3xl bg-[#F3F3F5] p-6 lg:block">
+            <p className="text-base font-semibold text-[#1F2A44]">
+              Want the full referral breakdown?
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+              See how Refer &amp; Earn works, step by step.
+            </p>
+            <Link
+              href="/refer-and-earn"
+              className="mt-5 inline-flex min-h-11 items-center rounded-full bg-[#633BFF] px-6 text-sm font-semibold text-white transition hover:bg-[#4f2ee0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#633BFF]"
+            >
+              Refer &amp; Earn
+            </Link>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-3">
-          {faqs.map((faq, i) => {
-            const isOpen = openIndex === i;
+        {/* ---------- Right: accordion ---------- */}
+        <div className="min-w-0">
+          <div className="flex flex-col gap-3">
+            {faqs.map((faq, i) => {
+              const isOpen = openIndex === i;
+              const panelId = `${baseId}-panel-${i}`;
+              const buttonId = `${baseId}-button-${i}`;
 
-            return (
-              <div
-                key={faq.question}
-                className={`overflow-hidden rounded-2xl border transition-colors ${
-                  isOpen
-                    ? "border-violet-200 bg-[#F8F6FF]"
-                    : "border-slate-200 bg-white"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => toggle(i)}
-                  aria-expanded={isOpen}
-                  className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left sm:px-5 sm:py-5"
-                >
-                  <span className="text-body font-semibold text-[#24375C]">
-                    {faq.question}
-                  </span>
-                  <ChevronDown
-                    size={20}
-                    className={`shrink-0 text-[#633BFF] transition-transform duration-300 ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
+              return (
                 <div
-                  className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-                    isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                  key={faq.question}
+                  className={`rounded-3xl transition-colors duration-300 ${
+                    isOpen ? "bg-[#EEEEF2]" : "bg-[#F3F3F5] hover:bg-[#EDEDF1]"
                   }`}
                 >
-                  <div className="overflow-hidden">
-                    <p className="text-body px-4 pb-4 text-slate-500 sm:px-5 sm:pb-5">
-                      {faq.answer}
-                    </p>
+                  <h3>
+                    <button
+                      id={buttonId}
+                      type="button"
+                      onClick={() => toggle(i)}
+                      aria-expanded={isOpen}
+                      aria-controls={panelId}
+                      className="flex w-full items-center justify-between gap-4 rounded-3xl px-5 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#633BFF] sm:px-8 sm:py-6"
+                    >
+                      <span className="text-base font-medium leading-snug text-[#1F2A44] sm:text-lg">
+                        {faq.question}
+                      </span>
+                      <Plus
+                        size={22}
+                        strokeWidth={1.6}
+                        aria-hidden="true"
+                        className={`shrink-0 transition-transform duration-300 motion-reduce:transition-none ${
+                          isOpen ? "rotate-45 text-[#1F2A44]" : "text-slate-400"
+                        }`}
+                      />
+                    </button>
+                  </h3>
+
+                  <div
+                    id={panelId}
+                    role="region"
+                    aria-labelledby={buttonId}
+                    className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
+                      isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <p className="max-w-[62ch] px-5 pb-6 text-[15px] leading-7 text-slate-600 sm:px-8 sm:pb-7 sm:text-base">
+                        {faq.answer}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-[#E9EEF6] bg-[#FAFBFD] px-6 py-6 text-center sm:mt-10">
-          <p className="text-body font-medium text-slate-500">
-            Want the full referral breakdown?
-          </p>
-          <Link
-            href="/refer-and-earn"
-            className="rounded-full bg-[#633BFF] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4f2ee0]"
-          >
-            Refer & Earn
-          </Link>
+          {/* Mobile / tablet CTA (left column is hidden CTA on lg+) */}
+          <div className="mt-6 flex flex-col items-center gap-3 rounded-3xl bg-[#F3F3F5] px-6 py-6 text-center lg:hidden">
+            <p className="text-base font-semibold text-[#1F2A44]">
+              Want the full referral breakdown?
+            </p>
+            <Link
+              href="/refer-and-earn"
+              className="inline-flex min-h-11 items-center rounded-full bg-[#633BFF] px-6 text-sm font-semibold text-white transition hover:bg-[#4f2ee0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#633BFF]"
+            >
+              Refer &amp; Earn
+            </Link>
+          </div>
         </div>
       </div>
     </section>

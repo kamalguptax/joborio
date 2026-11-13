@@ -260,9 +260,10 @@ export default function Hero() {
   return (
     <section
       ref={rootRef}
-      className="relative min-h-[100svh] overflow-x-clip overflow-y-hidden rounded-b-[32px] bg-[linear-gradient(135deg,#0B1D4F_0%,#14296B_45%,#3F2AA8_100%)] pt-[clamp(6.5rem,18vw,11.875rem)] text-white sm:min-h-0 sm:rounded-b-[48px]"
-    >
+      className="relative isolate flex flex-col justify-center overflow-hidden lg:justify-end bg-[linear-gradient(135deg,#0B1D4F_0%,#14296B_45%,#3F2AA8_100%)] pt-24 text-white sm:pt-28 lg:pt-32 xl:pt-36">
       <div className="pointer-events-none absolute -right-40 top-1/3 hidden h-[min(600px,70vw)] w-[min(600px,70vw)] rounded-full bg-violet-600/30 blur-3xl sm:block" />
+      <div className="pointer-events-none absolute -left-32 -top-24 h-[420px] w-[420px] rounded-full bg-sky-500/15 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(255,255,255,0.16)_1px,transparent_1.5px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_at_25%_45%,black,transparent_70%)]" />
       <svg aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 max-h-[70%] max-w-[min(1183px,100%)]" width="1183" height="704" viewBox="0 0 1183 704" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g opacity="0.82">
           <path d="M1131.75 232.398C1205.86 104.048 1369.98 60.0721 1498.33 134.175V134.175C1626.68 208.278 1670.65 372.398 1596.55 500.747L1376.99 881.034C1302.89 1009.38 1138.77 1053.36 1010.42 979.257V979.257C882.068 905.154 838.092 741.034 912.195 612.684L1131.75 232.398Z" fill="url(#paint0_linear_2007_1436)" />
@@ -306,23 +307,22 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative mx-auto grid max-w-[1600px] gap-8 px-4 pb-10 sm:gap-12 sm:px-8 sm:pb-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-10 lg:px-10 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] xl:gap-16">
+      <div className="relative mx-auto grid w-full max-w-[1600px] items-center gap-6 px-4 pb-12 sm:gap-10 sm:px-8 sm:pb-16 md:pb-0 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-end lg:gap-10 lg:px-10 lg:pb-0 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:gap-16">
         {/* ---------- Left: content ---------- */}
-        <div className="min-w-0 pb-4 lg:pb-16">
-          <div className="hero-in inline-flex max-w-full items-center gap-3 rounded-3xl border border-white/20 bg-white/5 px-4 py-2.5 sm:rounded-full sm:px-6 sm:py-3" style={d(0)}>
+        <div className="min-w-0 lg:pb-20 lg:self-center">
+          <div className="hero-in inline-flex max-w-full items-center gap-3 rounded-3xl border border-white/20 bg-white/10 px-4 py-2.5 backdrop-blur-sm sm:rounded-full sm:px-5" style={d(0)}>
             <span className="hero-pulse h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400" />
             <span className="text-eyebrow leading-snug text-slate-200">The marketplace built for modern creators</span>
           </div>
 
-          <h1 className="hero-in text-page-hero mt-6 sm:mt-10" style={d(120)}>
+          <h1 className="hero-in text-page-hero mt-5 sm:mt-7 lg:text-[2.6rem] xl:text-[2.9rem] min-[1440px]:text-[3.4rem] min-[1700px]:text-[3.9rem]" style={d(120)}>
             Your audience has value.
             <span className="hero-shine mt-1 block bg-gradient-to-r from-[#D8B4FE] via-[#A78BFA] to-[#D8B4FE] bg-clip-text text-transparent" style={{ backgroundSize: "200% auto" }}>
-              Make every <br className="hidden md:block" />
-              useful share count.
+              Make every useful share count.
             </span>
           </h1>
 
-          <p className="hero-in text-section-copy mt-4 max-w-2xl text-slate-300" style={d(260)}>
+          <p className="hero-in text-section-copy mt-5 max-w-xl text-slate-200/90 sm:mt-6 lg:max-w-[34rem] lg:text-lg xl:text-xl" style={d(260)}>
             Share trusted jobs, courses, campaigns and opportunities with your community. Track real results. Get paid.
           </p>
           <div className="hero-in mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:gap-4" style={d(400)}>
@@ -334,24 +334,24 @@ export default function Hero() {
             </Link>
           </div>
 
-          <div className="hero-in mt-8 flex items-center gap-4 sm:mt-14" style={d(540)}>
+          <div className="hero-in mt-8 flex items-center gap-4 sm:mt-12" style={d(540)}>
             <div className="flex -space-x-3">
               {["from-amber-400 to-rose-500", "from-sky-400 to-indigo-500", "from-emerald-400 to-teal-600"].map((g, i) => (
                 <span key={i} className={`h-11 w-11 rounded-full border-2 border-[#14296B] bg-gradient-to-br transition-transform duration-300 hover:-translate-y-1 sm:h-12 sm:w-12 ${g}`}/>
               ))}
             </div>
             <div className="min-w-0">
-              <p className="truncate font-semibold">
+              <p className="font-semibold">
                 <CountUp to={12500} suffix="+" delay={700} /> active creators
               </p>
-              <p className="text-sm text-slate-400">Growing and earning together</p>
+              <p className="text-sm text-slate-300">Growing and earning together</p>
             </div>
           </div>
         </div>
 
         {/* ---------- Right: visual ---------- */}
-        <div className="relative mx-auto w-full max-w-[min(640px,100%)] min-w-0">
-          <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden sm:aspect-square sm:max-w-none sm:overflow-visible">
+        <div className="relative mx-auto w-full min-w-0 max-w-[420px] sm:max-w-[560px] lg:max-w-[640px]">
+          <div className="relative mx-auto aspect-square w-full">
             <Motion depth={-10} className="hero-fade absolute inset-0 hidden sm:block">
               <div className="absolute left-1/2 top-1/2 aspect-square w-[88%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/15" />
               <div className="absolute left-1/2 top-1/2 aspect-square w-[88%] -translate-x-1/2 -translate-y-1/2">
@@ -371,7 +371,7 @@ export default function Hero() {
               height={846}
               priority
               sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 640px"
-              className="hero-in absolute bottom-0 right-[4%] z-[1] h-[88%] w-auto max-w-[92%] object-contain object-bottom sm:right-[6%] sm:top-10 sm:h-[92%]"
+              className="hero-in absolute bottom-0 right-[4%] z-[1] h-[94%] w-auto max-w-[92%] object-contain object-bottom sm:right-[6%]"
             />
 
             {/* Social bubbles: fewer on mobile so they don't collide with the photo */}
@@ -387,7 +387,7 @@ export default function Hero() {
             <Bubble depth={22} amp={8} speed={1} phase={3.4} delay={950} className="left-[2%] top-[72%] bg-[#0A66C2] sm:left-[-4%] sm:top-[76%]">
               <span className="text-base font-bold leading-none sm:text-2xl lg:text-xl xl:text-3xl">in</span>
             </Bubble>
-            <Bubble depth={28} amp={9} speed={1.3} phase={4.2} delay={700} className="right-[2%] top-[10%] hidden bg-black sm:flex sm:right-0 sm:top-[14%]">
+            <Bubble depth={28} amp={9} speed={1.3} phase={4.2} delay={700} className="right-[2%] top-[10%] hidden bg-black sm:flex sm:right-0 sm:top-[21%]">
               <svg className="h-1/2 w-1/2" viewBox="0 0 24 24" {...w} strokeWidth={2.6}><path d="M14 3v11a3.5 3.5 0 11-3.5-3.5M14 3c.4 2.4 2 4 4.5 4.2" /></svg>
             </Bubble>
             <Bubble depth={24} amp={10} speed={0.8} phase={5.1} delay={900} className="right-[0%] top-[36%] bg-green-500 sm:right-[-3%] sm:top-[38%]">
@@ -409,7 +409,7 @@ export default function Hero() {
               </div>
             </Motion>
 
-            <Motion depth={28} amp={6} speed={1} phase={2} tilt={6} className="hero-in absolute bottom-[5%] left-[2%] z-[2] hidden md:block" style={d(1100)}>
+            <Motion depth={28} amp={6} speed={1} phase={2} tilt={6} className="hero-in absolute bottom-[5%] left-[2%] z-[2] hidden xl:block" style={d(1100)}>
               <div className="flex items-center gap-4 rounded-2xl bg-white/95 py-4 pl-4 pr-6 text-slate-900 shadow-xl lg:scale-[.85] xl:scale-100">
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-violet-600">
                   <svg className="h-[22px] w-[22px]" viewBox="0 0 24 24" {...w}><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4" /></svg>
@@ -423,7 +423,7 @@ export default function Hero() {
           </div>
 
           {/* Mobile mini-stats under the image (no overlap) */}
-          <div className="mt-4 grid grid-cols-2 gap-3 md:hidden">
+          <div className="relative z-[3] -mt-7 grid grid-cols-2 gap-3 md:hidden">
             <div className="flex items-center gap-3 rounded-2xl bg-white/95 px-3 py-3 text-slate-900 shadow-lg">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
                 <svg className="h-5 w-5" viewBox="0 0 24 24" {...w} stroke="currentColor"><path d="M4 20V10M10 20V6M16 20v-8M22 20H2M15 4h5v5M20 4l-6 6" /></svg>
@@ -452,7 +452,7 @@ export default function Hero() {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-[#14296B]">👑 Top Creator</p>
-                  <p className="ml-6 text-[9px] uppercase tracking-widest text-slate-400">This week</p>
+                  <p className="ml-6 text-[10px] uppercase tracking-widest text-slate-400">This week</p>
                 </div>
                 <span className="shrink-0 rounded-lg bg-violet-100 px-2 py-1 text-[11px] font-bold text-violet-700">🔥 #1</span>
               </div>
@@ -460,20 +460,20 @@ export default function Hero() {
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-pink-500 text-lg font-bold text-white ring-2 ring-pink-400 ring-offset-2 sm:h-14 sm:w-14">S</span>
                 <div className="min-w-0">
                   <p className="truncate text-xs font-bold text-[#14296B]">Sneha Verma <span className="text-sky-500">●</span></p>
-                  <p className="truncate text-[10px] text-slate-500">Career &amp; Job Updates</p>
-                  <span className="mt-1 inline-block rounded-full bg-pink-500 px-3 py-0.5 text-[9px] font-semibold text-white">Top Creator</span>
+                  <p className="truncate text-[11px] text-slate-500">Career &amp; Job Updates</p>
+                  <span className="mt-1 inline-block rounded-full bg-pink-500 px-3 py-0.5 text-[10px] font-semibold text-white">Top Creator</span>
                 </div>
               </div>
               <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-emerald-50 px-3 py-2">
                 <div className="min-w-0">
-                  <p className="text-[10px] text-slate-600">Total earnings this week</p>
+                  <p className="text-[11px] text-slate-600">Total earnings this week</p>
                   <p className="text-xl font-bold text-[#14296B] sm:text-2xl">
                     <CountUp to={18420} prefix="₹" delay={1100} />
                   </p>
                 </div>
                 <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">+32%</span>
               </div>
-              <div className="mt-3 flex justify-between gap-2 px-1 text-[10px]">
+              <div className="mt-3 flex justify-between gap-2 px-1 text-[11px]">
                 <div><p className="font-bold">1.2M</p><p className="text-slate-400">Views</p></div>
                 <div><p className="font-bold"><CountUp to={89248} delay={1200} /></p><p className="text-slate-400">Clicks</p></div>
                 <div><p className="font-bold">6</p><p className="text-slate-400">Campaigns</p></div>

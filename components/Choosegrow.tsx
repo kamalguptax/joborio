@@ -149,16 +149,16 @@ export default function ChooseGrow() {
                   {c.tag}
                 </span>
 
-                <h3 className="text-card-heading mt-8">
+                <h3 className="text-card-heading mt-6 text-2xl font-bold sm:mt-8 md:text-[1.625rem]">
                   {c.title}
                 </h3>
-                <p className="text-body mt-4 max-w-md text-slate-500">
+                <p className="text-body mt-3 max-w-md text-slate-600 sm:mt-4">
                   {c.text}
                 </p>
 
                 <Link
                   href={c.href}
-                  className="btn-tap group/btn mt-8 inline-flex h-12 min-h-11 w-fit items-center gap-3 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-8 text-sm text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+                  className="btn-tap group/btn mt-8 inline-flex h-12 min-h-11 w-fit items-center gap-3 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-8 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
                 >
                   {c.cta}
                   <svg

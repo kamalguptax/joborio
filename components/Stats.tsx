@@ -231,7 +231,7 @@ export default function Stats() {
             >
               <div
                 onPointerMove={onMove}
-                className="group relative flex h-full min-h-[200px] flex-col overflow-hidden rounded-2xl bg-white p-4 shadow-[0_12px_40px_rgba(30,27,75,0.12)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(76,29,149,0.14)] sm:min-h-[240px] sm:rounded-3xl sm:p-6 md:min-h-[270px]"
+                className="group relative flex h-full min-h-[168px] flex-col overflow-hidden rounded-2xl bg-white p-4 shadow-[0_12px_40px_rgba(30,27,75,0.12)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(76,29,149,0.14)] sm:min-h-[220px] sm:rounded-3xl sm:p-6 md:min-h-[250px]"
               >
                 <div
                   aria-hidden="true"
@@ -249,7 +249,7 @@ export default function Stats() {
                   </div>
                 </div>
 
-                <div className="relative mt-5 sm:mt-8">
+                <div className="relative mt-4 sm:mt-8">
                   <p className="text-[clamp(1.25rem,4vw,1.75rem)] font-bold leading-none tracking-tight text-[#0F1B3D]">
                     <CountUp to={s.value} decimals={s.decimals} prefix={s.prefix} suffix={s.suffix} active={active} delay={idx * 90 + 200} />
                   </p>

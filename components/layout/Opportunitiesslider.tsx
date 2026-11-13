@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import ViewJobLink from "@/components/jobs/ViewJobLink";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
 import {
   CATEGORY_BADGE,
   fetchHomeOpportunities,
+  mixOpportunitiesByCategory,
   type HomeOpportunityCard,
 } from "@/lib/home/opportunityCards";
 import SectionHeading from "@/components/layout/SectionHeading";
@@ -74,6 +77,23 @@ function ArrowIcon({ className = "h-4 w-4" }: { className?: string }) {
       aria-hidden="true"
     >
       <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ dir }: { dir: "left" | "right" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={dir === "left" ? "M15 5l-7 7 7 7" : "M9 5l7 7-7 7"} />
     </svg>
   );
 }
@@ -177,17 +197,56 @@ function OpportunityCard({ o }: { o: Opportunity }) {
   );
 }
 
+/* ----------------------------- slider ------------------------------ */
+
+/** Number of cards in the slider. */
+const SLIDER_CARDS = 6;
+
+const PER_VIEW = { xl: 4, lg: 3, sm: 2, xs: 1 } as const;
+
+function sliderSettings(count: number) {
+  return {
+    arrows: false,
+    dots: true,
+    speed: 600,
+    slidesToShow: PER_VIEW.xl,
+    slidesToScroll: 1,
+    infinite: count > PER_VIEW.xl,
+    swipeToSlide: true,
+    autoplay: true,
+    autoplaySpeed: 4000,
+    pauseOnHover: true,
+    pauseOnFocus: true,
+    responsive: [
+      {
+        breakpoint: 1280,
+        settings: { slidesToShow: PER_VIEW.lg, infinite: count > PER_VIEW.lg },
+      },
+      {
+        breakpoint: 1024,
+        settings: { slidesToShow: PER_VIEW.sm, infinite: count > PER_VIEW.sm },
+      },
+      {
+        breakpoint: 640,
+        settings: { slidesToShow: PER_VIEW.xs, infinite: count > PER_VIEW.xs },
+      },
+    ],
+  };
+}
+
 /* ----------------------------- section ----------------------------- */
 
 export default function OpportunitiesSlider() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const sliderRef = useRef<Slider>(null);
 
   useEffect(() => {
-    fetchHomeOpportunities(12)
+    // Fetch a bigger pool, then show 6 cards mixed across categories.
+    fetchHomeOpportunities(24)
       .then((rows) => {
-        setOpportunities(rows);
+        setOpportunities(mixOpportunitiesByCategory(rows, SLIDER_CARDS));
         setError(null);
       })
       .catch(() => {
@@ -211,15 +270,38 @@ export default function OpportunitiesSlider() {
             description="Curated, verified and ready for your audience."
           />
 
-          <Link
-            href="/opportunities"
-            className="inline-flex min-h-11 shrink-0 items-center text-sm font-semibold text-indigo-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-indigo-600"
-          >
-            View all opportunities →
-          </Link>
+          <div className="flex shrink-0 items-center gap-4">
+            <Link
+              href="/opportunities"
+              className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-indigo-600"
+            >
+              View all opportunities →
+            </Link>
+
+            {opportunities.length > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => sliderRef.current?.slickPrev()}
+                  aria-label="Previous opportunities"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#1E3A8A] shadow-[0_6px_20px_rgba(76,29,149,0.12)] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+                >
+                  <ChevronIcon dir="left" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => sliderRef.current?.slickNext()}
+                  aria-label="Next opportunities"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+                >
+                  <ChevronIcon dir="right" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Grid: 1 → 2 → 3 → 4 */}
+        {/* Slider: 1 → 2 → 3 → 4 cards per view */}
         <div className="mt-8">
           {loading ? (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -247,13 +329,13 @@ export default function OpportunitiesSlider() {
               .
             </p>
           ) : (
-            <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <Slider ref={sliderRef} {...sliderSettings(opportunities.length)} className="opp-slider">
               {opportunities.map((o) => (
-                <li key={o.id} className="min-w-0 h-full">
+                <div key={o.id} className="h-full">
                   <OpportunityCard o={o} />
-                </li>
+                </div>
               ))}
-            </ul>
+            </Slider>
           )}
         </div>
       </div>

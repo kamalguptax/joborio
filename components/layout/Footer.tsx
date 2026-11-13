@@ -45,8 +45,10 @@ export default function Footer() {
     : columns;
 
   return (
-    <footer className="mt-8 overflow-x-clip rounded-t-[32px] bg-[#0B1D4F] text-slate-300 sm:rounded-t-[48px]">
-      <div className="mx-auto grid max-w-[1600px] gap-10 px-4 py-12 sm:gap-12 sm:px-8 sm:py-14 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)] lg:px-10 lg:py-16">
+    <footer className="relative mt-8 overflow-hidden rounded-t-[28px] bg-[#0B1D4F] text-slate-300 sm:rounded-t-[44px]">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/70 to-transparent" />
+      <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-600/20 blur-3xl" />
+      <div className="relative mx-auto grid max-w-[1600px] gap-10 px-4 py-12 sm:gap-12 sm:px-8 sm:py-14 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)] lg:px-10 lg:py-16">
         <div className="min-w-0">
           <Logo />
           <p className="mt-5 max-w-sm text-sm leading-7 text-slate-400 sm:text-base">
@@ -81,9 +83,13 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/10">
-        <p className="mx-auto max-w-[1600px] px-4 py-6 text-sm text-slate-500 sm:px-8 lg:px-10">
-          © Joborio. All rights reserved.
-        </p>
+        <div className="relative mx-auto flex max-w-[1600px] flex-col gap-3 px-4 py-6 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
+          <p>© Joborio. All rights reserved.</p>
+          <div className="flex gap-5">
+            <Link href="/privacy" className="hover:text-white">Privacy</Link>
+            <Link href="/terms" className="hover:text-white">Terms</Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

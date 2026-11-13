@@ -233,53 +233,32 @@ export async function fetchHomeOpportunities(
 }
 
 /**
- * Typed browse for /courses, /campaigns, /marketplace.
- * Uses DB listings (?type=) and, when useful, category matches from the live feed.
+ * Pick `count` cards for the home slider, mixing categories (hiring / course / tools)
+ * round-robin. If a category has no cards, the remaining slots are filled from the
+ * categories that do, so a single-category feed still yields `count` cards.
  */
-export async function fetchTypedOpportunities(opts: {
-  listingTypes?: string[];
-  category?: OpportunityCategory;
-  includeXmlCategoryMatches?: boolean;
-  limit?: number;
-}): Promise<HomeOpportunityCard[]> {
-  const limit = opts.limit ?? 24;
-  const cards: HomeOpportunityCard[] = [];
-  let i = 0;
-
-  const types = opts.listingTypes?.length ? opts.listingTypes : [undefined];
-  await Promise.all(
-    types.map(async (type) => {
-      const res = await within(
-        fetchListings({
-          per_page: limit,
-          page: 1,
-          ...(type ? { type } : {}),
-        }),
-        20000,
-      ).catch(() => null);
-      for (const row of res?.data ?? []) {
-        if (row.status && row.status !== "active") continue;
-        cards.push(mapListing(row, i++));
-      }
-    }),
+export function mixOpportunitiesByCategory(
+  cards: HomeOpportunityCard[],
+  count = 6,
+): HomeOpportunityCard[] {
+  const order: OpportunityCategory[] = ["hiring", "course", "tools"];
+  const buckets = new Map<OpportunityCategory, HomeOpportunityCard[]>(
+    order.map((c) => [c, []]),
   );
+  for (const card of cards) buckets.get(card.category)?.push(card);
 
-  if (opts.includeXmlCategoryMatches && opts.category) {
-    const home = await fetchHomeOpportunities(Math.max(limit, 40)).catch(() => []);
-    for (const card of home) {
-      if (card.category === opts.category) {
-        cards.push(card);
+  const picked: HomeOpportunityCard[] = [];
+  while (picked.length < count) {
+    let added = false;
+    for (const cat of order) {
+      const next = buckets.get(cat)?.shift();
+      if (next) {
+        picked.push(next);
+        added = true;
+        if (picked.length >= count) break;
       }
     }
+    if (!added) break;
   }
-
-  const seen = new Set<string>();
-  return cards
-    .filter((c) => {
-      const key = `${c.title}|${c.company}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .slice(0, limit);
+  return picked;
 }
