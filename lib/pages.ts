@@ -9,7 +9,7 @@ export const pages = {
     description:
       "Joborio connects creators and community owners with employers and brands, so useful jobs, courses and campaigns reach the people who need them, and the people who share them get rewarded.",
     primary: { label: "Start Earning", href: "/signup" },
-    secondary: { label: "I'm Hiring", href: "/hiring" },
+    secondary: { label: "Live Campaigns", href: "/hiring" },
     sectionLabel: "What we believe",
     sectionTitle: "A marketplace built on trust",
     sectionIntro: "Good recommendations come from people their audience already trusts. We build the tools to make that measurable and fair.",
@@ -74,7 +74,7 @@ export const pages = {
     highlight: "the right people.",
     description:
       "Employers and brands launch campaigns. Creators share them with the communities that fit. Everyone sees what each campaign actually delivers.",
-    primary: { label: "I'm Hiring", href: "/hiring" },
+    primary: { label: "Live Campaigns", href: "/hiring" },
     secondary: { label: "Start Earning", href: "/signup" },
     sectionLabel: "How campaigns work",
     sectionTitle: "From brief to results",

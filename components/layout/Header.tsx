@@ -609,7 +609,7 @@ export default function Header() {
                   href="/hiring"
                   className="btn-tap hidden min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 md:inline-flex"
                 >
-                  I&apos;m Hiring
+                  Live Campaigns
                 </Link>
                 <Link
                   href="/signup"

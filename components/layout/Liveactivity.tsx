@@ -6,17 +6,20 @@ import { useState } from "react";
 
 type Activity = {
   name: string;
-  action: string;
-  time: string;
+  earned: number; // ₹ kamaye hue
   tone: "violet" | "sky";
   img?: string; // optional photo, e.g. "/avatars/ananya.jpg"
 };
 
 const activities: Activity[] = [
-  { name: "Priya", action: "applied for a Campaign", time: "2 min ago", tone: "violet" },
-  { name: "Rahul", action: "completed a Course", time: "12 min ago", tone: "sky" },
-  { name: "Ananya", action: "got hired", time: "28 min ago", tone: "violet" },
+  { name: "Priya", earned: 12400, tone: "violet" },
+  { name: "Rahul", earned: 8750, tone: "sky" },
+  { name: "Ananya", earned: 23600, tone: "violet" },
+  { name: "Aman", earned: 5200, tone: "sky" },
+  { name: "Sneha", earned: 18900, tone: "violet" },
 ];
+
+const inr = new Intl.NumberFormat("en-IN");
 
 const marqueeCss = `
 @keyframes la-marquee {
@@ -31,6 +34,9 @@ const marqueeCss = `
 }
 .la-marquee:hover .la-marquee-track {
   animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .la-marquee-track { animation: none; }
 }
 `;
 
@@ -66,10 +72,13 @@ function Item({ a }: { a: Activity }) {
     <div className="flex shrink-0 items-center gap-3">
       <Avatar a={a} />
       <div className="leading-tight">
-        <p className="whitespace-nowrap text-[15px] font-medium text-slate-900">
-          {a.name} {a.action}
+        <p className="whitespace-nowrap text-[15px] font-semibold text-slate-900">{a.name}</p>
+        <p className="mt-1 whitespace-nowrap text-[13px] text-slate-500">
+          Earned{" "}
+          <span className="font-semibold tabular-nums text-emerald-600">
+            ₹{inr.format(a.earned)}
+          </span>
         </p>
-        <p className="mt-1 text-[13px] text-slate-400">{a.time}</p>
       </div>
     </div>
   );
@@ -99,7 +108,7 @@ export default function LiveActivity() {
         {/* Label */}
         <div className="flex shrink-0 items-center gap-3">
           <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
-            <span className="absolute h-3 w-3 animate-ping rounded-full bg-emerald-400/60" />
+            <span className="absolute h-3 w-3 animate-ping rounded-full bg-emerald-400/60 motion-reduce:animate-none" />
             <span className="relative h-2.5 w-2.5 rounded-full bg-emerald-500" />
           </span>
           <span className="text-card-heading text-slate-900">Live activity</span>
