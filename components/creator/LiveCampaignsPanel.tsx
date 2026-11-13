@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { Check, Copy } from "lucide-react";
+import ShareLinkButton from "@/components/share/ShareLinkButton";
 import {
   fetchCreatorCampaigns,
-  optInCampaign,
+  fetchTrackLink,
   type CreatorCampaignRow,
 } from "@/lib/api/creator";
 import { formatMoney } from "@/lib/money";
@@ -42,6 +44,12 @@ function rateUnit(model: string): string {
   return "application";
 }
 
+function campaignListingId(program: CreatorCampaignRow["program"]): number {
+  const nested = Number(program.listing?.id ?? 0);
+  if (nested > 0) return nested;
+  return Number((program as { listing_id?: number }).listing_id ?? 0);
+}
+
 export default function LiveCampaignsPanel({
   currency = "USD",
   initialTab = "all",
@@ -55,10 +63,11 @@ export default function LiveCampaignsPanel({
   const [tab, setTab] = useState<TabId>(initialTab);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<number | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [trackUrls, setTrackUrls] = useState<Record<number, string>>({});
+  const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  const load = () => {
+  useEffect(() => {
     setLoading(true);
     fetchCreatorCampaigns()
       .then((data) => {
@@ -70,16 +79,49 @@ export default function LiveCampaignsPanel({
         setError("Could not load live campaigns.");
       })
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    load();
   }, []);
 
   useEffect(() => {
     setTab(initialTab);
     setExpanded(false);
   }, [initialTab]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const pairs = rows
+      .map((row) => ({
+        programId: row.program.id,
+        listingId: campaignListingId(row.program),
+      }))
+      .filter((p) => p.listingId > 0);
+
+    if (pairs.length === 0) {
+      setTrackUrls({});
+      return;
+    }
+
+    Promise.all(
+      pairs.map(async ({ programId, listingId }) => {
+        try {
+          const res = await fetchTrackLink(listingId);
+          return [programId, res.tracked_url] as const;
+        } catch {
+          return null;
+        }
+      }),
+    ).then((results) => {
+      if (cancelled) return;
+      const next: Record<number, string> = {};
+      for (const item of results) {
+        if (item) next[item[0]] = item[1];
+      }
+      setTrackUrls(next);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rows]);
 
   const filtered = useMemo(
     () => rows.filter((row) => campaignTab(row).includes(tab)),
@@ -88,25 +130,13 @@ export default function LiveCampaignsPanel({
 
   const visible = expanded ? filtered : filtered.slice(0, previewLimit);
 
-  const join = async (row: CreatorCampaignRow) => {
-    setBusyId(row.program.id);
-    try {
-      if (!row.joined) {
-        await optInCampaign(row.program.id);
-        load();
-      }
-    } finally {
-      setBusyId(null);
-    }
-  };
-
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-bold">Live campaigns</h2>
           <p className="mt-1 text-xs text-slate-500">
-            Category-wise active programs you can join and promote.
+            Category-wise active programs you can promote.
           </p>
         </div>
         <Link
@@ -167,58 +197,47 @@ export default function LiveCampaignsPanel({
             {visible.map((row) => {
               const p = row.program;
               const model = String(p.pricing_model).toUpperCase();
-              const promo = String(p.promotion_type ?? "campaign");
+              const shareUrl = trackUrls[p.id] ?? "";
               return (
                 <li
                   key={p.id}
                   className="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-50/80 p-4"
                 >
-                  <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
-                      {model}
-                    </span>
-                    <span className="rounded-full bg-slate-200/80 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">
-                      {promo}
-                    </span>
-                    {row.joined ? (
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                        Joined
-                      </span>
-                    ) : null}
-                  </div>
-                  <h3 className="mt-3 line-clamp-2 font-bold text-[#172b63]">{p.title}</h3>
+                  <h3 className="line-clamp-2 font-bold text-[#172b63]">{p.title}</h3>
                   <p className="mt-2 text-sm text-slate-500">
-                    {formatMoney(Number(p.rate_usd), currency)} / {rateUnit(String(p.pricing_model))}
-                    {" · "}
-                    Budget {formatMoney(Number(p.budget_total_usd), currency)}
-                  </p>
-                  <p className="mt-1 text-xs capitalize text-slate-400">
-                    Status: {String(p.status)}
+                    {model} {formatMoney(Number(p.rate_usd), currency)} /{" "}
+                    {rateUnit(String(p.pricing_model))}
                   </p>
                   <div className="mt-auto flex flex-wrap gap-2 pt-4">
                     <Link
                       href="/creator/campaigns"
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700"
                     >
                       View more
                     </Link>
-                    {!row.joined ? (
-                      <button
-                        type="button"
-                        disabled={busyId === p.id}
-                        onClick={() => join(row)}
-                        className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-60"
-                      >
-                        {busyId === p.id ? "…" : "Join"}
-                      </button>
-                    ) : (
-                      <Link
-                        href="/creator/campaigns"
-                        className="rounded-full bg-[#172b63] px-3 py-1.5 text-xs font-bold text-white"
-                      >
-                        Open
-                      </Link>
-                    )}
+                    {shareUrl ? (
+                      <ShareLinkButton url={shareUrl} title={p.title} />
+                    ) : null}
+                    <button
+                      type="button"
+                      disabled={!shareUrl}
+                      onClick={() => {
+                        void navigator.clipboard.writeText(shareUrl);
+                        setCopiedId(p.id);
+                        setTimeout(() => setCopiedId(null), 2000);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-full bg-[#172b63] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                    >
+                      {copiedId === p.id ? (
+                        <>
+                          <Check size={14} /> Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} /> Copy link
+                        </>
+                      )}
+                    </button>
                   </div>
                 </li>
               );

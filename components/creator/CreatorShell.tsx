@@ -27,7 +27,6 @@ const nav = [
   { href: "/creator/campaigns", label: "Campaigns", icon: Megaphone },
   { href: "/creator/referrals", label: "Referrals", icon: Gift },
   { href: "/creator/earnings", label: "Earnings", icon: Wallet },
-  { href: "/creator/settings", label: "Settings", icon: Settings },
 ];
 
 const mobileNav = [
@@ -63,9 +62,6 @@ export default function CreatorShell({
               {nav.map(({ href, label, icon: Icon }) => {
                 const active =
                   pathname === href ||
-                  (href === "/creator/settings" &&
-                    (pathname.startsWith("/creator/job-preferences") ||
-                      pathname.startsWith("/creator/settings"))) ||
                   (href === "/creator/performance" &&
                     pathname.startsWith("/creator/registrations")) ||
                   (href === "/creator/earnings" &&
@@ -119,7 +115,20 @@ export default function CreatorShell({
         </aside>
 
         <div className="min-w-0 flex-1">
-          <div className="mb-4 flex items-center justify-end lg:mb-6">
+          <div className="mb-4 flex items-center justify-end gap-2 lg:mb-6">
+            <Link
+              href="/creator/settings"
+              aria-label="Settings"
+              title="Settings"
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${
+                pathname === "/creator/settings" ||
+                pathname.startsWith("/creator/job-preferences")
+                  ? "border-purple-300 bg-purple-50 text-purple-700"
+                  : "border-slate-200 bg-white text-slate-700 hover:border-purple-200 hover:text-purple-700"
+              }`}
+            >
+              <Settings size={18} />
+            </Link>
             <CreatorNotificationBell />
           </div>
           {children}

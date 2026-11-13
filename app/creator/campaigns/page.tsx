@@ -8,8 +8,7 @@ import { fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
 import {
   fetchCreatorCampaigns,
-  optInCampaign,
-  optOutCampaign,
+  fetchTrackLink,
   submitPostPromote,
   recordJobActivity,
   type CreatorCampaignRow,
@@ -60,11 +59,16 @@ function rateLabel(model: string) {
   return "application";
 }
 
+function campaignListingId(program: CreatorCampaignRow["program"]): number {
+  const nested = Number(program.listing?.id ?? 0);
+  if (nested > 0) return nested;
+  return Number((program as { listing_id?: number }).listing_id ?? 0);
+}
+
 export default function CreatorCampaignsPage() {
   const [rows, setRows] = useState<CreatorCampaignRow[]>([]);
   const [tab, setTab] = useState<TabId>("all");
   const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<number | null>(null);
   const [submitFor, setSubmitFor] = useState<number | null>(null);
   const [actionsDone, setActionsDone] = useState<ActionId[]>([]);
   const [proofUrl, setProofUrl] = useState("");
@@ -75,6 +79,8 @@ export default function CreatorCampaignsPage() {
   const [xmlError, setXmlError] = useState<string | null>(null);
   const [publicCode, setPublicCode] = useState<string | null>(null);
   const [copiedXml, setCopiedXml] = useState<string | null>(null);
+  const [trackUrls, setTrackUrls] = useState<Record<number, string>>({});
+  const [copiedCampaign, setCopiedCampaign] = useState<number | null>(null);
 
   const loadCampaigns = () => {
     fetchCreatorCampaigns()
@@ -100,21 +106,47 @@ export default function CreatorCampaignsPage() {
       });
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    const pairs = rows
+      .map((row) => ({
+        programId: row.program.id,
+        listingId: campaignListingId(row.program),
+      }))
+      .filter((p) => p.listingId > 0);
+
+    if (pairs.length === 0) {
+      setTrackUrls({});
+      return;
+    }
+
+    Promise.all(
+      pairs.map(async ({ programId, listingId }) => {
+        try {
+          const res = await fetchTrackLink(listingId);
+          return [programId, res.tracked_url] as const;
+        } catch {
+          return null;
+        }
+      }),
+    ).then((results) => {
+      if (cancelled) return;
+      const next: Record<number, string> = {};
+      for (const item of results) {
+        if (item) next[item[0]] = item[1];
+      }
+      setTrackUrls(next);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rows]);
+
   const filtered = useMemo(
     () => rows.filter((row) => campaignTabs(row).includes(tab)),
     [rows, tab],
   );
-
-  const toggle = async (row: CreatorCampaignRow) => {
-    setBusyId(row.program.id);
-    try {
-      if (row.joined) await optOutCampaign(row.program.id);
-      else await optInCampaign(row.program.id);
-      loadCampaigns();
-    } finally {
-      setBusyId(null);
-    }
-  };
 
   const openSubmit = (row: CreatorCampaignRow) => {
     const required = (row.program.engagement_actions ?? [
@@ -243,31 +275,16 @@ export default function CreatorCampaignsPage() {
                 "comment",
                 "repost",
               ]) as ActionId[];
+              const shareUrl = trackUrls[p.id] ?? "";
               return (
                 <li key={p.id} className="h-full">
                   <article className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <div className="flex flex-wrap gap-2">
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
-                        {model}
-                      </span>
-                      {p.promotion_type ? (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">
-                          {String(p.promotion_type)}
-                        </span>
-                      ) : null}
-                      {row.joined ? (
-                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                          Joined
-                        </span>
-                      ) : null}
-                    </div>
-                    <h3 className="mt-3 line-clamp-2 font-bold text-[#172b63]">
+                    <h3 className="line-clamp-2 font-bold text-[#172b63]">
                       {p.title}
                     </h3>
                     <p className="mt-2 text-sm text-slate-500">
-                      {formatMoney(Number(p.rate_usd), "USD")} / {rateLabel(String(p.pricing_model))}
-                      {" · "}
-                      Budget {formatMoney(Number(p.budget_total_usd), "USD")}
+                      {model} {formatMoney(Number(p.rate_usd), "USD")} /{" "}
+                      {rateLabel(String(p.pricing_model))}
                     </p>
                     {isPostPromote && p.post_url ? (
                       <a
@@ -280,21 +297,34 @@ export default function CreatorCampaignsPage() {
                       </a>
                     ) : null}
                     <div className="mt-auto flex flex-wrap gap-2 pt-4">
+                      <Link
+                        href={`/creator/campaigns#campaign-${p.id}`}
+                        className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700"
+                      >
+                        View more
+                      </Link>
+                      {shareUrl ? (
+                        <ShareLinkButton url={shareUrl} title={p.title} />
+                      ) : null}
                       <button
                         type="button"
-                        disabled={busyId === p.id}
-                        onClick={() => toggle(row)}
-                        className={`rounded-full px-3 py-1.5 text-xs font-bold ${
-                          row.joined
-                            ? "border border-slate-200 text-slate-600"
-                            : "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-                        }`}
+                        disabled={!shareUrl}
+                        onClick={() => {
+                          void navigator.clipboard.writeText(shareUrl);
+                          setCopiedCampaign(p.id);
+                          setTimeout(() => setCopiedCampaign(null), 2000);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full bg-[#172b63] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
                       >
-                        {busyId === p.id
-                          ? "…"
-                          : row.joined
-                            ? "Leave"
-                            : "Join"}
+                        {copiedCampaign === p.id ? (
+                          <>
+                            <Check size={14} /> Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={14} /> Copy link
+                          </>
+                        )}
                       </button>
                       {isPostPromote && row.joined ? (
                         <button
@@ -305,12 +335,6 @@ export default function CreatorCampaignsPage() {
                           Submit proof
                         </button>
                       ) : null}
-                      <Link
-                        href={`/creator/campaigns#campaign-${p.id}`}
-                        className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700"
-                      >
-                        View more
-                      </Link>
                     </div>
 
                     {submitFor === p.id ? (

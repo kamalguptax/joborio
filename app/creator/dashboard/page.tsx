@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
   MousePointerClick,
@@ -18,7 +18,7 @@ import {
 import { creatorProfilePath } from "@/lib/staticExport";
 import { formatMoney } from "@/lib/money";
 
-type RangeKey = "3d" | "7d" | "30d" | "all";
+type RangeKey = "1d" | "3d" | "7d" | "30d" | "all";
 type CampaignKey =
   | "all"
   | "ppc"
@@ -29,6 +29,7 @@ type CampaignKey =
   | "branding";
 
 const RANGE_LABEL: Record<Exclude<RangeKey, "all">, string> = {
+  "1d": "Today",
   "3d": "3 days",
   "7d": "7 days",
   "30d": "30 days",
@@ -89,8 +90,10 @@ function eventMatchesCampaign(
 export default function CreatorDashboardPage() {
   const [data, setData] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [range, setRange] = useState<RangeKey>("7d");
+  const [range, setRange] = useState<RangeKey>("1d");
   const [campaign, setCampaign] = useState<CampaignKey>("all");
+  const liveCampaignsRef = useRef<HTMLDivElement | null>(null);
+  const skipCampaignScroll = useRef(true);
 
   useEffect(() => {
     const load = () => {
@@ -104,6 +107,17 @@ export default function CreatorDashboardPage() {
     window.addEventListener("focus", load);
     return () => window.removeEventListener("focus", load);
   }, []);
+
+  useEffect(() => {
+    if (skipCampaignScroll.current) {
+      skipCampaignScroll.current = false;
+      return;
+    }
+    liveCampaignsRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [campaign]);
 
   const campaignFilters = useMemo(() => {
     const fromApi = (data?.campaign_filters ?? []) as Array<{
@@ -160,32 +174,75 @@ export default function CreatorDashboardPage() {
       program?: { pricing_model?: string; promotion_type?: string };
     };
   }>;
-  const recentTraffic = useMemo(
-    () =>
-      recentTrafficAll
-        .filter((row) => eventMatchesCampaign(row, campaign))
-        .slice(0, 12),
-    [recentTrafficAll, campaign],
-  );
-  const campaignEarnings = useMemo(() => {
-    const rows = (data?.earnings_by_campaign ?? []) as Array<
-      Record<string, unknown>
-    >;
-    if (campaign === "all") return rows;
-    return rows.filter((row) => {
-      const pricing = String(row.pricing_model ?? "").toLowerCase();
-      const promo = String(row.promotion_type ?? "").toLowerCase();
-      if (campaign === "course") return promo === "course" || pricing === "ppr";
-      if (campaign === "branding") return promo === "branding";
-      if (campaign === "ppe") return pricing === "ppe" || promo === "post_promote";
-      return pricing === campaign;
-    });
-  }, [data, campaign]);
+  const recentTraffic = useMemo(() => {
+    type TrafficRow = (typeof recentTrafficAll)[number];
+    type Grouped = TrafficRow & {
+      click_count: number;
+      counted_count: number;
+      duplicate_count: number;
+    };
+
+    const filtered = recentTrafficAll.filter((row) =>
+      eventMatchesCampaign(row, campaign),
+    );
+    const groups = new Map<string, Grouped>();
+
+    for (const row of filtered) {
+      const title = row.listing?.title ?? row.meta?.title ?? "Job";
+      const key = `${row.event_type}::${title}`;
+      const existing = groups.get(key);
+      if (!existing) {
+        groups.set(key, {
+          ...row,
+          click_count: 1,
+          counted_count: row.is_counted ? 1 : 0,
+          duplicate_count: row.fraud_status === "dedup" || !row.is_counted ? 1 : 0,
+        });
+        continue;
+      }
+
+      existing.click_count += 1;
+      if (row.is_counted) existing.counted_count += 1;
+      if (row.fraud_status === "dedup" || !row.is_counted) {
+        existing.duplicate_count += 1;
+      }
+
+      const existingTs = Date.parse(
+        String(existing.meta?.clicked_at ?? existing.created_at ?? ""),
+      );
+      const rowTs = Date.parse(String(row.meta?.clicked_at ?? row.created_at ?? ""));
+      // Keep the newest event as the display row; prefer a counted one when tied.
+      if (
+        (Number.isFinite(rowTs) &&
+          (!Number.isFinite(existingTs) || rowTs > existingTs)) ||
+        (row.is_counted && !existing.is_counted)
+      ) {
+        existing.id = row.id;
+        existing.is_counted = row.is_counted || existing.is_counted;
+        existing.fraud_status = row.is_counted
+          ? row.fraud_status
+          : existing.fraud_status;
+        existing.ip_address = row.ip_address ?? existing.ip_address;
+        existing.meta = row.meta ?? existing.meta;
+        existing.created_at = row.created_at ?? existing.created_at;
+        existing.listing = row.listing ?? existing.listing;
+      }
+    }
+
+    return Array.from(groups.values())
+      .sort((a, b) => {
+        const aTs = Date.parse(String(a.meta?.clicked_at ?? a.created_at ?? ""));
+        const bTs = Date.parse(String(b.meta?.clicked_at ?? b.created_at ?? ""));
+        return (Number.isFinite(bTs) ? bTs : 0) - (Number.isFinite(aTs) ? aTs : 0);
+      })
+      .slice(0, 12);
+  }, [recentTrafficAll, campaign]);
   const dedupMinutes = Number(data?.click_dedup_minutes ?? 10);
   const campaignLabel =
     campaignFilters.find((f) => f.id === campaign)?.label ?? "All campaigns";
 
   const rangeClicks = useMemo(() => {
+    if (range === "1d") return metrics.clicks_1d ?? 0;
     if (range === "3d") return metrics.clicks_3d ?? 0;
     if (range === "7d") return metrics.clicks_7d ?? 0;
     if (range === "30d") return metrics.clicks_30d ?? metrics.clicks_7d ?? 0;
@@ -193,6 +250,7 @@ export default function CreatorDashboardPage() {
   }, [metrics, range]);
 
   const rangeRegs = useMemo(() => {
+    if (range === "1d") return metrics.registrations_1d ?? 0;
     if (range === "3d") return metrics.registrations_3d ?? 0;
     if (range === "7d") return metrics.registrations_7d ?? 0;
     if (range === "30d") return metrics.registrations_30d ?? metrics.registrations ?? 0;
@@ -367,6 +425,7 @@ export default function CreatorDashboardPage() {
               onChange={(e) => setRange(e.target.value as RangeKey)}
               className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#172b63] shadow-sm outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10"
             >
+              <option value="1d">Today</option>
               <option value="3d">Last 3 days</option>
               <option value="7d">Last 7 days</option>
               <option value="30d">Last 30 days</option>
@@ -399,7 +458,266 @@ export default function CreatorDashboardPage() {
 
       {data ? (
         <>
-          <section className="mb-8 rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-white p-6 shadow-sm">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {statCards.map(({ label, value, icon: Icon, tone, href }) => {
+              const body = (
+                <>
+                  <div
+                    className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${tone} text-white`}
+                  >
+                    <Icon size={20} />
+                  </div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    {label}
+                  </p>
+                  <p className="mt-1 text-3xl font-bold">{value}</p>
+                  {href ? (
+                    <p className="mt-2 text-xs font-semibold text-emerald-700">
+                      Open ledger →
+                    </p>
+                  ) : null}
+                </>
+              );
+              const className =
+                "rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:border-purple-200 hover:shadow-md";
+              return href ? (
+                <Link key={label} href={href} className={`block ${className}`}>
+                  {body}
+                </Link>
+              ) : (
+                <div key={label} className={className}>
+                  {body}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-lg font-bold">Promote link types</h2>
+              <Link
+                href="/creator/performance"
+                className="text-sm font-semibold text-purple-600"
+              >
+                Full performance →
+              </Link>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {(["ppc", "ppr", "ppa", "ppe"] as const).map((type) => {
+                const bucket = earningsByType[type] ?? {};
+                const total =
+                  Number(bucket.pending_usd ?? 0) +
+                  Number(bucket.approved_usd ?? 0) +
+                  Number(bucket.payable_usd ?? 0) +
+                  Number(bucket.paid_usd ?? 0);
+                const active = highlightTypes.includes(type as never);
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() =>
+                      setCampaign(
+                        type === "ppe"
+                          ? "ppe"
+                          : (type as CampaignKey),
+                      )
+                    }
+                    className={`rounded-xl border px-4 py-3 text-left transition ${
+                      active
+                        ? "border-purple-300 bg-purple-50 ring-2 ring-purple-200"
+                        : "border-slate-100 bg-slate-50 opacity-70"
+                    }`}
+                  >
+                    <p className="text-xs font-bold uppercase text-slate-400">{type}</p>
+                    <p className="mt-1 text-lg font-bold">
+                      {formatMoney(total, String(data?.currency ?? "USD"))}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div
+            id="dashboard-live-campaigns"
+            ref={liveCampaignsRef}
+            className="mt-8 scroll-mt-28"
+          >
+            <LiveCampaignsPanel
+              currency={String(data?.currency ?? "USD")}
+              initialTab={campaign}
+            />
+          </div>
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-5">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold">
+                  Earnings · {campaignLabel} ({String(data?.currency ?? "USD")})
+                </h2>
+                <Link
+                  href="/creator/earnings"
+                  className="text-sm font-semibold text-purple-600"
+                >
+                  View ledger →
+                </Link>
+              </div>
+              <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                {[
+                  ["Pending", earnings.pending_usd],
+                  ["Approved", earnings.approved_usd],
+                  ["Payable", earnings.payable_usd],
+                  ["Paid", earnings.paid_usd],
+                ].map(([label, val]) => (
+                  <div key={String(label)}>
+                    <p className="text-xs text-slate-400">{label}</p>
+                    <p className="text-xl font-bold">
+                      {formatMoney(Number(val ?? 0), String(data?.currency ?? "USD"))}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-xs text-slate-500">
+                Filtered by campaign type. Holds: {pprMeta.hold_days ?? 3} days after
+                verify.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-6 shadow-sm lg:col-span-2">
+              <h2 className="text-lg font-bold">Account type</h2>
+              <p className="mt-2 text-2xl font-bold text-purple-700">Creator</p>
+              <p className="mt-2 text-sm text-slate-600">
+                Switch campaign above to see PPC, PPR, Courses, and other dashboards
+                separately.
+              </p>
+              <Link
+                href="/creator/trust-tier"
+                className="mt-4 inline-block text-sm font-semibold text-purple-700 hover:text-blue-600"
+              >
+                View creator features →
+              </Link>
+            </div>
+          </div>
+
+          {recentTraffic.length > 0 ? (
+            <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-lg font-bold">Recent traffic</h2>
+                <Link href="/creator/clicks" className="text-sm font-semibold text-purple-700">
+                  All clicks
+                </Link>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Same job clicks are grouped. Duplicates (same IP + device within{" "}
+                {dedupMinutes} min) are logged but not paid.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm">
+                {recentTraffic.map((row) => {
+                  const title = row.listing?.title ?? row.meta?.title ?? "Job";
+                  const clicksLabel =
+                    row.click_count === 1
+                      ? "1 click"
+                      : `${row.click_count} clicks`;
+                  const statusLabel =
+                    row.counted_count > 0
+                      ? row.duplicate_count > 0
+                        ? `${row.counted_count} counted · ${row.duplicate_count} duplicate`
+                        : "Counted"
+                      : "Duplicate";
+                  return (
+                    <li
+                      key={`${row.event_type}-${title}`}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
+                    >
+                      <span>
+                        {row.event_type} · {title}
+                        <span className="mt-1 block text-xs font-normal text-slate-500">
+                          {clicksLabel}
+                          {" · "}
+                          {row.ip_address || "IP unknown"}
+                          {" · "}
+                          {formatClickTime(row.meta?.clicked_at ?? row.created_at)}
+                        </span>
+                      </span>
+                      <span
+                        className={`text-xs font-semibold ${
+                          row.counted_count > 0
+                            ? "text-emerald-700"
+                            : "text-amber-700"
+                        }`}
+                      >
+                        {statusLabel}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : null}
+
+          <div className="mt-8 rounded-3xl border border-dashed border-purple-200 bg-white/80 p-6">
+            <h2 className="font-bold">Studio modules</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Jump to each part of your creator account.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {moduleLinks.map((m) => (
+                <Link
+                  key={m.href}
+                  href={m.href}
+                  className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-purple-200 hover:shadow-sm"
+                >
+                  <p className="font-bold text-indigo-950">{m.title}</p>
+                  <p className="mt-1 text-xs text-slate-500">{m.desc}</p>
+                  <p className="mt-2 text-sm font-semibold text-purple-600">{m.stat}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {topListings.length > 0 && campaign === "all" ? (
+            <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="font-bold">Top listings by clicks</h2>
+              <ul className="mt-4 space-y-2 text-sm">
+                {topListings.map((row) => (
+                  <li
+                    key={row.listing_id}
+                    className="flex justify-between gap-2 border-b border-slate-50 py-2 last:border-0"
+                  >
+                    <span>
+                      {row.listing?.title ?? `Listing #${row.listing_id}`}
+                      {row.listing?.company_name
+                        ? ` · ${row.listing.company_name}`
+                        : ""}
+                    </span>
+                    <span className="font-semibold text-purple-600">{row.clicks} clicks</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <div className="mt-8 rounded-3xl border border-dashed border-purple-200 bg-white/80 p-6">
+            <h2 className="font-bold">Quick actions</h2>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                href="/creator/opportunities"
+                className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-2.5 text-sm font-bold text-white"
+              >
+                Copy tracked links
+              </Link>
+              {creator?.handle ? (
+                <Link
+                  href={creatorProfilePath(creator.handle)}
+                  className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700"
+                >
+                  Preview public page
+                </Link>
+              ) : null}
+            </div>
+          </div>
+
+          <section className="mt-8 rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-white p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wider text-violet-700">
@@ -456,7 +774,7 @@ export default function CreatorDashboardPage() {
             )}
           </section>
 
-          <section className="mb-8 overflow-hidden rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50 via-white to-purple-50 p-6 shadow-sm">
+          <section className="mt-8 overflow-hidden rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50 via-white to-purple-50 p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-amber-700">
@@ -464,8 +782,8 @@ export default function CreatorDashboardPage() {
                   Top performers
                 </p>
                 <h2 className="mt-1 text-xl font-bold text-[#172b63]">
-                  {(topPerformers?.period_days ?? 30) > 0
-                    ? `Top earners · last ${topPerformers?.period_days} days`
+                  {Number(topPerformers?.period_days) > 0
+                    ? `Top earners · last ${Number(topPerformers?.period_days)} days`
                     : "Top earners"}
                 </h2>
                 <p className="mt-1 max-w-xl text-sm text-slate-600">
@@ -551,279 +869,6 @@ export default function CreatorDashboardPage() {
               </p>
             )}
           </section>
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {statCards.map(({ label, value, icon: Icon, tone, href }) => {
-              const body = (
-                <>
-                  <div
-                    className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${tone} text-white`}
-                  >
-                    <Icon size={20} />
-                  </div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {label}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold">{value}</p>
-                  {href ? (
-                    <p className="mt-2 text-xs font-semibold text-emerald-700">
-                      Open ledger →
-                    </p>
-                  ) : null}
-                </>
-              );
-              const className =
-                "rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:border-purple-200 hover:shadow-md";
-              return href ? (
-                <Link key={label} href={href} className={`block ${className}`}>
-                  {body}
-                </Link>
-              ) : (
-                <div key={label} className={className}>
-                  {body}
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-lg font-bold">Promote link types</h2>
-              <Link
-                href="/creator/performance"
-                className="text-sm font-semibold text-purple-600"
-              >
-                Full performance →
-              </Link>
-            </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {(["ppc", "ppr", "ppa", "ppe"] as const).map((type) => {
-                const bucket = earningsByType[type] ?? {};
-                const total =
-                  Number(bucket.pending_usd ?? 0) +
-                  Number(bucket.approved_usd ?? 0) +
-                  Number(bucket.payable_usd ?? 0) +
-                  Number(bucket.paid_usd ?? 0);
-                const active = highlightTypes.includes(type as never);
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() =>
-                      setCampaign(
-                        type === "ppe"
-                          ? "ppe"
-                          : (type as CampaignKey),
-                      )
-                    }
-                    className={`rounded-xl border px-4 py-3 text-left transition ${
-                      active
-                        ? "border-purple-300 bg-purple-50 ring-2 ring-purple-200"
-                        : "border-slate-100 bg-slate-50 opacity-70"
-                    }`}
-                  >
-                    <p className="text-xs font-bold uppercase text-slate-400">{type}</p>
-                    <p className="mt-1 text-lg font-bold">
-                      {formatMoney(total, String(data?.currency ?? "USD"))}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {campaignEarnings.length > 0 ? (
-            <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-bold">Campaigns in this view</h2>
-              <ul className="mt-4 space-y-2 text-sm">
-                {campaignEarnings.slice(0, 8).map((row, idx) => (
-                  <li
-                    key={String(row.id ?? idx)}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
-                  >
-                    <div>
-                      <p className="font-semibold">{String(row.title ?? "Campaign")}</p>
-                      <p className="text-xs uppercase text-slate-500">
-                        {String(row.pricing_model ?? "link")}
-                      </p>
-                    </div>
-                    <p className="font-bold text-purple-700">
-                      {formatMoney(
-                        Number(row.net_usd ?? row.gross_usd ?? 0),
-                        String(data?.currency ?? "USD"),
-                      )}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          <div className="mt-8">
-            <LiveCampaignsPanel
-              currency={String(data?.currency ?? "USD")}
-              initialTab={campaign}
-            />
-          </div>
-
-          <div className="mt-8 grid gap-6 lg:grid-cols-5">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">
-                  Earnings · {campaignLabel} ({String(data?.currency ?? "USD")})
-                </h2>
-                <Link
-                  href="/creator/earnings"
-                  className="text-sm font-semibold text-purple-600"
-                >
-                  View ledger →
-                </Link>
-              </div>
-              <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {[
-                  ["Pending", earnings.pending_usd],
-                  ["Approved", earnings.approved_usd],
-                  ["Payable", earnings.payable_usd],
-                  ["Paid", earnings.paid_usd],
-                ].map(([label, val]) => (
-                  <div key={String(label)}>
-                    <p className="text-xs text-slate-400">{label}</p>
-                    <p className="text-xl font-bold">
-                      {formatMoney(Number(val ?? 0), String(data?.currency ?? "USD"))}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-4 text-xs text-slate-500">
-                Filtered by campaign type. Holds: {pprMeta.hold_days ?? 3} days after
-                verify.
-              </p>
-            </div>
-
-            <div className="rounded-3xl border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-6 shadow-sm lg:col-span-2">
-              <h2 className="text-lg font-bold">Account type</h2>
-              <p className="mt-2 text-2xl font-bold text-purple-700">Creator</p>
-              <p className="mt-2 text-sm text-slate-600">
-                Switch campaign above to see PPC, PPR, Courses, and other dashboards
-                separately.
-              </p>
-              <Link
-                href="/creator/trust-tier"
-                className="mt-4 inline-block text-sm font-semibold text-purple-700 hover:text-blue-600"
-              >
-                View creator features →
-              </Link>
-            </div>
-          </div>
-
-          {recentTraffic.length > 0 ? (
-            <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-lg font-bold">Recent traffic</h2>
-                <Link href="/creator/clicks" className="text-sm font-semibold text-purple-700">
-                  All clicks
-                </Link>
-              </div>
-              <p className="mt-1 text-xs text-slate-500">
-                Duplicate clicks (same IP + device within {dedupMinutes} min) are
-                logged but not paid.
-              </p>
-              <ul className="mt-4 space-y-2 text-sm">
-                {recentTraffic.map((row) => (
-                  <li
-                    key={row.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
-                  >
-                    <span>
-                      {row.event_type} · {row.listing?.title ?? row.meta?.title ?? "Job"}
-                      <span className="mt-1 block text-xs font-normal text-slate-500">
-                        {row.ip_address || "IP unknown"}
-                        {" · "}
-                        {formatClickTime(row.meta?.clicked_at ?? row.created_at)}
-                      </span>
-                    </span>
-                    <span
-                      className={`text-xs font-semibold ${
-                        row.fraud_status === "dedup"
-                          ? "text-amber-700"
-                          : row.is_counted
-                            ? "text-emerald-700"
-                            : "text-slate-500"
-                      }`}
-                    >
-                      {row.fraud_status === "dedup"
-                        ? `Duplicate${row.meta?.duplicate_of_event_id ? ` of #${row.meta.duplicate_of_event_id}` : ""}`
-                        : row.is_counted
-                          ? "Counted"
-                          : row.fraud_status ?? "Not counted"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          <div className="mt-8 rounded-3xl border border-dashed border-purple-200 bg-white/80 p-6">
-            <h2 className="font-bold">Studio modules</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Jump to each part of your creator account.
-            </p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {moduleLinks.map((m) => (
-                <Link
-                  key={m.href}
-                  href={m.href}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-purple-200 hover:shadow-sm"
-                >
-                  <p className="font-bold text-indigo-950">{m.title}</p>
-                  <p className="mt-1 text-xs text-slate-500">{m.desc}</p>
-                  <p className="mt-2 text-sm font-semibold text-purple-600">{m.stat}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {topListings.length > 0 && campaign === "all" ? (
-            <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="font-bold">Top listings by clicks</h2>
-              <ul className="mt-4 space-y-2 text-sm">
-                {topListings.map((row) => (
-                  <li
-                    key={row.listing_id}
-                    className="flex justify-between gap-2 border-b border-slate-50 py-2 last:border-0"
-                  >
-                    <span>
-                      {row.listing?.title ?? `Listing #${row.listing_id}`}
-                      {row.listing?.company_name
-                        ? ` · ${row.listing.company_name}`
-                        : ""}
-                    </span>
-                    <span className="font-semibold text-purple-600">{row.clicks} clicks</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          <div className="mt-8 rounded-3xl border border-dashed border-purple-200 bg-white/80 p-6">
-            <h2 className="font-bold">Quick actions</h2>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <Link
-                href="/creator/opportunities"
-                className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-2.5 text-sm font-bold text-white"
-              >
-                Copy tracked links
-              </Link>
-              {creator?.handle ? (
-                <Link
-                  href={creatorProfilePath(creator.handle)}
-                  className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700"
-                >
-                  Preview public page
-                </Link>
-              ) : null}
-            </div>
-          </div>
         </>
       ) : null}
     </>

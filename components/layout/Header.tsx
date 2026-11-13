@@ -606,6 +606,12 @@ export default function Header() {
             ) : authReady ? (
               <>
                 <Link
+                  href="/login"
+                  className="btn-tap inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                >
+                  Log in
+                </Link>
+                <Link
                   href="/hiring"
                   className="btn-tap hidden min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 md:inline-flex"
                 >
