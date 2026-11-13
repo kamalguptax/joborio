@@ -101,6 +101,15 @@ export default function EmployerProgramsPage() {
                     Applications
                   </Link>
                 ) : null}
+                {p.pricing_model === "ppe" ||
+                p.promotion_type === "post_promote" ? (
+                  <Link
+                    href={`/employer/programs/${p.id}/post-promote`}
+                    className="text-sm font-semibold text-purple-600"
+                  >
+                    Post promote
+                  </Link>
+                ) : null}
               </div>
             </div>
           </li>

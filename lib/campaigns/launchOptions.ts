@@ -3,14 +3,15 @@ export type LaunchOptionId =
   | "courses"
   | "ppr"
   | "branding"
-  | "lead";
+  | "lead"
+  | "post_promote";
 
 export type LaunchOption = {
   id: LaunchOptionId;
   label: string;
   description: string;
-  pricing_model: "ppc" | "ppr" | "ppa";
-  promotion_type: "job" | "course" | "tool" | "branding" | "other";
+  pricing_model: "ppc" | "ppr" | "ppa" | "ppe";
+  promotion_type: "job" | "course" | "tool" | "branding" | "post_promote" | "other";
   defaultRate: string;
   defaultBudget: string;
 };
@@ -61,6 +62,16 @@ export const LAUNCH_OPTIONS: LaunchOption[] = [
     promotion_type: "job",
     defaultRate: "1.00",
     defaultBudget: "2000",
+  },
+  {
+    id: "post_promote",
+    label: "Promote a post",
+    description:
+      "Creators like, comment, and repost your LinkedIn / Instagram / X post.",
+    pricing_model: "ppe",
+    promotion_type: "post_promote",
+    defaultRate: "0.50",
+    defaultBudget: "500",
   },
 ];
 

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { fetchMe } from "@/lib/api/auth";
+import { claimCreatorReferral } from "@/lib/api/creator";
 import CreatorShell from "@/components/creator/CreatorShell";
+import { clearReferralCode, getReferralCode } from "@/lib/auth/referralStorage";
 import { getAuthToken } from "@/lib/auth/session";
-import { useRouter } from "next/navigation";
 
 export default function CreatorLayout({
   children,
@@ -12,9 +14,13 @@ export default function CreatorLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [handle, setHandle] = useState<string | undefined>();
+  const isPublicRegister = pathname === "/creator/register";
 
   useEffect(() => {
+    if (isPublicRegister) return;
+
     if (!getAuthToken()) {
       router.replace("/login");
       return;
@@ -36,9 +42,24 @@ export default function CreatorLayout({
           return;
         }
         setHandle(u.creator.handle);
+
+        // Repair missed attribution when signup created the creator before
+        // onboarding applied the invite code.
+        const pendingRef = getReferralCode();
+        if (pendingRef) {
+          claimCreatorReferral(pendingRef)
+            .then((res) => {
+              if (res.attached) clearReferralCode();
+            })
+            .catch(() => undefined);
+        }
       })
       .catch(() => router.replace("/login"));
-  }, [router]);
+  }, [router, isPublicRegister]);
+
+  if (isPublicRegister) {
+    return <>{children}</>;
+  }
 
   return <CreatorShell handle={handle}>{children}</CreatorShell>;
 }

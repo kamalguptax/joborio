@@ -231,3 +231,55 @@ export async function fetchHomeOpportunities(
 
   return unique.slice(0, limit);
 }
+
+/**
+ * Typed browse for /courses, /campaigns, /marketplace.
+ * Uses DB listings (?type=) and, when useful, category matches from the live feed.
+ */
+export async function fetchTypedOpportunities(opts: {
+  listingTypes?: string[];
+  category?: OpportunityCategory;
+  includeXmlCategoryMatches?: boolean;
+  limit?: number;
+}): Promise<HomeOpportunityCard[]> {
+  const limit = opts.limit ?? 24;
+  const cards: HomeOpportunityCard[] = [];
+  let i = 0;
+
+  const types = opts.listingTypes?.length ? opts.listingTypes : [undefined];
+  await Promise.all(
+    types.map(async (type) => {
+      const res = await within(
+        fetchListings({
+          per_page: limit,
+          page: 1,
+          ...(type ? { type } : {}),
+        }),
+        20000,
+      ).catch(() => null);
+      for (const row of res?.data ?? []) {
+        if (row.status && row.status !== "active") continue;
+        cards.push(mapListing(row, i++));
+      }
+    }),
+  );
+
+  if (opts.includeXmlCategoryMatches && opts.category) {
+    const home = await fetchHomeOpportunities(Math.max(limit, 40)).catch(() => []);
+    for (const card of home) {
+      if (card.category === opts.category) {
+        cards.push(card);
+      }
+    }
+  }
+
+  const seen = new Set<string>();
+  return cards
+    .filter((c) => {
+      const key = `${c.title}|${c.company}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit);
+}

@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Landmark, Shield } from "lucide-react";
 import { TransactionHistory, type TransactionRow } from "@/components/payouts/TransactionHistory";
 import { fetchCreatorDashboard, fetchCreatorTransactions } from "@/lib/api/creator";
 import { formatMoney } from "@/lib/money";
@@ -64,6 +66,37 @@ export default function CreatorEarningsPage() {
         <p className="mt-2 text-slate-500">
           Each click adds a credit. A payout is a debit once it is sent. Holds apply before approval.
         </p>
+      </div>
+
+      <div className="mb-6 grid gap-3 sm:grid-cols-2">
+        <Link
+          href="/creator/trust-tier"
+          className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-purple-200 hover:shadow-md"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+            <Shield size={20} />
+          </span>
+          <span>
+            <span className="block font-bold text-[#172b63]">Account features</span>
+            <span className="mt-0.5 block text-sm text-slate-500">
+              What you can unlock as a creator — PPC, PPR, campaigns, and more.
+            </span>
+          </span>
+        </Link>
+        <Link
+          href="/creator/payout"
+          className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-purple-200 hover:shadow-md"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+            <Landmark size={20} />
+          </span>
+          <span>
+            <span className="block font-bold text-[#172b63]">Payout account</span>
+            <span className="mt-0.5 block text-sm text-slate-500">
+              Add UPI, bank, or PayPal so approved earnings can be paid out.
+            </span>
+          </span>
+        </Link>
       </div>
 
       {error ? (

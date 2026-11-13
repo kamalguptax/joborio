@@ -30,7 +30,7 @@ export const pages = {
     highlight: "Earn from every useful share.",
     description:
       "Share relevant jobs, courses and campaigns with your community. Every share has a tracked link, so you can see real results and get paid for qualified actions.",
-    primary: { label: "Start Earning", href: "/signup" },
+    primary: { label: "Join as a Creator", href: "/creator/register" },
     secondary: { label: "See opportunities", href: "/opportunities" },
     sectionLabel: "How creators earn",
     sectionTitle: "Share. Track. Earn.",
@@ -43,8 +43,8 @@ export const pages = {
     ],
     ctaTitle: "Start earning from your audience",
     ctaText: "It takes a few minutes to set up your creator profile.",
-    ctaLabel: "Create your profile",
-    ctaHref: "/signup",
+    ctaLabel: "Create Creator Account",
+    ctaHref: "/creator/register",
   },
   opportunities: {
     eyebrow: "Opportunities",
@@ -162,7 +162,7 @@ export const pages = {
     highlight: "your candidates already trust.",
     description:
       "Reach the right communities and get qualified candidates through trusted creators. Better candidates, faster.",
-    primary: { label: "Launch Campaign", href: "/signup" },
+    primary: { label: "Register your brand", href: "/brand/register" },
     secondary: { label: "How campaigns work", href: "/campaigns" },
     sectionLabel: "Why employers use Joborio",
     sectionTitle: "Better candidates, faster",
@@ -174,9 +174,9 @@ export const pages = {
       { title: "Pay for outcomes", text: "Rewards are tied to qualified actions, not just views." },
     ],
     ctaTitle: "Start hiring through creators",
-    ctaText: "Create an account and tell us about the roles you want to fill.",
-    ctaLabel: "Launch Campaign",
-    ctaHref: "/signup",
+    ctaText: "Create a brand account and launch campaigns across creators, Meta, and LinkedIn.",
+    ctaLabel: "Register your brand",
+    ctaHref: "/brand/register",
   },
   partners: {
     eyebrow: "For partners",
@@ -234,5 +234,43 @@ export const pages = {
     ctaText: "Sign up, finish creator setup, then share your referral link from your dashboard.",
     ctaLabel: "Get Started",
     ctaHref: "/signup",
+  },
+  promote: {
+    eyebrow: "Promote a post",
+    title: "Get creators to like,",
+    highlight: "comment, and repost your post.",
+    description:
+      "Paste any LinkedIn, Instagram, or X post you want amplified. Matched creators engage on that post — like, comment, and repost — then you approve proof and pay per engagement.",
+    primary: {
+      label: "Promote my post",
+      href: "/employer/programs/new?launch=post_promote",
+    },
+    secondary: { label: "Earn as a creator", href: "/creator/campaigns" },
+    sectionLabel: "How post promote works",
+    sectionTitle: "Your post. Real creator engagement.",
+    sectionIntro:
+      "Anyone can launch a post promote campaign. Creators do the engagement. You only pay when you approve their proof.",
+    features: [
+      {
+        title: "Submit the post",
+        text: "Add the public URL of the post you want promoted and choose required actions: like, comment, and/or repost.",
+      },
+      {
+        title: "Creators engage",
+        text: "Matched creators join the campaign, engage on your post from their own accounts, and submit proof.",
+      },
+      {
+        title: "You review",
+        text: "Check the proof link or note, then approve or reject each submission from your campaign dashboard.",
+      },
+      {
+        title: "Pay per engagement",
+        text: "Approved work pays creators a PPE rate from your campaign budget — only for verified engagements.",
+      },
+    ],
+    ctaTitle: "Ready to amplify a post?",
+    ctaText: "Launch a Promote a post campaign, or join one as a creator and start earning PPE.",
+    ctaLabel: "Launch post promote",
+    ctaHref: "/employer/programs/new?launch=post_promote",
   },
 } satisfies Record<string, PageContent>;

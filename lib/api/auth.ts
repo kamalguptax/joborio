@@ -7,6 +7,9 @@ export function register(input: {
   name: string;
   email: string;
   password: string;
+  captcha_id?: string;
+  captcha_answer?: string;
+  referral_code?: string;
 }) {
   return apiFetch<AuthPayload>("/api/v1/auth/register", {
     method: "POST",
@@ -14,7 +17,12 @@ export function register(input: {
   });
 }
 
-export function login(input: { email: string; password: string }) {
+export function login(input: {
+  email: string;
+  password: string;
+  captcha_id?: string;
+  captcha_answer?: string;
+}) {
   return apiFetch<AuthPayload>("/api/v1/auth/login", {
     method: "POST",
     body: JSON.stringify(input),

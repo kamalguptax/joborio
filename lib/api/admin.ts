@@ -154,6 +154,7 @@ export const CAMPAIGN_TYPES = [
   { id: "course", label: "Courses" },
   { id: "tool", label: "Tools" },
   { id: "branding", label: "Branding promotion" },
+  { id: "post_promote", label: "Post promote (like / comment / repost)" },
   { id: "other", label: "Other" },
 ] as const;
 
@@ -174,7 +175,7 @@ export function adminCreateProgram(body: {
   destination_url: string;
   company_name?: string;
   promotion_type: CampaignTypeId;
-  pricing_model: "ppc" | "ppr" | "ppa";
+  pricing_model: "ppc" | "ppr" | "ppa" | "ppe";
   rate_usd: number;
   budget_total_usd: number;
   trial_without_ip?: boolean;
@@ -182,6 +183,9 @@ export function adminCreateProgram(body: {
   country_code?: string;
   is_remote?: boolean;
   category?: string;
+  post_url?: string;
+  engagement_actions?: Array<"like" | "comment" | "repost">;
+  engage_brief?: string;
 }) {
   return apiFetch<{ program: Record<string, unknown> }>(
     "/api/v1/admin/programs",

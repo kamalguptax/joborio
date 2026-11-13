@@ -154,10 +154,14 @@ export type CreatorRegistrationRow = {
 export function fetchCreatorRegistrations(params?: {
   status?: string;
   page?: number;
+  program_id?: number;
+  listing_id?: number;
 }) {
   const q = new URLSearchParams();
   if (params?.status) q.set("status", params.status);
   if (params?.page) q.set("page", String(params.page));
+  if (params?.program_id) q.set("program_id", String(params.program_id));
+  if (params?.listing_id) q.set("listing_id", String(params.listing_id));
   const query = q.toString();
   return apiFetchWithMeta<CreatorRegistrationRow[]>(
     `/api/v1/creator/registrations${query ? `?${query}` : ""}`,
@@ -237,13 +241,35 @@ export type CreatorCampaignRow = {
     id: number;
     title: string;
     pricing_model: string;
+    promotion_type?: string;
     rate_usd: string;
     budget_total_usd: string;
     status: string;
+    post_url?: string | null;
+    engagement_actions?: string[] | null;
+    engage_brief?: string | null;
     listing?: { id: number; title: string };
   };
   joined: boolean;
 };
+
+export function submitPostPromote(
+  programId: number,
+  body: {
+    actions_done: Array<"like" | "comment" | "repost">;
+    proof_url?: string;
+    proof_note?: string;
+  },
+) {
+  return apiFetch<{ submission: Record<string, unknown> }>(
+    `/api/v1/creator/campaigns/${programId}/post-promote`,
+    {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify(body),
+    },
+  );
+}
 
 export function fetchCreatorCampaigns() {
   return apiFetch<{ campaigns: CreatorCampaignRow[] }>(
@@ -297,6 +323,18 @@ export type CreatorReferralDashboard = {
 export function fetchCreatorReferrals() {
   return apiFetch<CreatorReferralDashboard>("/api/v1/creator/referrals", {
     auth: true,
+  });
+}
+
+export function claimCreatorReferral(referral_code: string) {
+  return apiFetch<{
+    attached: boolean;
+    already: boolean;
+    referred_by_creator_id: number | null;
+  }>("/api/v1/creator/referrals/claim", {
+    method: "POST",
+    auth: true,
+    body: JSON.stringify({ referral_code }),
   });
 }
 

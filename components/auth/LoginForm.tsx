@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
 import { sanitizeNextParam } from "@/lib/auth/safeRedirect";
 import { login, fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
@@ -11,6 +11,7 @@ import {
   rememberPublicCode,
   setAuthToken,
 } from "@/lib/auth/session";
+import MathCaptcha from "@/components/auth/MathCaptcha";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 
 export default function LoginForm() {
@@ -19,16 +20,30 @@ export default function LoginForm() {
   const nextAfterLogin = sanitizeNextParam(searchParams.get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [captcha, setCaptcha] = useState({ captcha_id: "", captcha_answer: "" });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const onCaptcha = useCallback((v: { captcha_id: string; captcha_answer: string }) => {
+    setCaptcha(v);
+  }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!captcha.captcha_id || !captcha.captcha_answer) {
+      setError("Complete the captcha.");
+      return;
+    }
     setLoading(true);
 
     try {
-      const data = await login({ email, password });
+      const data = await login({
+        email,
+        password,
+        captcha_id: captcha.captcha_id,
+        captcha_answer: captcha.captcha_answer,
+      });
       setAuthToken(data.token);
       rememberPublicCode(data.user);
       if (nextAfterLogin) {
@@ -62,7 +77,7 @@ export default function LoginForm() {
   return (
     <>
       <div className="mt-8 space-y-3">
-        <SocialAuthButtons />
+        <SocialAuthButtons intent="login" />
       </div>
 
       <div className="my-7 flex items-center gap-4">
@@ -123,6 +138,8 @@ export default function LoginForm() {
             className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-purple-400 focus:bg-white focus:ring-4 focus:ring-purple-500/10"
           />
         </div>
+
+        <MathCaptcha onChange={onCaptcha} />
 
         <button
           type="submit"
