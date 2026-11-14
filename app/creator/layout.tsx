@@ -15,7 +15,12 @@ export default function CreatorLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [handle, setHandle] = useState<string | undefined>();
+  const [profile, setProfile] = useState<{
+    handle?: string;
+    name?: string;
+    email?: string;
+    bio?: string | null;
+  }>({});
   const isPublicRegister = pathname === "/creator/register";
 
   useEffect(() => {
@@ -41,7 +46,12 @@ export default function CreatorLayout({
           router.replace("/onboarding");
           return;
         }
-        setHandle(u.creator.handle);
+        setProfile({
+          handle: u.creator.handle,
+          name: u.name,
+          email: u.email,
+          bio: u.creator.bio,
+        });
 
         // Repair missed attribution when signup created the creator before
         // onboarding applied the invite code.
@@ -61,5 +71,5 @@ export default function CreatorLayout({
     return <>{children}</>;
   }
 
-  return <CreatorShell handle={handle}>{children}</CreatorShell>;
+  return <CreatorShell {...profile}>{children}</CreatorShell>;
 }

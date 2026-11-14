@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchMe, logoutApi } from "@/lib/api/auth";
+import AuthLogo from "@/components/auth/AuthLogo";
 import { clearAuthToken, getAuthToken } from "@/lib/auth/session";
 
 const links = [
@@ -63,6 +64,7 @@ export default function EmployerLayout({
         className="border-b border-slate-200/80 bg-white/80"
       >
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-4 px-5 py-3">
+          <AuthLogo className="h-7" />
           <span className="text-xs font-bold uppercase tracking-wider text-purple-600">
             Employer portal
           </span>

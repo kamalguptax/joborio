@@ -486,3 +486,35 @@ body {
     transition: none;
   }
 }
+
+/* ——— Auth pages: one-time entrance for the product showcase panel ——— */
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes auth-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .auth-rise {
+    animation: auth-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .auth-grow {
+    transform-origin: bottom;
+    animation: auth-grow 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}

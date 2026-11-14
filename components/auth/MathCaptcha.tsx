@@ -34,17 +34,17 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
 
   return (
     <div className={className}>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex items-end gap-3">
         <label className="min-w-0 flex-1 text-sm font-semibold text-[#0F1B3D]">
           Captcha
-          <span className="mt-2 block rounded-xl border border-indigo-100 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+          <span className="mt-2 flex h-[52px] items-center rounded-xl border border-dashed border-violet-200 bg-violet-50/60 px-4 text-base font-medium text-slate-700">
             {question}
           </span>
         </label>
         <button
           type="button"
           onClick={() => void load()}
-          className="mb-0.5 rounded-xl border border-slate-200 px-3 py-3 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+          className="flex h-[52px] items-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
         >
           Refresh
         </button>
@@ -60,7 +60,7 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
           onChange({ captcha_id: captchaId, captcha_answer: v });
         }}
         placeholder="Your answer"
-        className="mt-2 h-12 w-full rounded-xl border border-indigo-100 bg-white px-4 text-base text-[#0F1B3D] placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15"
+        className="mt-2 h-[52px] w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 text-base text-[#0F1B3D] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-violet-600 focus:bg-white focus:ring-4 focus:ring-violet-600/15"
       />
       {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
     </div>

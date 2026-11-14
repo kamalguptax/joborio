@@ -3,6 +3,15 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
+import AuthShell from "@/components/auth/AuthShell";
+import PasswordField from "@/components/auth/PasswordField";
+import {
+  authError,
+  authInput,
+  authLabel,
+  authLink,
+  authPrimaryButton,
+} from "@/components/auth/authStyles";
 import { resetPassword } from "@/lib/api/brandAuth";
 import { ApiClientError } from "@/lib/api/client";
 
@@ -49,58 +58,65 @@ function ResetForm() {
   }
 
   return (
-    <form className="mt-8 space-y-5" onSubmit={onSubmit}>
+    <form className="space-y-5" onSubmit={onSubmit}>
       {error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p role="alert" className={authError}>
           {error}
         </p>
       ) : null}
 
-      <label className="block text-sm font-semibold text-[#0F1B3D]">
-        Email
+      <div>
+        <label htmlFor="email" className={authLabel}>
+          Email
+        </label>
         <input
+          id="email"
+          name="email"
           required
           type="email"
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-2 h-12 w-full rounded-xl border border-indigo-100 px-4"
+          className={authInput}
         />
-      </label>
+      </div>
 
-      <label className="block text-sm font-semibold text-[#0F1B3D]">
-        New password
-        <input
-          required
-          type="password"
+      <div>
+        <label htmlFor="password" className={authLabel}>
+          New password
+        </label>
+        <PasswordField
+          id="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mt-2 h-12 w-full rounded-xl border border-indigo-100 px-4"
+          onChange={setPassword}
+          minLength={8}
+          autoComplete="new-password"
+          placeholder="Min. 8 characters"
         />
-      </label>
+      </div>
 
-      <label className="block text-sm font-semibold text-[#0F1B3D]">
-        Confirm password
-        <input
-          required
-          type="password"
+      <div>
+        <label htmlFor="confirmPassword" className={authLabel}>
+          Confirm password
+        </label>
+        <PasswordField
+          id="confirmPassword"
           value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          className="mt-2 h-12 w-full rounded-xl border border-indigo-100 px-4"
+          onChange={setConfirm}
+          minLength={8}
+          autoComplete="new-password"
+          placeholder="Repeat password"
         />
-      </label>
+      </div>
 
-      <button
-        type="submit"
-        disabled={loading || !token}
-        className="flex min-h-12 w-full items-center justify-center rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] text-sm font-semibold text-white disabled:opacity-60"
-      >
+      <button type="submit" disabled={loading || !token} className={authPrimaryButton}>
         {loading ? "Updating…" : "Update password"}
       </button>
 
       {!token ? (
         <p className="text-sm text-amber-700">
           Missing reset token. Open the link from your email, or{" "}
-          <Link href="/forgot-password" className="font-semibold underline">
+          <Link href="/forgot-password" className={authLink}>
             request a new one
           </Link>
           .
@@ -112,18 +128,19 @@ function ResetForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <section className="relative overflow-x-clip rounded-b-[32px] bg-[linear-gradient(135deg,#0B1D4F_0%,#14296B_45%,#3F2AA8_100%)] px-4 pb-12 pt-[clamp(6.5rem,16vw,10rem)] text-white sm:rounded-b-[48px] sm:px-8 sm:pb-24">
-      <div className="relative mx-auto max-w-lg">
-        <div className="rounded-[24px] bg-white p-5 text-slate-900 shadow-2xl sm:rounded-[28px] sm:p-10">
-          <h1 className="text-section-heading text-center text-[#0F1B3D]">Reset password</h1>
-          <p className="text-section-copy mx-auto mt-4 text-center">
-            Choose a new password for your JobOrio account.
-          </p>
-          <Suspense fallback={<p className="mt-8 text-center text-sm text-slate-400">Loading…</p>}>
-            <ResetForm />
-          </Suspense>
-        </div>
-      </div>
-    </section>
+    <AuthShell
+      variant="login"
+      title="Reset password"
+      subtitle="Choose a new password for your JobOrio account."
+      footer={
+        <Link href="/login" className={authLink}>
+          Back to log in
+        </Link>
+      }
+    >
+      <Suspense fallback={<p className="text-sm text-slate-400">Loading…</p>}>
+        <ResetForm />
+      </Suspense>
+    </AuthShell>
   );
 }

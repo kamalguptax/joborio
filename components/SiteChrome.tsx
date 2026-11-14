@@ -17,8 +17,21 @@ export default function SiteChrome({
     if (window.location.hash) return;
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
+  // Logged-in app areas (creator + employer dashboards) have their own sidebar/nav.
+  const inCreatorApp =
+    (pathname === "/creator" || pathname.startsWith("/creator/")) &&
+    pathname !== "/creator/register";
+  const inEmployerApp = pathname === "/employer" || pathname.startsWith("/employer/");
+
   const hideChrome =
+    inCreatorApp ||
+    inEmployerApp ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password") ||
     pathname.startsWith("/onboarding") ||
+    pathname === "/employer/onboarding" ||
     pathname.startsWith("/auth/") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/p/") ||
