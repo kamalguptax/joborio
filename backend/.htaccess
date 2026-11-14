@@ -1,0 +1,18 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Deny direct HTTP access to Laravel internals when docroot is `backend/`
+    RewriteRule ^(?:app|bootstrap|config|database|resources|routes|storage|tests|vendor)(?:/|$) - [F,L,NC]
+    RewriteRule ^\.env - [F,L]
+
+    # 301: .../public/... -> same path without /public/
+    RewriteCond %{THE_REQUEST} \s[^\s]*/public/ [NC]
+    RewriteRule ^public/(.*)$ $1 [R=301,L,QSA,NE]
+
+    # Route all requests through `public/` without showing `/public` in the URL
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

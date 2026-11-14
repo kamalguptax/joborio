@@ -1,0 +1,57 @@
+[
+  {
+    "external_id": "agg-1001",
+    "type": "job",
+    "title": "Backend Developer (Laravel)",
+    "company_name": "TechFlow Global",
+    "location_label": "Remote",
+    "country_code": "US",
+    "is_remote": true,
+    "category": "technology",
+    "experience_level": "mid",
+    "salary_min": 70000,
+    "salary_max": 95000,
+    "description": "Build APIs for a creator marketplace.",
+    "destination_url": "https://example.com/jobs/laravel-backend",
+    "ppc_rate_usd": 0.035
+  },
+  {
+    "external_id": "agg-1002",
+    "type": "job",
+    "title": "Staff Nurse",
+    "company_name": "Gulf Health Group",
+    "location_label": "Dubai, UAE",
+    "country_code": "AE",
+    "is_remote": false,
+    "category": "healthcare",
+    "experience_level": "mid",
+    "destination_url": "https://example.com/jobs/nurse-uae",
+    "ppc_rate_usd": 0.04
+  },
+  {
+    "external_id": "agg-2001",
+    "type": "course",
+    "title": "Full Stack Web Development Bootcamp",
+    "company_name": "LearnHub",
+    "location_label": "Online",
+    "country_code": "GB",
+    "is_remote": true,
+    "category": "education",
+    "experience_level": "entry",
+    "destination_url": "https://example.com/courses/fullstack",
+    "ppc_rate_usd": 0.05
+  },
+  {
+    "external_id": "agg-1003",
+    "type": "job",
+    "title": "Digital Marketing Specialist",
+    "company_name": "Growth Labs",
+    "location_label": "London, UK",
+    "country_code": "GB",
+    "is_remote": false,
+    "category": "marketing",
+    "experience_level": "junior",
+    "destination_url": "https://example.com/jobs/digital-marketing",
+    "ppc_rate_usd": 0.03
+  }
+]

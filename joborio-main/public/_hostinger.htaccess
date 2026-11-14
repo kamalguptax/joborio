@@ -1,0 +1,16 @@
+# Upload as .htaccess in site root (rename from _hostinger.htaccess)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteRule ^p/[^/]+/?$ /p/static/index.html [L]
+  RewriteRule ^jobs/s/[^/]+/?$ /jobs/s/static/index.html [L]
+  RewriteRule ^jobs/[0-9]+/?$ /jobs/static/index.html [L]
+  RewriteRule ^employer/programs/[0-9]+/applications/?$ /employer/programs/static/applications/index.html [L]
+  RewriteRule ^employer/programs/[0-9]+/?$ /employer/programs/static/index.html [L]
+  RewriteRule ^admin/users/[0-9]+/?$ /admin/users/static/index.html [L]
+</IfModule>

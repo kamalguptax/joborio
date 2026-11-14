@@ -1,0 +1,68 @@
+# OS / editors
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+.fleet/
+.zed/
+*.swp
+*.swo
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+!.env.*.example
+!**/.env.example
+!**/.env.*.example
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build / cache outputs
+.next/
+dist/
+out/
+build/
+coverage/
+.turbo/
+*.tsbuildinfo
+.phpunit.result.cache
+.phpactor.json
+
+# Laravel / PHP
+backend/storage/*.key
+backend/storage/pail
+backend/public/hot
+backend/public/storage
+backend/public/build
+backend/bootstrap/cache/*.php
+!backend/bootstrap/cache/.gitignore
+Homestead.json
+Homestead.yaml
+auth.json
+
+# Logs / temp
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local PM2 / tooling
+.pm2/
+*.pid
+
+# Archives
+*.zip
+**/*.zip
+
+# Huge local feed dumps (never push to GitHub)
+**/vigyapanam*.xml
+frontend/public/*.xml
+
+# Local duplicates / scratch
+frontned_copy/
+

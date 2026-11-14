@@ -1,0 +1,345 @@
+
+
+
+
+
+
+PROJECT BLUEPRINT v2.0
+
+Creator Performance Marketplace
+Career & Education — All Industries, All Niches, Global
+
+A global, performance-based platform where creators across every career niche promote jobs and courses, earn in USD on verified clicks, registrations, and applications — while employers and institutes launch campaigns without ever contacting creators directly.
+
+
+Date: September 2026
+Version: 2.0 — Global Edition
+Payout Currency: USD (all markets)
+Classification: Confidential
+ 
+Table of Contents
+Table of Contents	2
+1. Executive Feature Summary	4
+2. Product Vision & Problem Statement	6
+The Platform Solves Both Sides	6
+Why USD-Only Payouts	6
+Reference Models	6
+3. Platform Users & Roles	7
+4. Pricing Models — Detailed Mechanics	8
+4.1 PPC — Pay Per Click	8
+4.2 PPR — Pay Per Registration	8
+4.3 PPA — Pay Per Application	8
+5. Module-by-Module Feature Detail	10
+Module A — Creator Signup & Onboarding	10
+Module B — Public Creator Page & My Link	10
+Module C — Job & Course Management	10
+Module D — Tracking & Attribution Engine	11
+Module E — Bot & Fake Traffic Detection	11
+Module F — Creator Dashboard & Earnings (USD)	12
+Module G — Program Marketplace (Employer/Institute Portal)	12
+Module H — Auto-Matching Engine	12
+Module I — USD Payout System (Global)	13
+Module J — Referral & Creator Growth Engine	13
+Module K — AI Post Studio (Capped)	13
+Module L — Admin Panel	14
+Module M — Trust-Tier System	14
+Module N — Notifications & Communication	14
+Module O — Dispute & Attribution Resolution	14
+Module P — Multi-Country & Localization	15
+6. Technology Stack	16
+7. Phased Build Plan & Timeline	17
+8. Monthly Operating Cost (at 10L visits/month, multi-country)	18
+9. Revenue Model & Break-Even Projection (USD)	19
+10. What’s Intentionally Not In This Scope (and Why)	20
+11. Success Metrics	21
+12. Recommended Next Steps	22
+
+1. Executive Feature Summary
+Complete capability map. If a feature is not on this page, it is not in scope. Every feature is industry-agnostic and built to operate across multiple countries with USD as the unified payout currency.
+
+#	Feature	Who Uses It	Business Benefit	Tech
+1	Creator Signup + Handle	Creator	One-click onboarding, personal link claimed in under 2 min — works for any niche globally	Next.js + Laravel + Google/Email OAuth
+2	Public Creator Page (brand.link/@handle)	Creator + Audience	Single sharable link across all social/messaging — all traffic attributed to creator	Next.js SSR, SEO/OG meta tags
+3	Job/Course Feed on Creator Page	Creator + Audience	Auto-populated relevant listings by niche — no manual curation, refreshed every 2 hrs	Laravel matching engine + aggregator APIs
+4	PPC Tracking (Pay Per Click)	Creator earns, Advertiser pays	Lowest-friction model — creator earns from day one across any job/course vertical	Unique tracking tokens, server-side click log
+5	PPR Tracking (Pay Per Registration)	Creator earns, Portal/Institute pays	Lead-gen model — higher value per event, used for signups and enquiries	Form-submit webhook + email-verification gate
+6	PPA Tracking (Pay Per Application)	Creator earns, Employer pays	Highest-value event — employer pays only for verified applications	ATS webhook + 30-day attribution window
+7	Real-Time Creator Dashboard	Creator	Live visibility: clicks, registrations, applications, earnings in USD	React dashboard, polling/WebSocket
+8	Earnings Ledger (Pending → Approved → Payable)	Creator + Admin	Fraud-safe: no payout until event is verified + hold period clears	PostgreSQL ledger, state-machine
+9	USD Payouts (Global)	Creator	Single currency worldwide — Wise/PayPal/Payoneer, no FX confusion for creators	Wise API / PayPal Payouts / Payoneer
+10	Bot & Fake Traffic Detection	Admin (protects all)	Blocks click-spam, VPN abuse, self-clicks — protects unit economics globally	IP fingerprint + velocity rules + datacenter blocklist
+11	Program Marketplace (Employer Portal)	Employer / Institute	Self-serve campaign launch: set model, budget, audience — go live in any country	Laravel API + escrow ledger (USD)
+12	Auto-Matching Engine	System (benefits all)	Right campaign reaches right creator based on niche + geo + audience fit	Niche/audience/geo scoring algorithm
+13	Blind Matching (no direct contact)	Platform moat	Prevents disintermediation — employer never sees creator identity	Anonymized match-quality display
+14	Multi-Niche Support	All users	Tech, Healthcare, Finance, Education, Trades, Government, Marketing, Retail, Logistics — any career vertical	Dynamic category/niche taxonomy
+15	Admin Panel	Platform owner	Centralized control: creators, programs, payouts, fraud queue, multi-country ops	Laravel Nova or custom admin
+16	Referral / Refer-a-Creator	Creator	Cheapest growth channel — creators recruit creators across borders	Unique referral links + USD override commission
+17	AI Post Studio (capped)	Creator	Generate social captions/scripts per job or course — increases sharing frequency	Claude/GPT API, hard cap per creator/month
+18	Leaderboard & Trust Tiers	Creator	Gamified retention — top creators unlock premium/high-budget campaigns	Weekly ranking + Nano/Micro/Mid/Macro tier logic
+19	Multi-Language Public Pages	Audience	Localized experience — Hindi, Spanish, Arabic, French, etc.	i18n framework, translated UI strings
+20	Dispute & Attribution Window	Employer + Creator	Structured resolution for PPA/PPR — fair for both sides, admin-arbitrated	30-day window + dispute queue
+
+2. Product Vision & Problem Statement
+Every industry has the same distribution problem: there are millions of job openings and thousands of courses, but reaching the right candidate through traditional job boards and Google Ads is expensive, competitive, and increasingly inefficient.
+Meanwhile, hundreds of thousands of niche creators — Telegram channel owners, WhatsApp group admins, Instagram career pages, YouTube educators, newsletter writers, Substack authors, LinkedIn voices — already have the trust and attention of exactly the audiences employers and institutes want to reach. But they have no simple, scalable way to monetize that attention beyond one-off brand deals they have to negotiate manually.
+
+The Platform Solves Both Sides
+• For Creators (any niche, any country): One link, auto-filled with relevant jobs and courses, real-time earnings dashboard in USD, verified payouts — zero negotiation, zero collab management. A tech career YouTuber in Nigeria, a nursing-jobs Telegram admin in the Philippines, a finance Instagram page in the US, a government-exam coach in India — all use the same system.
+• For Employers/Institutes (any industry, any market): Self-serve campaign launch, pay only on verified performance (click, registration, or application), reach niche audiences they cannot find on Google — without ever contacting or managing individual creators.
+• For the Platform: A 25–30% cut of every transaction, sitting between supply and demand with tracking, trust, and payout infrastructure as the moat. USD-denominated operations simplify multi-country expansion.
+
+Why USD-Only Payouts
+Running a multi-currency payout system is operationally expensive and legally complex (FX risk, country-specific banking integrations, per-jurisdiction compliance). USD is the global default for creator/affiliate payouts — platforms like Fiverr, Upwork, Impact.com, and ShareASale all settle in USD. Creators worldwide are accustomed to receiving USD and converting locally. This simplifies:
+• One ledger currency — no FX reconciliation.
+• One payout rail — Wise (cheapest cross-border), PayPal (widest reach), or Payoneer (established in creator economy).
+• One compliance surface — US-entity or India-entity paying out in USD, rather than managing local banking in 15+ countries.
+• Creator trust — USD is a stable, universally understood denomination.
+
+3. Platform Users & Roles
+
+Role	What They Do	What They See	Example
+Creator	Claims a handle, shares their link on social/messaging, earns USD on performance	Dashboard: clicks, registrations, applications, USD earnings, matched campaigns, payout history	A tech-career YouTube channel (120K subs, US/India audience) shares software-engineer job links — earns $0.03/click, $0.30/registration, $1.50/application
+Job Seeker / Student	Clicks a creator’s link, browses jobs or courses, applies or registers — free, no account needed	Public creator page with job/course cards, search, filters, apply button	A nursing graduate in the Philippines clicks a link shared in a Facebook group, finds a hospital-hiring program in Dubai, applies
+Employer / Institute	Launches a Program (campaign) with USD budget, pricing model, and audience criteria — never sees or contacts creators	Program dashboard: budget spent, clicks, registrations, applications, anonymized creator performance	A staffing agency posts 200 warehouse roles across 3 countries at $0.04/click, budget $2,000 — system matches to 18 logistics-niche creators
+Admin (You)	Approves creators, reviews fraud queue, approves payouts, manages platform fee, oversees global operations	Full admin panel: all creators, all programs, all financials, fraud flags, multi-country metrics	Reviews a fraud flag where one creator generated 800 clicks in 10 min from 3 IPs — suspends pending earnings, investigates
+ 
+4. Pricing Models — Detailed Mechanics
+
+4.1 PPC — Pay Per Click
+Launch model — proven, lowest fraud risk, universal across all verticals.
+• Trigger: A unique visitor clicks the creator’s tracked link and lands on the job/course destination page.
+• Verification: Server-side click log records IP, device fingerprint, timestamp, referrer, and creator token. Dedup window: 1 click per IP+device+link per 10 minutes.
+• Fraud filters: Datacenter/VPN IP blocklist, self-click detection, velocity cap (flag if hourly clicks > 5x creator’s 7-day avg).
+• Payout flow: Click recorded → Pending (3–7 day hold) → Approved → Payable on next USD payout cycle.
+
+4.2 PPR — Pay Per Registration
+Higher value per event — used when the advertiser wants verified signups, not just traffic.
+• Trigger: Visitor completes a registration form (job-portal signup, course enquiry, job-alert subscription) on the destination, confirmed via webhook or server-side postback.
+• Verification: Email-verification gate (registered email must verify within 24 hrs). Duplicate check: one registration per email per program.
+• Fraud filters: Disposable-email blocklist, rate limit (max 20 registrations/creator/hour), phone dedup where available.
+• Payout flow: Registration event → Pending (email verification, 24 hrs) → Verified → Approved → Payable.
+• Example: An online MBA platform runs a PPR campaign at $0.X/verified signup. A LinkedIn finance influencer (30K followers, global audience) promotes it in 3 posts. 220 signups, 190 email-verified. Gross = $X. Platform takes 30% , creator earns 70% USD.
+
+4.3 PPA — Pay Per Application ( Second Phase )
+Highest value, highest trust requirement — launch after PPC and PPR are stable.
+• Trigger: Candidate submits a job application or course enrollment on the employer/institute’s own site, confirmed back to the platform.
+• Verification: Employer/institute marks application as received (webhook or manual confirmation). Attribution window: 30 days from last creator-link click.
+• Fraud filters: All PPC/PPR filters, plus application-quality scoring (if employer marks >30% from one creator as ‘irrelevant’, creator’s PPA eligibility reviewed).
+• Payout flow: Application event → Pending (employer confirmation, up to 7 days) → Confirmed → Approved → Payable.
+• Example: A global tech company runs a PPA campaign for senior developers at $X/application. A coding-tutorial YouTube channel (200K subs) promotes it. 85 applications, employer confirms 72 valid. Gross = $XA. Platform takes 30% ($XC), creator earns $XB USD.
+ 
+5. Module-by-Module Feature Detail
+
+Module A — Creator Signup & Onboarding
+Purpose: Get a creator from zero to a live, sharable link in under 2 minutes — regardless of country or niche.
+• Email + Google OAuth signup (global coverage, no platform-specific dependency).
+• Handle/username claiming — creator picks slug, system checks availability, generates brand.link/@handle instantly.
+• Niche/category selection: Technology, Healthcare, Finance & Accounting, Education & Upskilling, Sales & Marketing, Logistics & Supply Chain, Government & Public Sector, Skilled Trades, Creative & Design, Legal, Energy, Hospitality — extensible taxonomy.
+• Country/region selection (for audience-matching, not gating — a creator in Nigeria can promote US jobs if their audience is US-based).
+• Audience-size self-declaration (optional, feeds match-quality scoring).
+• Onboarding checklist: profile photo → bio → niche → country → first share = ‘link is live’ confirmation.
+Example: A Substack writer covering fintech careers in Southeast Asia signs up, picks @fintechjobsasia, selects Finance + Technology, sets audience region to Singapore/Malaysia/Indonesia, and has a live link in 90 seconds.
+
+Module B — Public Creator Page & My Link
+Purpose: The one link a creator shares everywhere — personalized, mobile-first, industry-agnostic.
+• Creator branding: photo/logo, name, bio, social links.
+• Auto-populated job/course feed based on creator’s niche + audience geography — refreshed every 2 hours.
+• Job/course cards: title, company/institute, location (or ‘Remote’), salary/fee range (where available), CTA button.
+• Search and filters for audience (location, category, experience level, remote/onsite).
+• Share buttons: WhatsApp (one-tap), copy-link, native share, Telegram share.
+• SEO-friendly: server-rendered, Open Graph tags, social preview image auto-generated.
+• Page customization: color accent, pinned listings, hide specific items.
+Example: A visitor in Germany clicks a link shared in a data-science Telegram group. They land on a clean mobile page showing the creator’s photo, bio (‘Helping data professionals find remote roles worldwide’), and 20 relevant job cards across US, UK, and Germany — no login required.
+
+Module C — Job & Course Management
+Purpose: Populate the platform with relevant, fresh inventory across all industries and geographies.
+• Job-data ingestion from global aggregators (API) — automated, scheduled every 2 hours.
+• Direct employer/institute submissions via the Program Marketplace (Module G).
+• Auto-categorization by industry, role type, location, experience level, remote/onsite.
+• Course categorization: domain, format (online/offline/hybrid), price (free/paid), certification (yes/no).
+• Status management: Active, Paused, Expired, Budget Exhausted.
+• Creator-job matching: niche + audience geography + audience interests scored against every active listing.
+Example: 500 new tech jobs across US, UK, India, and UAE are ingested from Jooble at 6 AM UTC. By 6:05 AM, every creator whose niche includes ‘Technology’ and whose audience overlaps those countries has fresh listings on their page.
+
+Module D — Tracking & Attribution Engine
+Purpose: The single most critical module — every dollar of revenue flows through this system.
+• Unique tracking token per creator+listing combination — embedded in every outbound link.
+• Server-side event capture (not client-side JS — harder to spoof, works even if visitor blocks scripts).
+• Event types: PageView, JobView, Click (PPC), Registration (PPR), Application (PPA).
+• Full attribution chain: Creator → Campaign/Post (if UTM-tagged) → Job/Course → Event → Timestamp → IP + Device Fingerprint → Country (GeoIP).
+• Deduplication: one countable event per IP+device+link per configurable time window.
+• Self-click detection: creator’s own registered IP/device excluded.
+• Last-touch attribution with configurable window (default 30 days for PPA).
+Example: Creator A (UK) shares Job X. Candidate in London clicks at 10:14 AM GMT from an iPhone on Vodafone. System records: creator_id=A, job_id=X, event=click, ip=xxx, device_hash=yyy, referrer=t.me, geo=GB, timestamp=10:14. A second click from same IP+device at 10:18 is logged but not counted.
+
+Module E — Bot & Fake Traffic Detection
+Purpose: Protect unit economics and advertiser trust globally.
+• Layer 1 — Free rule-based filters (launch): IP dedup, global datacenter/VPN blocklist (IP2Location LITE, free), self-click exclusion, referrer validation, velocity cap (flag if hourly clicks > 5x creator’s 7-day avg).
+• Layer 2 — Manual review queue: flagged events go to admin queue, not auto-rejected. At early volume, 30 min/day is cheaper and more accurate than any fraud SaaS.
+• Layer 3 — Hold-before-pay: every earning sits in ‘Pending’ for 3–7 days before ‘Approved.’ Most fraud patterns surface in this window.
+• Layer 4 — Paid fraud API (add when manual review stops scaling): dedicated click-fraud service, priced per event.
+Example: Creator B generates 800 clicks in 10 minutes from 3 IPs in an AWS datacenter range. Layer 1 flags 780. Layer 2 queues the remaining 20. Admin suspends Creator B’s pending earnings.
+
+Module F — Creator Dashboard & Earnings (USD)
+Purpose: Give creators worldwide real-time visibility into performance and earnings — all denominated in USD.
+• Real-time metrics: page views, job/course views, clicks, registrations, applications (by event type).
+• Earnings breakdown: PPC earnings, PPR earnings, PPA earnings, referral overrides — all in USD.
+• Earnings states: Pending (held for verification), Approved (verified, awaiting payout), Paid (disbursed via Wise/PayPal/Payoneer).
+• Top-performing listings: which jobs/courses generated the most clicks/earnings.
+• Period comparison: this week vs last week, this month vs last month.
+• Payout history: every disbursement with date, USD amount, transaction reference, payout method.
+• Quick-share actions: one-tap share to WhatsApp, Telegram, copy link, generate post (if AI studio is enabled).
+
+Module G — Program Marketplace (Employer/Institute Portal)
+Purpose: Let employers and institutes from any country launch USD-denominated performance campaigns.
+• Employer/institute signup and basic verification (business email, company URL).
+• Program creation wizard: Title → Description → Pricing model (PPC/PPR/PPA) → Rate per event (USD) → Total budget (USD) → Target audience criteria (niche, geography, language, follower tier).
+• Budget pre-funding in USD: employer deposits via Stripe/PayPal before program goes live — protects creators from non-payment.
+• Anonymized match preview: ‘14 creators matched, avg audience-fit 88%’ — never names, handles, or contact details.
+• Program dashboard: budget spent, remaining, impressions, clicks, registrations, applications, cost per event, anonymized creator-level performance.
+• Pause/resume/extend controls.
+Example: A UK edtech company launches a PPR campaign for their cybersecurity bootcamp at $0.60/verified signup, budget $3,000. System matches to 11 creators in Tech + Education niches with UK/US/India audiences. Within one week, 280 verified signups come in.
+
+Module H — Auto-Matching Engine
+Purpose: Replace manual outreach with algorithmic matching — works across every niche and geography.
+• Scoring factors: creator niche vs program category, creator audience geography vs program target geography, creator trust-tier, creator historical conversion rate.
+• Matched creators see the program in their ‘Available Campaigns’ feed — opt in with one tap.
+• Employer sees aggregated match quality, never individual creator profiles.
+• Auto-reallocation: if a campaign underperforms with one creator segment, remaining budget shifts toward better-converting matches.
+Example: A global staffing firm posts 500 roles across healthcare (US, UK, UAE) at $0.05/click, budget $5,000. System scores 40 creators, shows program to top 25. 19 opt in. After 5 days, 6 creators drive 75% of valid clicks — budget auto-reallocates.
+
+Module I — USD Payout System (Global)
+Purpose: Reliable, scheduled, global creator payouts in USD — the trust foundation of the platform.
+• Payout methods: Wise (lowest cross-border fees, ~0.5–1%), PayPal (widest global reach, ~2–3%), Payoneer (established in creator/freelancer economy). Creator chooses their preferred method.
+• Minimum payout threshold: $10 USD (keeps transaction-fee ratio sane across all methods).
+• Payout cycle: twice-monthly (1st and 15th), or on-demand once threshold is met.
+• Payout states: Initiated → Processing → Completed / Failed (with retry).
+• Creator KYC: identity verification + payout-method verification before first payout. Tax documentation (W-8BEN for non-US creators, W-9 for US creators) collected at onboarding if platform is US-entity.
+• Admin manual-approval gate for first 3–6 months.
+Example: Payout cycle runs on the 15th. System calculates: 280 creators have ‘Approved’ balances above $10, total $4,820. Admin reviews batch, approves. Wise fires 210 transfers, PayPal fires 55, Payoneer fires 15. 278 complete within 24 hrs, 2 fail (wrong details) — flagged for creator update.
+
+Module J — Referral & Creator Growth Engine
+Purpose: Creators recruit creators — the cheapest cross-border growth lever.
+• Every creator gets a unique referral link.
+• When referred creator generates first $10 in approved earnings, referrer earns a one-time bonus ($X) + will the ongoing 2–5% override on referred creator’s earnings for 2 months.
+• Referral dashboard: invites sent, signups, active referrals, override earnings (USD).
+Example: A Nigerian tech YouTuber shares their referral link in a creator community. 12 new creators sign up across Nigeria, Kenya, and South Africa. 7 become active. Referrer earns $35 in bonuses + ~$18/month in overrides.
+
+Module K — AI Post Studio (Capped)  second Phase
+Purpose: Help creators generate ready-to-share social content — language-aware, platform-optimized.
+• Creator selects a listing → one tap generates: WhatsApp message, Instagram caption, LinkedIn post, Twitter/X post, short-form video script, hashtag suggestions.
+• Language detection: generates content in the language the creator’s audience primarily uses.
+• Every generated piece includes the creator’s tracked link automatically.
+• Hard cap: 5 AI generations per creator per month (free tier). Non-negotiable at launch.
+• Premium tier (future): higher cap, paid by creator or unlocked at higher trust-tier.
+Example: A Spanish-speaking career coach selects a remote marketing role. System generates an Instagram caption in Spanish with relevant hashtags and the tracked link. Creator copies, posts, done in 15 seconds.
+
+Module L — Admin Panel
+Purpose: Centralized global operations.
+• Creator management: approve, suspend, review performance, trust-tier assignment, country filter.
+• Program/campaign management: approve, pause, close employer programs, country/niche filter.
+• Job/course management: sources, categories, status, multi-country inventory health.
+• Financial overview: total revenue (USD), total creator payouts (USD), platform margin, outstanding payables, by-country breakdown.
+• Fraud queue: flagged events, investigation tools, earnings suspension/reversal.
+• Payout batch review and approval (by payout method: Wise/PayPal/Payoneer).
+• CMS: banners, announcements, FAQs, static pages, localized content.
+• Support ticket queue.
+
+Module M — Trust-Tier System
+Purpose: Gate high-value models behind proven performance — same tiers worldwide.
+• Nano (new): PPC only, manual payout review, standard fraud hold. We will automate after running 3 month . 
+• Micro (after 1,000 verified clicks + 30 days active): PPC + PPR unlocked, fraud hold reduced to 3 days.
+• Mid (after 5,000 verified clicks + 2 months + <5% invalid rate): PPC + PPR + PPA unlocked, auto-payout eligible.
+• Macro (top 5% by volume + quality): all models, priority matching for premium campaigns, leaderboard featured.
+
+Module N — Notifications & Communication
+• Email (global): onboarding, new campaign alerts, earnings milestones, payout confirmations, fraud notices. ): 
+in future :- 
+Payout confirmation, high-value campaign alerts 
+• In-app: real-time notification bell.
+• Telegram bot (free, no per-message cost): same alerts as WhatsApp.
+• Push notifications (future, with mobile app): instant campaign and payout alerts.
+
+Module O — Dispute & Attribution Resolution
+Purpose: Structured, fair resolution for PPA/PPR disputes.
+• Employer marks event as ‘Disputed’ with reason → Creator notified → Admin reviews evidence → Ruling: Upheld or Rejected.
+• Auto-escalation: if employer dispute rate >20%, program paused. If creator’s disputed rate >15%, tier reviewed.
+
+Module P — Multi-Country & Localization
+Purpose: Operate seamlessly across countries without rebuilding.
+• GeoIP-based audience detection: system knows where a creator’s traffic comes from, even if the creator is based elsewhere.
+• Multi-language public pages: UI translated into supported languages (Hindi, Spanish, Arabic, French, Portuguese, Bahasa — extensible). But start in only English then add feature’s when needed 
+• Country-specific job/course inventory: aggregator feeds filtered by geography, shown to creators whose audience matches.
+• Timezone-aware dashboards and payout schedules.
+• Compliance: GDPR cookie consent for EU traffic, privacy-policy links per jurisdiction.
+Example: A creator based in Dubai with a predominantly Indian audience sees India-based jobs. A creator in Canada with a US audience sees US-based jobs. Both earn in USD.                                                                                         6. Technology Stack
+
+Layer	Choice	Why This
+Frontend	Next.js (React)	SEO-friendly SSR for public pages, largest freelancer pool globally, fast iteration
+Backend / API	Laravel (PHP 8+)	Proven SaaS framework, deep talent supply, robust queue/event system
+Database	PostgreSQL	ACID-compliant (critical for USD financial ledger), JSON support, scales to millions of rows
+Cache / Queue	Redis	Sessions, rate limiting, background jobs
+Hosting	VPS (Hetzner/DigitalOcean) → AWS as needed	Start lean (~$50–80/mo), move DB to managed Postgres when justified
+CDN / WAF	Cloudflare (Free/Pro)	Global edge caching, DDoS protection, free SSL
+Creator Payouts	Wise API (primary) + PayPal Payouts + Payoneer	Wise = lowest cross-border fees; PayPal = widest reach; Payoneer = creator-economy standard
+Employer Payments (collection)	Stripe	Global USD collection, invoicing, subscription support for employer budgets
+AI (Post Studio)	Claude Haiku / GPT-4o-mini API	Cheapest per-generation, sufficient for social captions, ~$0.01–0.02/generation
+Email	Amazon SES or Resend	~$0.10/1,000 emails — cheapest transactional email globally
+Monitoring	UptimeRobot + Sentry (free tiers)	Uptime + error tracking — zero cost at launch
+ 
+7. Phased Build Plan & Timeline
+
+Phase	Modules	Timeline	Est. Cost	Revenue Model Active
+Phase 0 — MVP	A (Signup), B (Public Page), C (Jobs — aggregator), D (Tracking — PPC), E (Fraud — rules), F (Dashboard), I (Payout — Wise/PayPal manual), L (Admin), P (GeoIP basics)	6–8 weeks		PPC live
+Phase 1 — PPR + Auto-Pay	D extended (PPR), I upgraded (auto-payout batch), F extended (PPR earnings)	2–3 weeks		PPC + PPR
+
+
+
+
+Phase 2 — Growth & Retention	J (Referral), K (AI Studio — capped), M (Trust-Tiers), N (Notifications)	3–4 weeks		All models + referral growth
+Phase 3 — Education + PPA + Employer Portal	C extended (courses), G (Program Marketplace), H (Auto-Matching), D extended (PPA), O (Disputes)	4–6 weeks		PPC + PPR + PPA, employer self-serve
+
+Phase 4 — Scale	Leaderboard, multi-language, advanced analytics, custom domains, mobile app	After launching we will think 		Full platform, multi-country
+
+
+8. Monthly Operating Cost (at 10L visits/month, multi-country)
+
+Item	Lean	Mid	Notes
+VPS hosting			Hetzner/DO; upgrade to managed DB later
+CDN (Cloudflare)			Free tier sufficient initially
+Transactional email			300K–600K emails/month via SES
+Job aggregator APIs			Not Need all are free
+AI generation (Post Studio)			Capped at 20/creator/month — watch this line
+Payout fees (Wise/PayPal)			Wise ~$0.50–1/transfer, PayPal ~$0.25–0.35/transfer
+Stripe fees (employer collection)			Revenue-linked, not fixed
+Monitoring			Free tiers initially
+Dev retainer			Part-time dev, bug fixes, fraud tuning
+Ops/support			Fraud review, payout approval, creator support
+TOTAL			Plan around $2,000/mo as realistic baseline
+
+10. What’s Intentionally Not In This Scope (and Why)
+
+Feature	Why Excluded	When to Add
+LinkedIn OAuth	API closed to new partners; adds complexity with no proven conversion lift	Only if LinkedIn reopens partner access
+CPH (Cost Per Hire)	Employer must report hire weeks later — high dispute risk, low trust at launch	Phase 4+, once PPA is stable and employer trust exists
+Multi-currency payouts (INR, EUR, GBP etc.)	Operational complexity, FX risk, per-country banking — USD is simpler and universally accepted	Only if a specific market demands local currency AND volume justifies the integration cost
+Mobile App	Web-first is faster, cheaper, and sufficient for link-sharing creators	Phase 4, once retention justifies the investment
+White-Label / Multi-Tenant	Premature — build one brand first	Phase 4+, only if partner demand materializes
+Audience CRM (full)	PII/consent overhead with no revenue impact at launch	Phase 3, once creator retention needs it
+Advanced AI (images, video)	Cost-unpredictable, not essential for core share-and-earn loop	Phase 4, priced as premium creator feature
+
+Every excluded feature can be added later without re-architecting the core.
+11. Success Metrics
+
+Metric	Target (Month 6)	Why It Matters
+Active creators (shared ≥1 link in last 30 days)	500+ across 5+ countries	Supply-side health and geographic diversity
+Creator-to-active conversion	>40%	Onboarding quality — low = broken funnel
+Verified clicks/month	200,000+	Core PPC volume
+Invalid/fraud click rate	<8%	Below this, aggregators trust your traffic
+Avg creator earnings/month (USD)	$30+	If too low, creators churn
+Payout success rate	>99%	Failed payouts kill trust instantly
+Employer program fill rate	>70%	% of programs spending >50% budget — measures match quality
+Countries with active creators	5+	Geographic diversification
+Platform net margin	$400+/month (break-even)	Survival gate before scaling spend
+ 
+
