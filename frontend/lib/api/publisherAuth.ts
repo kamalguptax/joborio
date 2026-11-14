@@ -28,12 +28,20 @@ export type PublisherAuthPayload = {
 
 export type PublisherDashboard = {
   publisher: PublisherProfile;
-  membership: { role: string };
+  membership: {
+    role: string;
+    can_view_financials?: boolean;
+  };
   overview: {
     communities: number;
     members: number;
     active_campaigns: number;
+    live_campaigns?: number;
+    running_campaigns?: number;
     pending_invites: number;
+    overall_earnings_usd?: number | null;
+    total_payout_usd?: number | null;
+    payable_usd?: number | null;
   };
   nav: Array<{ id: string; label: string; href: string }>;
 };

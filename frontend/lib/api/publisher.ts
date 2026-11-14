@@ -13,6 +13,8 @@ export type PublisherCommunity = {
   members_count: number;
   manager_user_id?: number | null;
   manager?: { id: number; name: string; email: string } | null;
+  join_url?: string | null;
+  join_path?: string | null;
   created_at?: string | null;
 };
 
@@ -44,6 +46,18 @@ export type NetworkMemberRow = {
   joined_at?: string | null;
   left_at?: string | null;
   released_at?: string | null;
+  communities?: Array<{
+    id: number;
+    code: string;
+    name: string;
+    status: string;
+  }>;
+  earnings?: {
+    settled_usd: number;
+    pending_usd: number;
+    total_usd: number;
+    currency: string;
+  } | null;
 };
 
 export function fetchPublisherDashboard() {
@@ -125,15 +139,19 @@ export function invitePublisherManager(input: {
   });
 }
 
-export function fetchPublisherInvitations() {
+export function fetchPublisherInvitations(communityId?: number | null) {
+  const q =
+    communityId != null
+      ? `?community_id=${encodeURIComponent(String(communityId))}`
+      : "";
   return apiFetch<{ invitations: PublisherInvitation[] }>(
-    "/api/v1/publisher/invitations",
+    `/api/v1/publisher/invitations${q}`,
     { auth: true },
   ).then((d) => d.invitations);
 }
 
 export function createPublisherInvitation(body: {
-  community_id?: number | null;
+  community_id: number;
   email?: string;
   channel?: string;
   expires_in_days?: number;
@@ -148,11 +166,15 @@ export function createPublisherInvitation(body: {
   );
 }
 
-export function fetchPublisherMembers() {
-  return apiFetch<{ members: NetworkMemberRow[] }>(
-    "/api/v1/publisher/members",
-    { auth: true },
-  ).then((d) => d.members);
+export function fetchPublisherMembers(communityId?: number | null) {
+  const q =
+    communityId != null
+      ? `?community_id=${encodeURIComponent(String(communityId))}`
+      : "";
+  return apiFetch<{
+    members: NetworkMemberRow[];
+    can_view_earnings?: boolean;
+  }>(`/api/v1/publisher/members${q}`, { auth: true });
 }
 
 export function removePublisherMember(id: number, notes?: string) {

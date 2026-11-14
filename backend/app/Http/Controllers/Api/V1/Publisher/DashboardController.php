@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\V1\Publisher;
 
 use App\Http\Controllers\Controller;
+use App\Models\Program;
 use App\Models\PublisherCampaignAssignment;
 use App\Models\PublisherInvitation;
+use App\Services\Publishers\PublisherLedgerService;
 use App\Support\ApiResponse;
 use App\Support\PublisherAccess;
 use Illuminate\Http\JsonResponse;
@@ -13,6 +15,8 @@ use Illuminate\Http\Request;
 class DashboardController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(private PublisherLedgerService $ledger) {}
 
     public function show(Request $request): JsonResponse
     {
@@ -53,12 +57,20 @@ class DashboardController extends Controller
         if ($scopedIds !== null) {
             $assignmentsQuery->whereIn('community_id', $scopedIds);
         }
-        $activeCampaigns = $assignmentsQuery->count();
+        $runningCampaigns = (clone $assignmentsQuery)->count();
+
+        // Live = active programs on the marketplace (available to assign / promote).
+        $liveCampaigns = Program::query()->where('status', 'active')->count();
 
         $recentCommunities = (clone $communitiesQuery)
             ->latest()
             ->limit(5)
             ->get(['id', 'code', 'name', 'category', 'status', 'created_at']);
+
+        $balances = null;
+        if ($isOwner) {
+            $balances = $this->ledger->balances($publisher);
+        }
 
         $nav = [
             ['id' => 'overview', 'label' => 'Overview', 'href' => '/publisher/dashboard'],
@@ -106,8 +118,13 @@ class DashboardController extends Controller
                 'communities' => $communities,
                 'active_communities' => $activeCommunities,
                 'members' => $members,
-                'active_campaigns' => $activeCampaigns,
+                'active_campaigns' => $runningCampaigns,
+                'live_campaigns' => $liveCampaigns,
+                'running_campaigns' => $runningCampaigns,
                 'pending_invites' => $pendingInvites,
+                'overall_earnings_usd' => $balances['lifetime_net_usd'] ?? null,
+                'total_payout_usd' => $balances['paid_usd'] ?? null,
+                'payable_usd' => $balances['payable_usd'] ?? null,
             ],
             'recent_communities' => $recentCommunities,
             'nav' => $nav,

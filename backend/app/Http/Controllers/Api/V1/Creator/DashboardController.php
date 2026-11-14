@@ -285,18 +285,20 @@ class DashboardController extends Controller
             }
         }
 
+        // ppr_registrations are listing-scoped (no program_id column); resolve program via listing when needed.
         $pending = \App\Models\PprRegistration::query()
             ->where('creator_id', $creatorId)
             ->where('status', 'pending_verification')
-            ->get(['id', 'listing_id', 'program_id']);
+            ->with(['listing:id,program_id'])
+            ->get(['id', 'listing_id']);
 
         foreach ($pending as $row) {
             $channels = ['all', 'ppr'];
             $listingId = (int) ($row->listing_id ?? 0);
             if ($listingId > 0) {
                 $channels = $this->channelsForListingId($listingId, $listingChannels);
-            } elseif (! empty($row->program_id)) {
-                $program = Program::query()->find($row->program_id);
+            } elseif (! empty($row->listing?->program_id)) {
+                $program = Program::query()->find($row->listing->program_id);
                 if ($program) {
                     $channels = $this->channelsForProgram($program);
                 }
@@ -307,7 +309,7 @@ class DashboardController extends Controller
         }
 
         $ledgers = EarningLedger::query()
-            ->where('creator_id', $creatorId)
+            ->where('earning_ledgers.creator_id', $creatorId)
             ->leftJoin('attribution_events', 'attribution_events.id', '=', 'earning_ledgers.attribution_event_id')
             ->get([
                 'earning_ledgers.id',

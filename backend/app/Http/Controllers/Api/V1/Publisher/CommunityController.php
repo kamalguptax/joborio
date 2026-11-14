@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Publisher;
 
 use App\Http\Controllers\Controller;
 use App\Models\PublisherCommunity;
+use App\Models\PublisherInvitation;
 use App\Models\PublisherUser;
 use App\Support\ApiResponse;
 use App\Support\PublisherAccess;
@@ -61,6 +62,8 @@ class CommunityController extends Controller
             'status' => $data['status'] ?? 'active',
             'manager_user_id' => $managerId,
         ]);
+
+        $this->ensureCommunityJoinInvite($community, $request->user()->id);
 
         return $this->success([
             'community' => $this->serialize($community->load('manager:id,name,email')),
@@ -148,8 +151,45 @@ class CommunityController extends Controller
         return $code;
     }
 
+    private function ensureCommunityJoinInvite(PublisherCommunity $community, ?int $createdByUserId = null): PublisherInvitation
+    {
+        $invite = PublisherInvitation::query()
+            ->where('publisher_id', $community->publisher_id)
+            ->where('community_id', $community->id)
+            ->where('channel', 'community_link')
+            ->where('status', 'pending')
+            ->latest('id')
+            ->first();
+
+        if ($invite) {
+            return $invite->load(['publisher:id,code', 'community:id,code,name']);
+        }
+
+        $invite = PublisherInvitation::create([
+            'publisher_id' => $community->publisher_id,
+            'community_id' => $community->id,
+            'token' => PublisherInvitation::makeToken(),
+            'email' => null,
+            'channel' => 'community_link',
+            'status' => 'pending',
+            'created_by_user_id' => $createdByUserId,
+            'expires_at' => null,
+        ]);
+
+        return $invite->load(['publisher:id,code', 'community:id,code,name']);
+    }
+
+    private function joinUrl(PublisherInvitation $invite): string
+    {
+        $frontend = rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/');
+
+        return $frontend.$invite->invitePath();
+    }
+
     private function serialize(PublisherCommunity $c): array
     {
+        $invite = $this->ensureCommunityJoinInvite($c);
+
         return [
             'id' => $c->id,
             'code' => $c->code,
@@ -161,6 +201,8 @@ class CommunityController extends Controller
             'status' => $c->status,
             'manager_user_id' => $c->manager_user_id,
             'members_count' => (int) ($c->members_count ?? $c->members()->where('status', 'active')->count()),
+            'join_url' => $this->joinUrl($invite),
+            'join_path' => $invite->invitePath(),
             'manager' => $c->manager ? [
                 'id' => $c->manager->id,
                 'name' => $c->manager->name,

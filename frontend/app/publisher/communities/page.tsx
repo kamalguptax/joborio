@@ -1,6 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Check, Copy } from "lucide-react";
 import { ApiClientError } from "@/lib/api/client";
 import {
   createPublisherCommunity,
@@ -32,32 +34,48 @@ export default function PublisherCommunitiesPage() {
   const [managerId, setManagerId] = useState("");
   const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [highlightId, setHighlightId] = useState<number | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const isOwner = role === "owner";
   const managers = team.filter((t) => t.role === "manager" || t.role === "owner");
 
   const load = () => {
     setLoading(true);
-    Promise.all([fetchPublisherCommunities(), fetchPublisherTeam()])
+    return Promise.all([fetchPublisherCommunities(), fetchPublisherTeam()])
       .then(([communities, teamRes]) => {
         setRows(communities);
         setTeam(teamRes.team);
         setCanInvite(teamRes.can_invite_managers);
         setRole(teamRes.membership_role);
+        return communities;
       })
-      .catch((err) =>
+      .catch((err) => {
         setError(
           err instanceof ApiClientError
             ? err.message
             : "Could not load communities.",
-        ),
-      )
+        );
+        return [] as PublisherCommunity[];
+      })
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    load();
+    void load();
   }, []);
+
+  async function copyJoinLink(row: PublisherCommunity) {
+    if (!row.join_url) return;
+    try {
+      await navigator.clipboard.writeText(row.join_url);
+      setCopiedId(row.id);
+      setTimeout(() => setCopiedId((id) => (id === row.id ? null : id)), 2000);
+    } catch {
+      setError("Could not copy join link.");
+    }
+  }
 
   async function onCreate(e: FormEvent) {
     e.preventDefault();
@@ -69,7 +87,7 @@ export default function PublisherCommunitiesPage() {
     }
     setSaving(true);
     try {
-      await createPublisherCommunity({
+      const created = await createPublisherCommunity({
         name: name.trim(),
         category: category.trim() || undefined,
         description: description.trim() || undefined,
@@ -82,8 +100,16 @@ export default function PublisherCommunitiesPage() {
       setCategory("");
       setDescription("");
       setManagerId("");
-      setMsg("Community created.");
-      load();
+      setHighlightId(created.id);
+      setMsg(
+        created.join_url
+          ? `Community created. Share the join link below so members join “${created.name}”.`
+          : "Community created.",
+      );
+      await load();
+      requestAnimationFrame(() => {
+        listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -300,13 +326,20 @@ export default function PublisherCommunitiesPage() {
         </form>
       ) : null}
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div
+        ref={listRef}
+        className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+      >
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg font-bold">
             {isOwner ? "Your communities" : "Assigned communities"}
           </h2>
           <p className="text-xs font-semibold text-slate-400">{rows.length} total</p>
         </div>
+        <p className="mt-1 text-sm text-slate-500">
+          Each community has a join link. Anyone who opens it and accepts is
+          added as a member of that community.
+        </p>
         {loading ? (
           <p className="mt-4 text-sm text-slate-500">Loading…</p>
         ) : rows.length === 0 ? (
@@ -320,7 +353,11 @@ export default function PublisherCommunitiesPage() {
             {rows.map((row) => (
               <li
                 key={row.id}
-                className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3"
+                className={`rounded-2xl border px-4 py-3 ${
+                  highlightId === row.id
+                    ? "border-violet-300 bg-violet-50/60 ring-2 ring-violet-200"
+                    : "border-slate-100 bg-slate-50"
+                }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -339,7 +376,13 @@ export default function PublisherCommunitiesPage() {
                         : " · No manager"}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={`/publisher/network?community=${row.id}`}
+                      className="rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-3 py-1.5 text-xs font-bold text-white"
+                    >
+                      Invite by email
+                    </Link>
                     <span
                       className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
                         row.status === "active"
@@ -358,6 +401,43 @@ export default function PublisherCommunitiesPage() {
                     </button>
                   </div>
                 </div>
+
+                {row.join_url ? (
+                  <div className="mt-3 rounded-xl border border-emerald-100 bg-white px-3 py-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                      Community join link
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <p className="min-w-0 flex-1 break-all text-xs font-medium text-[#172b63]">
+                        {row.join_url}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => void copyJoinLink(row)}
+                        className="inline-flex items-center gap-1 rounded-full bg-[#172b63] px-3 py-1.5 text-xs font-bold text-white"
+                      >
+                        {copiedId === row.id ? (
+                          <>
+                            <Check size={14} /> Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={14} /> Copy link
+                          </>
+                        )}
+                      </button>
+                      <a
+                        href={row.join_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700"
+                      >
+                        Open
+                      </a>
+                    </div>
+                  </div>
+                ) : null}
+
                 {isOwner ? (
                   <label className="mt-3 block max-w-sm text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Assign manager

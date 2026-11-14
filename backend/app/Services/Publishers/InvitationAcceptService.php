@@ -103,11 +103,19 @@ class InvitationAcceptService
                 $user->assignRole('network_member');
             }
 
-            $invite->update([
-                'status' => 'accepted',
-                'accepted_by_user_id' => $user->id,
-                'accepted_at' => now(),
-            ]);
+            // Community share links stay reusable; one-off email/link invites are single-use.
+            if ($invite->channel === 'community_link') {
+                $invite->update([
+                    'accepted_by_user_id' => $user->id,
+                    'accepted_at' => now(),
+                ]);
+            } else {
+                $invite->update([
+                    'status' => 'accepted',
+                    'accepted_by_user_id' => $user->id,
+                    'accepted_at' => now(),
+                ]);
+            }
 
             $member->load([
                 'publisher:id,code,display_name,username',
@@ -116,7 +124,7 @@ class InvitationAcceptService
 
             return [
                 'member' => $member,
-                'invitation' => $invite->fresh(['community:id,code,name']),
+                'invitation' => $invite->fresh(['community:id,code,name', 'publisher:id,code']),
             ];
         });
     }

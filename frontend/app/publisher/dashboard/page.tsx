@@ -16,6 +16,21 @@ type Dash = PublisherDashboard & {
   }>;
 };
 
+type StatCard = {
+  label: string;
+  value: string | number;
+  href: string;
+  hint?: string;
+};
+
+function money(n: number | null | undefined) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(Number(n) || 0);
+}
+
 export default function PublisherDashboardPage() {
   const [data, setData] = useState<Dash | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +60,57 @@ export default function PublisherDashboardPage() {
   }
 
   const { publisher, overview, membership, recent_communities = [] } = data;
+  const canFinance = membership.can_view_financials !== false && membership.role === "owner";
+
+  const cards: StatCard[] = [
+    {
+      label: "Communities",
+      value: overview.communities,
+      href: "/publisher/communities",
+      hint: "Manage communities",
+    },
+    {
+      label: "Members",
+      value: overview.members,
+      href: "/publisher/network",
+      hint: "View network",
+    },
+    {
+      label: "Live campaigns",
+      value: overview.live_campaigns ?? overview.active_campaigns,
+      href: "/publisher/marketplace",
+      hint: "Marketplace offers",
+    },
+    {
+      label: "Running campaigns",
+      value: overview.running_campaigns ?? overview.active_campaigns,
+      href: "/publisher/marketplace",
+      hint: "Assigned & active",
+    },
+    {
+      label: "Pending invites",
+      value: overview.pending_invites,
+      href: "/publisher/network",
+      hint: "Invite members",
+    },
+  ];
+
+  if (canFinance) {
+    cards.push(
+      {
+        label: "Overall earnings",
+        value: money(overview.overall_earnings_usd),
+        href: "/publisher/earnings",
+        hint: "Lifetime commercial net",
+      },
+      {
+        label: "Total payout",
+        value: money(overview.total_payout_usd),
+        href: "/publisher/payments",
+        hint: "Paid to date",
+      },
+    );
+  }
 
   return (
     <>
@@ -94,21 +160,24 @@ export default function PublisherDashboardPage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          ["Communities", overview.communities],
-          ["Members", overview.members],
-          ["Active campaigns", overview.active_campaigns],
-          ["Pending invites", overview.pending_invites],
-        ].map(([label, value]) => (
-          <div
-            key={String(label)}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        {cards.map((card) => (
+          <Link
+            key={card.label}
+            href={card.href}
+            className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-violet-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
           >
             <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-              {label}
+              {card.label}
             </p>
-            <p className="mt-2 text-2xl font-bold">{value}</p>
-          </div>
+            <p className="mt-2 text-2xl font-bold text-[#172b63] transition group-hover:text-violet-700">
+              {card.value}
+            </p>
+            {card.hint ? (
+              <p className="mt-2 text-xs font-semibold text-violet-600 opacity-0 transition group-hover:opacity-100">
+                {card.hint} →
+              </p>
+            ) : null}
+          </Link>
         ))}
       </div>
 
@@ -133,20 +202,22 @@ export default function PublisherDashboardPage() {
           ) : (
             <ul className="mt-4 space-y-2 text-sm">
               {recent_communities.map((c) => (
-                <li
-                  key={c.id}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
-                >
-                  <div>
-                    <p className="font-semibold">{c.name}</p>
-                    <p className="text-xs text-slate-500">
-                      {c.code}
-                      {c.category ? ` · ${c.category}` : ""}
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-bold uppercase text-slate-500">
-                    {c.status}
-                  </span>
+                <li key={c.id}>
+                  <Link
+                    href="/publisher/communities"
+                    className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 transition hover:border-violet-200 hover:bg-violet-50/50"
+                  >
+                    <div>
+                      <p className="font-semibold">{c.name}</p>
+                      <p className="text-xs text-slate-500">
+                        {c.code}
+                        {c.category ? ` · ${c.category}` : ""}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase text-slate-500">
+                      {c.status}
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>
