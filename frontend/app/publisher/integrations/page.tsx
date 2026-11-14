@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Check, Copy, KeyRound, RefreshCw, ShieldOff } from "lucide-react";
 import { ApiClientError } from "@/lib/api/client";
 import {
+  absoluteSiteUrl,
   createPublisherCredential,
   createPublisherMemberInvite,
   fetchPublisherIntegrations,
@@ -149,7 +150,9 @@ export default function PublisherIntegrationsPage() {
     setMemberInviteUrl(null);
     try {
       const res = await createPublisherMemberInvite({ email: memberEmail.trim() });
-      setMemberInviteUrl(res.invite_url);
+      setMemberInviteUrl(
+        absoluteSiteUrl(res.invitation?.path, res.invite_url) || res.invite_url,
+      );
       setMemberEmail("");
     } catch (err) {
       setError(

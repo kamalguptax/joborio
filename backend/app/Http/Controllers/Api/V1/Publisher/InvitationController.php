@@ -69,7 +69,7 @@ class InvitationController extends Controller
 
         $invite->load('community:id,code,name', 'publisher:id,code');
 
-        $frontend = rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/');
+        $frontend = rtrim((string) config('joborio.frontend_url', 'https://joborio.com'), '/');
 
         return $this->success([
             'invitation' => $this->serialize($invite),
@@ -228,7 +228,7 @@ class InvitationController extends Controller
         $skipped = 0;
         $errors = [];
         $days = (int) ($data['expires_in_days'] ?? 14);
-        $frontend = rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/');
+        $frontend = rtrim((string) config('joborio.frontend_url', 'https://joborio.com'), '/');
         $createdUrls = [];
 
         while (($cols = fgetcsv($handle)) !== false) {

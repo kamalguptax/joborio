@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, Copy } from "lucide-react";
 import { ApiClientError } from "@/lib/api/client";
 import {
+  communityJoinUrl,
   createPublisherCommunity,
   fetchPublisherCommunities,
   fetchPublisherTeam,
@@ -67,9 +68,10 @@ export default function PublisherCommunitiesPage() {
   }, []);
 
   async function copyJoinLink(row: PublisherCommunity) {
-    if (!row.join_url) return;
+    const url = communityJoinUrl(row);
+    if (!url) return;
     try {
-      await navigator.clipboard.writeText(row.join_url);
+      await navigator.clipboard.writeText(url);
       setCopiedId(row.id);
       setTimeout(() => setCopiedId((id) => (id === row.id ? null : id)), 2000);
     } catch {
@@ -102,7 +104,7 @@ export default function PublisherCommunitiesPage() {
       setManagerId("");
       setHighlightId(created.id);
       setMsg(
-        created.join_url
+        communityJoinUrl(created) || created.join_path
           ? `Community created. Share the join link below so members join “${created.name}”.`
           : "Community created.",
       );
@@ -402,14 +404,14 @@ export default function PublisherCommunitiesPage() {
                   </div>
                 </div>
 
-                {row.join_url ? (
+                {communityJoinUrl(row) || row.join_path ? (
                   <div className="mt-3 rounded-xl border border-emerald-100 bg-white px-3 py-2">
                     <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">
                       Community join link
                     </p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <p className="min-w-0 flex-1 break-all text-xs font-medium text-[#172b63]">
-                        {row.join_url}
+                        {communityJoinUrl(row)}
                       </p>
                       <button
                         type="button"
@@ -427,7 +429,7 @@ export default function PublisherCommunitiesPage() {
                         )}
                       </button>
                       <a
-                        href={row.join_url}
+                        href={communityJoinUrl(row)}
                         target="_blank"
                         rel="noreferrer"
                         className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700"

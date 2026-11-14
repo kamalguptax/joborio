@@ -18,6 +18,39 @@ export type PublisherCommunity = {
   created_at?: string | null;
 };
 
+/** Prefer current site origin + path so production never shows API localhost. */
+export function absoluteSiteUrl(
+  pathOrUrl: string | null | undefined,
+  fallbackUrl?: string | null,
+): string {
+  const raw = (pathOrUrl ?? "").trim();
+  if (typeof window !== "undefined" && raw) {
+    if (raw.startsWith("/")) {
+      return `${window.location.origin}${raw}`;
+    }
+    try {
+      const u = new URL(raw);
+      if (
+        u.hostname === "localhost" ||
+        u.hostname === "127.0.0.1" ||
+        u.hostname.endsWith(".local")
+      ) {
+        return `${window.location.origin}${u.pathname}${u.search}${u.hash}`;
+      }
+    } catch {
+      /* keep fallback */
+    }
+  }
+  if (raw) return raw;
+  return (fallbackUrl ?? "").trim();
+}
+
+export function communityJoinUrl(
+  row: Pick<PublisherCommunity, "join_url" | "join_path">,
+): string {
+  return absoluteSiteUrl(row.join_path, row.join_url);
+}
+
 export type PublisherTeamMember = {
   id: number;
   user_id: number;

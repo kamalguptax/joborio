@@ -243,7 +243,7 @@ class IntegrationController extends Controller
         ]);
         $invite->load('community:id,code,name', 'publisher:id,code');
 
-        $frontend = rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/');
+        $frontend = rtrim((string) config('joborio.frontend_url', 'https://joborio.com'), '/');
 
         return $this->success([
             'invitation' => [

@@ -181,7 +181,7 @@ class CommunityController extends Controller
 
     private function joinUrl(PublisherInvitation $invite): string
     {
-        $frontend = rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/');
+        $frontend = rtrim((string) config('joborio.frontend_url', 'https://joborio.com'), '/');
 
         return $frontend.$invite->invitePath();
     }

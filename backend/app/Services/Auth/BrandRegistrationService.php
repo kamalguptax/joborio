@@ -115,7 +115,7 @@ class BrandRegistrationService
         $otp = (string) random_int(100000, 999999);
         Cache::put($this->otpKey($user->email), Hash::make($otp), now()->addMinutes(15));
 
-        $frontend = rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/');
+        $frontend = rtrim((string) config('joborio.frontend_url', 'https://joborio.com'), '/');
         $verifyUrl = $frontend.'/brand/verify?email='.urlencode($user->email);
 
         $sent = true;

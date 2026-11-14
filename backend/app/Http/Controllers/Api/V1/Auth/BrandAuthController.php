@@ -120,7 +120,7 @@ class BrandAuthController extends Controller
                 ['token' => Hash::make($token), 'created_at' => now()],
             );
 
-            $frontend = rtrim((string) env('FRONTEND_URL', 'http://localhost:3000'), '/');
+            $frontend = rtrim((string) config('joborio.frontend_url', 'https://joborio.com'), '/');
             $url = $frontend.'/reset-password?email='.urlencode($email).'&token='.urlencode($token);
 
             try {

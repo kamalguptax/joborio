@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Check, Copy, Upload, Users } from "lucide-react";
 import { ApiClientError } from "@/lib/api/client";
 import {
+  absoluteSiteUrl,
   createPublisherInvitation,
   fetchPublisherCommunities,
   fetchPublisherInvitations,
@@ -134,7 +135,9 @@ export default function PublisherNetworkClient() {
         channel: email.trim() ? "email" : "link",
         expires_in_days: 14,
       });
-      setInviteUrl(res.invite_url);
+      setInviteUrl(
+        absoluteSiteUrl(res.invitation?.path, res.invite_url) || res.invite_url,
+      );
       setEmail("");
       loadNetwork(communityId);
     } catch (err) {
