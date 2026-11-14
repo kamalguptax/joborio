@@ -70,9 +70,10 @@ return [
     ],
 
     // Cloudflare Turnstile (https://dash.cloudflare.com → Turnstile)
+    // After changing these in .env on the server: php artisan config:clear && php artisan config:cache
     'turnstile' => [
-        'site_key' => env('TURNSTILE_SITE_KEY', env('NEXT_PUBLIC_TURNSTILE_SITE_KEY')),
-        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+        'site_key' => trim((string) env('TURNSTILE_SITE_KEY', env('NEXT_PUBLIC_TURNSTILE_SITE_KEY', '')), " \t\"'"),
+        'secret_key' => trim((string) env('TURNSTILE_SECRET_KEY', ''), " \t\"'"),
     ],
 
 ];

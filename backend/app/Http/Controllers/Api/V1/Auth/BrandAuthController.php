@@ -21,9 +21,9 @@ class BrandAuthController extends Controller
 {
     use ApiResponse;
 
-    public function captcha(CaptchaService $captcha): JsonResponse
+    public function captcha(Request $request, CaptchaService $captcha): JsonResponse
     {
-        return $this->success($captcha->challenge());
+        return $this->success($captcha->challenge($request->boolean('math')));
     }
 
     public function register(

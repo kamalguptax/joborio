@@ -66,3 +66,11 @@ frontend/public/*.xml
 # Local duplicates / scratch
 frontned_copy/
 
+# Design scratch / mockups (not shipped)
+frontend/design/
+
+
+# Nested git backup (do not commit)
+.frontend-git-backup/
+frontend/.git_nested_backup/
+

@@ -11,9 +11,9 @@ class CaptchaService
 {
     public const TURNSTILE_ID = 'turnstile';
 
-    public function challenge(): array
+    public function challenge(bool $preferMath = false): array
     {
-        if ($this->turnstileEnabled()) {
+        if ($this->turnstileEnabled() && ! $preferMath) {
             return [
                 'captcha_id' => self::TURNSTILE_ID,
                 'provider' => 'turnstile',
@@ -22,17 +22,7 @@ class CaptchaService
             ];
         }
 
-        $a = random_int(2, 12);
-        $b = random_int(1, 9);
-        $id = (string) Str::uuid();
-
-        Cache::put($this->key($id), (string) ($a + $b), now()->addMinutes(10));
-
-        return [
-            'captcha_id' => $id,
-            'provider' => 'math',
-            'question' => "What is {$a} + {$b}?",
-        ];
+        return $this->mathChallenge();
     }
 
     public function assertValid(?string $id, ?string $answer): void
@@ -49,13 +39,6 @@ class CaptchaService
             return;
         }
 
-        if ($this->turnstileEnabled()) {
-            // Keys are configured — only Turnstile is accepted.
-            $this->assertTurnstile(trim((string) $answer));
-
-            return;
-        }
-
         $expected = Cache::pull($this->key($id));
         if ($expected === null || trim((string) $answer) !== (string) $expected) {
             throw ValidationException::withMessages([
@@ -64,20 +47,35 @@ class CaptchaService
         }
     }
 
+    private function mathChallenge(): array
+    {
+        $a = random_int(2, 12);
+        $b = random_int(1, 9);
+        $id = (string) Str::uuid();
+
+        Cache::put($this->key($id), (string) ($a + $b), now()->addMinutes(10));
+
+        return [
+            'captcha_id' => $id,
+            'provider' => 'math',
+            'question' => "What is {$a} + {$b}?",
+        ];
+    }
+
     public function turnstileEnabled(): bool
     {
-        $secret = trim((string) config('services.turnstile.secret_key'));
-        $site = trim((string) config('services.turnstile.site_key'));
-
-        return $secret !== '' && $site !== '';
+        return $this->turnstileSecret() !== '' && $this->turnstileSiteKey() !== '';
     }
 
     private function assertTurnstile(string $token): void
     {
-        $secret = trim((string) config('services.turnstile.secret_key'));
+        $secret = $this->turnstileSecret();
         if ($secret === '') {
             throw ValidationException::withMessages([
-                'captcha' => ['Cloudflare Turnstile is not configured on the server.'],
+                'captcha' => [
+                    'Cloudflare Turnstile secret is missing in Laravel config. '
+                    .'Confirm TURNSTILE_SECRET_KEY in backend/.env, then run: php artisan config:clear && php artisan config:cache',
+                ],
             ]);
         }
 
@@ -102,6 +100,32 @@ class CaptchaService
                 'captcha' => ['Captcha verification failed. Please try again.'],
             ]);
         }
+    }
+
+    private function turnstileSiteKey(): string
+    {
+        return $this->envConfig('services.turnstile.site_key', 'TURNSTILE_SITE_KEY');
+    }
+
+    private function turnstileSecret(): string
+    {
+        return $this->envConfig('services.turnstile.secret_key', 'TURNSTILE_SECRET_KEY');
+    }
+
+    /**
+     * Prefer config(); if empty (stale config:cache), fall back to getenv while APP_ENV is local.
+     */
+    private function envConfig(string $configKey, string $envKey): string
+    {
+        $fromConfig = trim((string) config($configKey, ''));
+        if ($fromConfig !== '') {
+            return trim($fromConfig, " \t\"'");
+        }
+
+        // When config is cached, env() is null — getenv still works if the process has the var.
+        $fromEnv = trim((string) (getenv($envKey) ?: $_ENV[$envKey] ?? $_SERVER[$envKey] ?? ''));
+
+        return trim($fromEnv, " \t\"'");
     }
 
     private function looksLikeTurnstileToken(string $answer): bool

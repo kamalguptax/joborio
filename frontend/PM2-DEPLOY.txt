@@ -1,0 +1,39 @@
+JobOrio — PM2 deploy (you are NOT using dist)
+=============================================
+
+How it works
+------------
+PM2 runs:  next start
+Assets come from:  frontend/.next/static/chunks/   (CSS + JS)
+NOT from:  frontend/dist/
+
+Why CSS broke
+-------------
+HTML on the server referenced chunk files that are not present under
+.next/static/chunks/ (incomplete upload, or code updated without rebuild).
+
+Correct deploy on the VPS
+-------------------------
+cd /path/to/frontend          # same folder as ecosystem.config.js
+git pull                      # or upload latest source
+npm ci
+npm run build                 # creates/updates .next  ← REQUIRED
+pm2 startOrReload ecosystem.config.js --update-env
+pm2 save
+
+Or one script:
+  bash scripts/pm2-rebuild.sh
+
+Never for PM2
+-------------
+- npm run dist / build:dist
+- NEXT_OUTPUT_EXPORT=1
+- Uploading only HTML without rebuilding .next on the server
+
+After deploy
+------------
+1. Purge Cloudflare cache for joborio.com (Caching → Purge Everything)
+2. Hard refresh: Ctrl+Shift+R
+3. Check: ls .next/static/chunks/*.css on the server
+4. Open one of those CSS URLs: https://joborio.com/_next/static/chunks/<name>.css
+   Must be 200, not 404.
