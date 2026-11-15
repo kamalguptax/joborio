@@ -11,6 +11,8 @@ import {
   launchOptionById,
   type LaunchOptionId,
 } from "@/lib/campaigns/launchOptions";
+import { PageSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 const ENGAGE_OPTIONS = [
   { id: "like" as const, label: "Like" },
@@ -119,6 +121,7 @@ function NewEmployerProgramForm() {
           : {}),
       });
       if (result.went_live) {
+        toast.success("Campaign created and live.");
         router.push("/employer/programs");
         return;
       }
@@ -126,8 +129,9 @@ function NewEmployerProgramForm() {
         result.message ??
           "Campaign saved as pending. Complete company GST and payment to go live.",
       );
+      toast.success("Campaign saved as pending.");
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not create program.",
@@ -393,7 +397,7 @@ function NewEmployerProgramForm() {
 
 export default function NewEmployerProgramPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-slate-500">Loading…</p>}>
+    <Suspense fallback={<PageSkeleton />}>
       <NewEmployerProgramForm />
     </Suspense>
   );

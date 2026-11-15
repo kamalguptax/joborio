@@ -14,6 +14,7 @@ import { fetchMe } from "@/lib/api/auth";
 import { withSubid } from "@/lib/tracking/subid";
 import { loginUrlWithNext } from "@/lib/auth/safeRedirect";
 import { STATIC_EXPORT_PLACEHOLDER, syndicatedJobPath } from "@/lib/staticExport";
+import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
 
 function referenceFromLocation(): string {
   const query = new URLSearchParams(window.location.search).get("ref");
@@ -164,7 +165,7 @@ export default function SyndicatedJobClient() {
         {job.description_html ? (
           <div
             className="prose prose-slate mt-8 max-w-none text-slate-600"
-            dangerouslySetInnerHTML={{ __html: job.description_html }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(job.description_html) }}
           />
         ) : job.description_text ? (
           <p className="mt-8 leading-7 text-slate-600">{job.description_text}</p>

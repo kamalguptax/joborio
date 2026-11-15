@@ -6,6 +6,7 @@ import {
   markAllNotificationsRead,
   type UserNotificationRow,
 } from "@/lib/api/creator";
+import { toast } from "@/components/ui/Toast";
 
 export default function CreatorNotificationsPage() {
   const [rows, setRows] = useState<UserNotificationRow[]>([]);
@@ -27,7 +28,14 @@ export default function CreatorNotificationsPage() {
         </div>
         <button
           type="button"
-          onClick={() => markAllNotificationsRead().then(load)}
+          onClick={() =>
+            markAllNotificationsRead()
+              .then(() => {
+                toast.success("All notifications marked as read.");
+                load();
+              })
+              .catch(() => toast.error("Could not update notifications."))
+          }
           className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
         >
           Mark all read

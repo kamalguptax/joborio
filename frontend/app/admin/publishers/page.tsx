@@ -7,6 +7,8 @@ import {
   adminListPublishers,
   type AdminPublisherRow,
 } from "@/lib/api/admin";
+import { TableSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 export default function AdminPublishersPage() {
   const [rows, setRows] = useState<AdminPublisherRow[]>([]);
@@ -39,9 +41,10 @@ export default function AdminPublishersPage() {
     setError(null);
     try {
       await adminActivatePublisher(id);
+      toast.success("Publisher activated.");
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not activate publisher.",
@@ -82,7 +85,7 @@ export default function AdminPublishersPage() {
       ) : null}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Loading…</p>
+        <TableSkeleton rows={6} cols={5} />
       ) : rows.length === 0 ? (
         <p className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
           No publishers found.

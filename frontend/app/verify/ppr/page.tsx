@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { CenteredCardSkeleton } from "@/components/ui/Skeleton";
 
 function VerifyPprContent() {
   const params = useSearchParams();
@@ -54,11 +55,7 @@ function VerifyPprContent() {
 export default function VerifyPprPage() {
   return (
     <Suspense
-      fallback={
-        <main className="flex min-h-screen items-center justify-center">
-          <p className="text-slate-500">Loading…</p>
-        </main>
-      }
+      fallback={<CenteredCardSkeleton />}
     >
       <VerifyPprContent />
     </Suspense>

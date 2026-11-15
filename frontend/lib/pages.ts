@@ -23,6 +23,42 @@ export const pages = {
     ctaText: "Create your profile, pick opportunities that suit your community and start sharing.",
     ctaLabel: "Get Started",
     ctaHref: "/signup",
+    stats: [
+      { value: "4", label: "Ways to pay for results" },
+      { value: "1", label: "Tracked link for every share" },
+      { value: "3", label: "Ways to join: creator, brand or partner" },
+      { value: "Live", label: "Click and earnings reporting" },
+    ],
+    steps: {
+      label: "How it works",
+      title: "One opportunity, four simple stages",
+      intro: "From the first brief to the final payout, every stage is visible to both sides.",
+      items: [
+        { title: "Brands and employers publish", text: "An employer or brand publishes a job, course or campaign with a clear goal and a clear reward." },
+        { title: "Creators and partners choose", text: "Creators and community owners pick the opportunities that genuinely fit their audience." },
+        { title: "Every share is tracked", text: "Each share carries its own tracked link, so clicks, sign-ups and actions are attributed to the right person." },
+        { title: "Results are verified, then paid", text: "Qualified actions are checked first. Once verified, the reward becomes payable to the creator." },
+      ],
+    },
+    benefits: {
+      label: "Why people trust Joborio",
+      title: "Built to be fair and measurable",
+      intro: "Trust is the whole product, so we design for it in every step.",
+      items: [
+        { title: "Transparent tracking", text: "Creators and employers see the same tracked results, so there is nothing to argue about later." },
+        { title: "Fair counting", text: "Duplicate clicks are filtered out and suspicious traffic goes to review, so numbers stay honest." },
+        { title: "Rewards shown up front", text: "You can see what an opportunity pays before you decide to share it." },
+        { title: "Relevance over volume", text: "Opportunities are matched to a community instead of being blasted to everyone." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "What is Joborio?", a: "Joborio is a marketplace that connects creators and community owners with employers and brands. Useful opportunities reach the right audiences, and the people who share them get rewarded." },
+        { q: "Who can join?", a: "Creators, employers, brands and community partners can all create an account. Creator accounts are reviewed so that audiences stay genuine." },
+        { q: "Is it free to join?", a: "Creating a profile is free. Employers and brands fund the campaigns they launch." },
+        { q: "How do creators get paid?", a: "Earnings move from pending to approved to payable as actions are verified. Payable earnings are sent to the payout account you add in your dashboard." },
+      ],
+    },
   },
   creators: {
     eyebrow: "For creators",
@@ -45,6 +81,33 @@ export const pages = {
     ctaText: "It takes a few minutes to set up your creator profile.",
     ctaLabel: "Create Creator Account",
     ctaHref: "/creator/register",
+    stats: [
+      { value: "Free", label: "To create your creator profile" },
+      { value: "4", label: "Ways to earn: PPC, PPR, PPA and PPE" },
+      { value: "1", label: "Tracked link for every opportunity" },
+      { value: "Live", label: "Clicks and earnings dashboard" },
+    ],
+    benefits: {
+      label: "Why creators join",
+      title: "Earn without spamming your audience",
+      intro: "You choose what to share, so your community keeps trusting you.",
+      items: [
+        { title: "Choose what fits", text: "Pick jobs, courses and campaigns your audience will find useful. Nothing is forced on you." },
+        { title: "Know the reward first", text: "See what an opportunity pays before you share it." },
+        { title: "Share anywhere", text: "Use your tracked link on Instagram, WhatsApp, Telegram, YouTube, a newsletter or a website." },
+        { title: "See real results", text: "Follow clicks, registrations and earnings in one dashboard, filtered by campaign type and date." },
+        { title: "Fair, clean counting", text: "Duplicate clicks are filtered, so what you see is what counts." },
+        { title: "Earn from referrals too", text: "Invite other creators and earn a share of the platform fee on their earnings." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "Do I need a big audience?", a: "What matters is a real, relevant audience. Creator accounts are reviewed using your LinkedIn, Instagram, community or website links, and opportunities are matched to your niche." },
+        { q: "What counts as a qualified action?", a: "It depends on the campaign. It can be a verified click, a registration, a lead or application, or an approved engagement on a post. The campaign page always shows which one applies." },
+        { q: "How and when do I get paid?", a: "Earnings start as pending, move to approved after verification, and become payable. Add a payout account in your dashboard and payable earnings are sent there." },
+        { q: "Where can I share my link?", a: "Anywhere your audience is: social posts, stories, WhatsApp or Telegram groups, newsletters, videos or your own website." },
+      ],
+    },
   },
   opportunities: {
     eyebrow: "Opportunities",
@@ -67,6 +130,30 @@ export const pages = {
     ctaText: "Create a free profile and start matching with opportunities.",
     ctaLabel: "Get Started",
     ctaHref: "/signup",
+    stats: [
+      { value: "7", label: "Categories to choose from" },
+      { value: "1", label: "Tracked link per opportunity" },
+      { value: "Clear", label: "Reward shown before you share" },
+      { value: "Matched", label: "To your niche and platforms" },
+    ],
+    benefits: {
+      label: "Why it works",
+      title: "Opportunities picked for your audience",
+      intro: "You set your preferences once and your feed adapts to them.",
+      items: [
+        { title: "Seven categories", text: "Jobs, courses, bootcamps, hackathons, AI tools, SaaS and more, so there is something for almost every community." },
+        { title: "Smart filters", text: "Preferences adapt to your choices. Job-focused creators see salary filters and course-focused creators see duration filters." },
+        { title: "Clear rewards", text: "Every listing shows what it pays and which action earns it." },
+        { title: "Pin and hide", text: "Pin the opportunities you want to push and hide the ones that do not suit your audience." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "How are opportunities matched to me?", a: "We use your niche, platforms and the opportunity preferences you set in your dashboard, such as categories, targeting and filters." },
+        { q: "Can I change what I see?", a: "Yes. You can update your opportunity preferences at any time and pin or hide individual listings." },
+        { q: "Can I share more than one opportunity?", a: "Yes. Each opportunity has its own tracked link, so you can run several at once and compare how each performs." },
+      ],
+    },
   },
   campaigns: {
     eyebrow: "Campaigns",
@@ -89,6 +176,31 @@ export const pages = {
     ctaText: "Tell us who you want to reach and we will help you get started.",
     ctaLabel: "Launch Campaign",
     ctaHref: "/hiring",
+    stats: [
+      { value: "4", label: "Pricing models" },
+      { value: "1", label: "Unique link per creator" },
+      { value: "Live", label: "Spend and results" },
+      { value: "Review", label: "Proof checked before payment on engagement campaigns" },
+    ],
+    benefits: {
+      label: "Pricing models",
+      title: "Pay in the way that suits your goal",
+      intro: "Choose the model that matches the outcome you actually want.",
+      items: [
+        { title: "Pay per click (PPC)", text: "Best for traffic and awareness. You pay for verified clicks, with duplicates filtered out." },
+        { title: "Pay per registration (PPR)", text: "Best for sign-ups and enrolments. Registrations are verified before they count." },
+        { title: "Pay per action (PPA)", text: "Best for leads and applications. You confirm or dispute each action from your dashboard." },
+        { title: "Pay per engagement (PPE)", text: "Best for amplifying a post. Creators like, comment or repost, and you approve proof before paying." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "Which pricing model should I choose?", a: "Use PPC for reach, PPR for sign-ups or enrolments, PPA for qualified leads or applications, and PPE when you want engagement on a specific post." },
+        { q: "Can I pause a campaign?", a: "Yes. You can pause and resume a campaign from your employer dashboard whenever you need to." },
+        { q: "How do I know the traffic is real?", a: "Duplicate clicks are filtered, suspicious activity goes to a review queue, and you can dispute actions you do not accept." },
+        { q: "What do I need before going live?", a: "Complete your company billing details and fund your account. The dashboard tells you if anything is missing." },
+      ],
+    },
   },
   courses: {
     eyebrow: "Courses",
@@ -111,6 +223,30 @@ export const pages = {
     ctaText: "Set up your profile and pick the courses that suit your community.",
     ctaLabel: "Get Started",
     ctaHref: "/signup",
+    stats: [
+      { value: "Clear", label: "Reward shown before you share" },
+      { value: "Tracked", label: "Every enrolment is credited to its creator" },
+      { value: "Relevant", label: "Matched to your audience" },
+      { value: "Free", label: "To create a creator profile" },
+    ],
+    benefits: {
+      label: "Why share courses",
+      title: "Recommendations your audience will thank you for",
+      intro: "Good courses build trust, and trust is what earns repeat engagement.",
+      items: [
+        { title: "Skills people ask about", text: "Courses cover careers and skills your audience is already searching for." },
+        { title: "Fair credit", text: "Your tracked link records who enrolled, so the right creator is always credited." },
+        { title: "Try before you share", text: "Take a course yourself and share what genuinely helped you." },
+        { title: "Transparent rewards", text: "Course rewards are usually tied to enrolments, and the amount is visible before you share." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "How do I earn from a course?", a: "Share your tracked link. When someone enrols through it and the enrolment is verified, the reward is added to your earnings." },
+        { q: "Can I see the reward before sharing?", a: "Yes. The reward for each course is shown on the listing before you decide to share it." },
+        { q: "Are courses free for my audience?", a: "That depends on the course provider. Each listing explains what your audience gets." },
+      ],
+    },
   },
   marketplace: {
     eyebrow: "Marketplace",
@@ -133,6 +269,29 @@ export const pages = {
     ctaText: "Pick your side and get started in minutes.",
     ctaLabel: "Create an account",
     ctaHref: "/signup",
+    stats: [
+      { value: "4", label: "Sides: creators, employers, partners and brands" },
+      { value: "1", label: "Place to find opportunities" },
+      { value: "Built in", label: "Tracking and verification" },
+      { value: "Live", label: "Reporting for everyone" },
+    ],
+    benefits: {
+      label: "Who it is for",
+      title: "A place for every side of the opportunity",
+      intro: "Everyone on the marketplace sees the same tracked results.",
+      items: [
+        { title: "Creators", text: "Find opportunities that suit your audience and earn for qualified actions." },
+        { title: "Employers", text: "Reach qualified candidates through communities they already trust." },
+        { title: "Partners", text: "Monetise community traffic responsibly, with clear reporting." },
+        { title: "Brands", text: "Get measurable reach and pay for outcomes instead of impressions." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "What can I find in the marketplace?", a: "Jobs, courses, campaigns, tools and offers from verified employers and brands, ready to share." },
+        { q: "Do I need an account to browse?", a: "You can look around first. You need an account to get your tracked links and start earning." },
+      ],
+    },
   },
   resources: {
     eyebrow: "Resources",
@@ -155,6 +314,23 @@ export const pages = {
     ctaText: "Create your account and we will point you in the right direction.",
     ctaLabel: "Get Started",
     ctaHref: "/signup",
+    steps: {
+      label: "Start here",
+      title: "Your first week on Joborio",
+      intro: "A simple order that gets you from sign-up to your first earnings.",
+      items: [
+        { title: "Create your account", text: "Sign up as a creator, employer, brand or partner." },
+        { title: "Finish your profile", text: "Add your niche, your platforms and your opportunity preferences so matching works well." },
+        { title: "Share your first link", text: "Pick one opportunity that fits your audience and share its tracked link." },
+        { title: "Add a payout account", text: "Add your payout details so earnings can be sent as soon as they become payable." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "Where do I find help?", a: "Start with the FAQ. For anything else, use the contact page and we will get back to you." },
+        { q: "Will more guides be added?", a: "Yes. We add guides regularly for creators, employers and partners." },
+      ],
+    },
   },
   hiring: {
     eyebrow: "For employers",
@@ -177,6 +353,41 @@ export const pages = {
     ctaText: "Create a brand account and launch campaigns across creators, Meta, and LinkedIn.",
     ctaLabel: "Register your brand",
     ctaHref: "/brand/register",
+    stats: [
+      { value: "4", label: "Pricing models" },
+      { value: "1", label: "Tracked link per creator" },
+      { value: "Live", label: "Spend, clicks and results" },
+      { value: "Verified", label: "Work-email verified brand accounts" },
+    ],
+    steps: {
+      label: "Getting started",
+      title: "Launch a hiring campaign in four steps",
+      intro: "You can go from a brand account to live campaigns quickly.",
+      items: [
+        { title: "Register your brand", text: "Create a brand account with your company details, then verify your work email with a one-time code." },
+        { title: "Add billing details", text: "Complete your company billing details and fund your account so campaigns can go live." },
+        { title: "Create your campaign", text: "Describe the role, choose what counts as a qualified action and pick a pricing model." },
+        { title: "Review and pay for results", text: "Follow clicks and results by creator, confirm or dispute actions, and pause or resume at any time." },
+      ],
+    },
+    benefits: {
+      label: "Why employers use Joborio",
+      title: "Candidates who already trust the source",
+      intro: "Hiring through communities beats a generic job board for roles that need the right people.",
+      items: [
+        { title: "Reach the right communities", text: "Your role is offered to creators whose audiences match the skills and interests you want." },
+        { title: "See where candidates come from", text: "Every creator has a tracked link, so you know exactly which community performs." },
+        { title: "Control your spend", text: "Fund your account, set the reward and pause a campaign whenever you want." },
+        { title: "Fair dispute process", text: "If an action does not look right, you can dispute it from your dashboard." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "Who pays creators?", a: "You do, from your funded account, and only for qualified actions according to the pricing model you chose." },
+        { q: "What do I need before going live?", a: "A verified brand account, your company billing details and funds in your account. The dashboard shows what is still missing." },
+        { q: "Can I hire for several roles?", a: "Yes. Create a separate campaign for each role so you can compare results." },
+      ],
+    },
   },
   partners: {
     eyebrow: "For partners",
@@ -199,6 +410,41 @@ export const pages = {
     ctaText: "Tell us about your community and we will take it from there.",
     ctaLabel: "Become a Partner",
     ctaHref: "/signup",
+    stats: [
+      { value: "Relevant", label: "Offers matched to your community" },
+      { value: "Clear", label: "Traffic, clicks and revenue reporting" },
+      { value: "Control", label: "You decide what to share" },
+      { value: "Team", label: "Invite managers to help run it" },
+    ],
+    steps: {
+      label: "How partnership works",
+      title: "From community to revenue",
+      intro: "Set up once, then share opportunities that fit your members.",
+      items: [
+        { title: "Create your publisher account", text: "Sign up as a partner and tell us about your community, group, newsletter or website." },
+        { title: "Add your community", text: "Create a community in your dashboard. Each one gets its own join link." },
+        { title: "Share relevant opportunities", text: "Choose from campaigns that suit your members and share them when it makes sense." },
+        { title: "Track traffic and revenue", text: "Follow clicks, traffic and earnings for every opportunity in one place." },
+      ],
+    },
+    benefits: {
+      label: "Why partners join",
+      title: "Monetise without losing trust",
+      intro: "Your members come first, so you stay in charge of what they see.",
+      items: [
+        { title: "Only relevant offers", text: "You are shown opportunities that fit your community, not everything on the platform." },
+        { title: "Team access", text: "Invite managers to help run your communities and members." },
+        { title: "Integrations", text: "Connect with API credentials and webhooks if you want to automate parts of your workflow." },
+        { title: "Member management", text: "Invite members by email or CSV and manage who is in your network." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "What kind of community can become a partner?", a: "Groups, newsletters, websites and other communities with an engaged audience." },
+        { q: "Do I have to share everything?", a: "No. You decide what to share and when." },
+        { q: "Can my team help manage it?", a: "Yes. You can invite managers from your partner dashboard." },
+      ],
+    },
   },
   referAndEarn: {
     eyebrow: "Refer & Earn",
@@ -234,6 +480,20 @@ export const pages = {
     ctaText: "Sign up, finish creator setup, then share your referral link from your dashboard.",
     ctaLabel: "Get Started",
     ctaHref: "/signup",
+    stats: [
+      { value: "~75%", label: "Kept by the creator you refer" },
+      { value: "~25%", label: "Typical platform fee" },
+      { value: "2-5%", label: "Your share of that fee" },
+      { value: "Limited", label: "Override window" },
+    ],
+    faqs: {
+      items: [
+        { q: "Who pays the referral share?", a: "It is paid from Joborio's platform fee, not from the earnings of the creator you referred." },
+        { q: "Does referring someone reduce what they earn?", a: "No. The referred creator keeps their share of the revenue as normal." },
+        { q: "Where do I find my referral link and code?", a: "After you join as a creator, open Referrals in your dashboard to copy your invite link and personal code." },
+        { q: "How long does the override last?", a: "The override applies for a limited period after the person you referred starts earning. Your dashboard shows the details." },
+      ],
+    },
   },
   promote: {
     eyebrow: "Promote a post",
@@ -272,5 +532,90 @@ export const pages = {
     ctaText: "Launch a Promote a post campaign, or join one as a creator and start earning PPE.",
     ctaLabel: "Launch post promote",
     ctaHref: "/employer/programs/new?launch=post_promote",
+    stats: [
+      { value: "3", label: "Platforms: LinkedIn, Instagram and X" },
+      { value: "3", label: "Actions: like, comment and repost" },
+      { value: "PPE", label: "Pay per verified engagement" },
+      { value: "You", label: "Approve every proof" },
+    ],
+    benefits: {
+      label: "Why promote a post",
+      title: "Engagement you review before you pay",
+      intro: "You stay in control of every approval.",
+      items: [
+        { title: "Any public post", text: "Paste the link to a public LinkedIn, Instagram or X post." },
+        { title: "You choose the actions", text: "Require likes, comments, reposts, or any combination." },
+        { title: "Real creator accounts", text: "Matched creators engage from their own accounts and submit proof." },
+        { title: "Pay only when approved", text: "Approved proof pays the creator from your campaign budget. Rejected proof does not." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "What is PPE?", a: "PPE means pay per engagement. You pay a set rate for each verified like, comment or repost." },
+        { q: "Which platforms are supported?", a: "LinkedIn, Instagram and X posts." },
+        { q: "What if I reject a submission?", a: "Rejected submissions are not paid. You can review each proof link or note before deciding." },
+      ],
+    },
+  },
+  brands: {
+    eyebrow: "For brands",
+    title: "Reach audiences that trust",
+    highlight: "the creators they follow.",
+    description:
+      "Launch campaigns for your product, course, tool or hiring drive. Joborio matches you with creators and communities, tracks every click, and lets you pay only for the outcomes you choose.",
+    primary: { label: "Register your brand", href: "/brand/register" },
+    secondary: { label: "See how campaigns work", href: "/campaigns" },
+    sectionLabel: "Campaign models",
+    sectionTitle: "Four ways to pay for results",
+    sectionIntro: "Pick the model that matches your goal. You can run more than one at the same time.",
+    features: [
+      { title: "Pay per click", text: "Drive verified traffic to your page. Ideal for awareness, launches and content. Duplicate clicks are filtered out." },
+      { title: "Pay per registration", text: "Pay when someone signs up or enrols through a creator's link, after the registration is verified." },
+      { title: "Pay per action", text: "Pay for qualified leads or applications. You confirm or dispute each action from your dashboard." },
+      { title: "Pay per engagement", text: "Get creators to like, comment or repost your post. You approve their proof before any payment." },
+    ],
+    ctaTitle: "Launch your first brand campaign",
+    ctaText: "Create and verify a brand account, fund it, and go live with creators in minutes.",
+    ctaLabel: "Register your brand",
+    ctaHref: "/brand/register",
+    stats: [
+      { value: "4", label: "Ways to pay for results" },
+      { value: "1", label: "Unique tracked link per creator" },
+      { value: "Live", label: "Clicks, sign-ups and spend" },
+      { value: "Approved", label: "Engagement proof is reviewed before you pay" },
+    ],
+    steps: {
+      label: "Getting started",
+      title: "From brand account to live campaign",
+      intro: "A short, guided setup. The dashboard tells you if anything is missing.",
+      items: [
+        { title: "Register and verify your brand", text: "Create a brand account with your company details, then verify your work email with a one-time code to activate it." },
+        { title: "Add billing details and funds", text: "Complete your company billing details and add funds to your account so campaigns can go live." },
+        { title: "Create your campaign", text: "Choose the goal, the pricing model and the reward. Add the link, post or listing you want promoted." },
+        { title: "Track, review and optimise", text: "See clicks, registrations and spend by creator. Approve proof, dispute actions and pause or resume whenever you like." },
+      ],
+    },
+    benefits: {
+      label: "Why brands choose Joborio",
+      title: "Measurable reach instead of vague impressions",
+      intro: "Every part of a campaign can be traced back to a creator and a result.",
+      items: [
+        { title: "Trusted voices", text: "People act on recommendations from creators they already follow, not on anonymous ads." },
+        { title: "Know what works", text: "Each creator gets a unique link, so you can see which communities and creators perform best." },
+        { title: "Pay for outcomes", text: "Rewards are tied to qualified actions that you define, not to views alone." },
+        { title: "Quality controls", text: "Duplicate clicks are filtered, suspicious traffic goes to review and you can dispute questionable actions." },
+        { title: "Many kinds of campaign", text: "Promote jobs, courses, tools, products or a specific post from one account." },
+        { title: "You stay in control", text: "Set the budget, choose the model and pause or resume a campaign at any time." },
+      ],
+    },
+    faqs: {
+      items: [
+        { q: "What kinds of brands can use Joborio?", a: "Employers, course providers, software and tool companies and other businesses that want measurable reach through creators and communities." },
+        { q: "How do I pay?", a: "You fund your account and rewards are deducted for qualified actions according to the pricing model you chose." },
+        { q: "How do I know the results are genuine?", a: "Duplicate clicks are filtered, suspicious traffic is reviewed and you can dispute any action you do not accept." },
+        { q: "Can I promote a specific social post?", a: "Yes. Use Promote a post to get creators to like, comment or repost a public LinkedIn, Instagram or X post, and approve each proof before paying." },
+        { q: "Is this different from hiring campaigns?", a: "Hiring campaigns are one use of the same system. Brands can also run awareness, sign-up, course and post-promotion campaigns." },
+      ],
+    },
   },
 } satisfies Record<string, PageContent>;

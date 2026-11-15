@@ -13,6 +13,7 @@ import { jobMatchesPromoteTypes } from "@/lib/jobs/promoteTypes";
 import { fetchPublicXmlJobs } from "@/lib/syndication/publicXmlFeed";
 import { syndicatedJobPath } from "@/lib/staticExport";
 import { shareJobUrl } from "@/lib/tracking/subid";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 
 export default function PromoteJobsList({ types }: { types: string[] }) {
   const [jobs, setJobs] = useState<SyndicatedJob[]>([]);
@@ -66,7 +67,7 @@ export default function PromoteJobsList({ types }: { types: string[] }) {
         Live jobs for the types you selected, shown under your preferences.
       </p>
       {loading ? (
-        <p className="mt-4 text-sm text-slate-500">Loading jobs…</p>
+        <ListSkeleton rows={4} className="mt-4" />
       ) : jobs.length === 0 ? (
         <p className="mt-4 rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
           No live jobs match those types right now. Try another type.

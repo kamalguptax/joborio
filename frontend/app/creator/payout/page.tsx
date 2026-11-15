@@ -5,6 +5,8 @@ import Link from "next/link";
 import { TransactionHistory, type TransactionRow } from "@/components/payouts/TransactionHistory";
 import { fetchCreatorTransactions, fetchPayoutAccount, savePayoutAccount } from "@/lib/api/creator";
 import { ApiClientError } from "@/lib/api/client";
+import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 import { CURRENCIES, formatMoney, isCurrencyCode } from "@/lib/money";
 
 const methods = [
@@ -27,7 +29,6 @@ export default function CreatorPayoutPage() {
   const [minUsd, setMinUsd] = useState(10);
   const [feePercent, setFeePercent] = useState(30);
   const [saved, setSaved] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<TransactionRow[]>([]);
@@ -75,7 +76,6 @@ export default function CreatorPayoutPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setMsg(null);
     try {
       await savePayoutAccount({
         payout_method: method,
@@ -88,9 +88,9 @@ export default function CreatorPayoutPage() {
         payout_ifsc: ifsc || null,
       });
       setSaved(true);
-      setMsg("Payout account saved. Earnings are sent here once they are payable.");
+      toast.success("Payout account saved. Earnings are sent here once they are payable.");
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Could not save the payout account.");
+      toast.error(err instanceof ApiClientError ? err.message : "Could not save the payout account.");
     } finally {
       setLoading(false);
     }
@@ -99,16 +99,7 @@ export default function CreatorPayoutPage() {
   return (
     <>
       <div className="mb-8">
-        <Link
-          href="/creator/earnings"
-          className="text-sm font-semibold text-purple-600 hover:text-blue-600"
-        >
-          ← Earnings
-        </Link>
-        <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-purple-600">
-          Get paid
-        </p>
-        <h1 className="mt-1 text-3xl font-bold">Payout account</h1>
+        <PageHeader title="Payout account" backHref="/creator/earnings" backLabel="Earnings" />
         <p className="mt-2 max-w-2xl text-slate-500">
           This is the account JobOrio uses when your payable balance reaches {formatMoney(minUsd, currency, 0)}.
         </p>
@@ -139,9 +130,6 @@ export default function CreatorPayoutPage() {
         <p className="mb-4 text-sm font-semibold text-emerald-700">
           A payout account is on file.
         </p>
-      ) : null}
-      {msg ? (
-        <p className="mb-4 rounded-xl bg-emerald-50 px-4 py-2 text-sm text-emerald-800">{msg}</p>
       ) : null}
       {error ? (
         <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

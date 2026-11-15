@@ -5,6 +5,7 @@ import Link from "next/link";
 import { fetchMe } from "@/lib/api/auth";
 import { fetchNiches, updateCreatorProfile } from "@/lib/api/creator";
 import NicheSearch from "@/components/jobs/NicheSearch";
+import { toast } from "@/components/ui/Toast";
 
 export default function CreatorSettingsPage() {
   const [bio, setBio] = useState("");
@@ -13,7 +14,6 @@ export default function CreatorSettingsPage() {
   const [niches, setNicheIdsList] = useState<Array<{ id: number; name: string }>>(
     [],
   );
-  const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
     fetchNiches().then((n) => setNicheIdsList(n));
@@ -27,16 +27,15 @@ export default function CreatorSettingsPage() {
   }, []);
 
   const saveProfile = async () => {
-    setMsg(null);
     try {
       await updateCreatorProfile({
         bio,
         accent_color: accent,
         niche_ids: nicheIds.length ? nicheIds : undefined,
       });
-      setMsg("Profile saved.");
+      toast.success("Profile saved.");
     } catch {
-      setMsg("Could not save profile.");
+      toast.error("Could not save profile. Please try again.");
     }
   };
 
@@ -48,12 +47,6 @@ export default function CreatorSettingsPage() {
         </p>
         <h1 className="mt-1 text-3xl font-bold">Settings</h1>
       </div>
-
-      {msg ? (
-        <p className="mb-4 rounded-xl bg-purple-50 px-4 py-2 text-sm text-purple-800">
-          {msg}
-        </p>
-      ) : null}
 
       <div className="space-y-6">
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

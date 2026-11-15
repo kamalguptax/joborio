@@ -1,52 +1,72 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import PageHero from "@/components/layout/PageHero";
+import SectionHeading from "@/components/layout/SectionHeading";
+import CtaBand from "@/components/layout/CtaBand";
+
+export const metadata: Metadata = {
+  title: "How it works",
+  description: "One link. Verified performance. USD payouts.",
+};
+
+const steps = [
+  {
+    n: "01",
+    title: "Claim your handle",
+    text: "Sign up with email or Google, pick @yourname, and select your niche and audience countries.",
+  },
+  {
+    n: "02",
+    title: "Share tracked links",
+    text: "Copy JobOrio tracking URLs for jobs and courses, not raw employer links, so every click counts.",
+  },
+  {
+    n: "03",
+    title: "Earn in USD",
+    text: "PPC on verified clicks, PPR on verified signups. Earnings move from pending to approved to payout.",
+  },
+];
 
 export default function HowItWorksPage() {
-  const steps = [
-    {
-      n: "01",
-      title: "Claim your handle",
-      text: "Sign up with email or Google, pick @yourname, and select your niche and audience countries.",
-    },
-    {
-      n: "02",
-      title: "Share tracked links",
-      text: "Copy JobOrio tracking URLs for jobs and courses — not raw employer links — so clicks count.",
-    },
-    {
-      n: "03",
-      title: "Earn in USD",
-      text: "PPC on verified clicks, PPR on verified signups. Earnings move pending → approved → payout.",
-    },
-  ];
-
   return (
-    <main className="min-h-screen bg-[#081638] pb-24 pt-32 text-white">
-      <div className="mx-auto max-w-4xl px-5 sm:px-8">
-        <p className="text-sm font-bold uppercase tracking-widest text-purple-300">
-          How it works
-        </p>
-        <h1 className="mt-4 text-4xl font-bold sm:text-5xl">
-          One link. Verified performance. USD payouts.
-        </h1>
-        <div className="mt-14 space-y-8">
+    <>
+      <PageHero
+        eyebrow="How it works"
+        title="One link."
+        highlight="Verified performance. USD payouts."
+        description="Three simple steps from signing up to getting paid for the audience you already have."
+        primary={{ label: "Start as a creator", href: "/signup" }}
+        secondary={{ label: "Read the FAQ", href: "/faq" }}
+        points={["Free to join", "Tracked links", "Paid in USD"]}
+      />
+
+      <section className="mx-auto w-full max-w-[1600px] px-4 py-16 sm:px-8 md:py-24 lg:px-10">
+        <SectionHeading
+          eyebrow="The process"
+          title="From sign-up to payout"
+          description="Here is exactly what happens at each stage."
+        />
+        <ol className="relative mt-12 grid gap-5 md:grid-cols-3">
           {steps.map((s) => (
-            <div
+            <li
               key={s.n}
-              className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur"
+              className="relative rounded-3xl border border-slate-200/80 bg-white p-7 shadow-[0_1px_2px_rgba(15,27,61,0.04),0_18px_40px_-30px_rgba(15,27,61,0.25)] sm:p-8"
             >
-              <span className="text-sm font-bold text-purple-300">{s.n}</span>
-              <h2 className="mt-2 text-2xl font-bold">{s.title}</h2>
-              <p className="mt-3 text-white/70">{s.text}</p>
-            </div>
+              <span className="bg-gradient-to-br from-[#7C3AED] to-[#2563EB] bg-clip-text text-5xl font-bold leading-none tracking-tight text-transparent">
+                {s.n}
+              </span>
+              <h3 className="text-card-heading mt-6">{s.title}</h3>
+              <p className="text-body mt-3 text-slate-500">{s.text}</p>
+            </li>
           ))}
-        </div>
-        <Link
-          href="/signup"
-          className="mt-12 inline-block rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 font-bold"
-        >
-          Start as a creator
-        </Link>
-      </div>
-    </main>
+        </ol>
+      </section>
+
+      <CtaBand
+        title="Ready to turn your audience into income?"
+        text="Create your creator profile in a few minutes."
+        label="Start as a creator"
+        href="/signup"
+      />
+    </>
   );
 }

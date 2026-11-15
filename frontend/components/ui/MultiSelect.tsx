@@ -89,7 +89,7 @@ export default function MultiSelect({
   }
 
   return (
-    <div ref={rootRef} className={`relative mt-2 ${className}`}>
+    <div ref={rootRef} className={`relative mt-1.5 ${className}`}>
       <button
         type="button"
         disabled={disabled}
@@ -100,7 +100,7 @@ export default function MultiSelect({
           if (disabled) return;
           setOpen((v) => !v);
         }}
-        className="flex min-h-12 w-full items-start gap-2 rounded-xl border border-indigo-100 bg-white px-3 py-2 text-left text-base text-[#0F1B3D] transition focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex min-h-11 w-full items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm text-[#0F1B3D] transition focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15 disabled:cursor-not-allowed disabled:opacity-60"
       >
         <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
           {selected.length === 0 ? (

@@ -16,6 +16,8 @@ import {
 import SyndicationFeedDashboard from "@/components/admin/SyndicationFeedDashboard";
 import { companyName } from "@/lib/jobs/companyName";
 import { postedAgo } from "@/lib/home/opportunityCards";
+import { ListSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 const emptyForm = {
   name: "",
@@ -126,7 +128,6 @@ export default function AdminSyndicationFeedsPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMsg(null);
     setBusy("save");
     try {
       const body = {
@@ -143,15 +144,15 @@ export default function AdminSyndicationFeedsPage() {
       };
       if (editingId) {
         await adminUpdateSyndicationFeed(editingId, body);
-        setMsg("Feed updated.");
+        toast.success("Feed updated.");
       } else {
         await adminCreateSyndicationFeed(body);
-        setMsg("Feed added.");
+        toast.success("Feed added.");
       }
       resetForm();
       load();
     } catch {
-      setMsg("Save failed — check URL and slug.");
+      toast.error("Save failed — check URL and slug.");
     } finally {
       setBusy(null);
     }
@@ -198,13 +199,12 @@ export default function AdminSyndicationFeedsPage() {
             disabled={busy === "all"}
             onClick={async () => {
               setBusy("all");
-              setMsg(null);
               try {
                 const r = await adminRefreshAllSyndicationFeeds();
-                setMsg(`Merged cache refreshed — ${r.total_in_feed} jobs.`);
+                toast.success(`Merged cache refreshed — ${r.total_in_feed} jobs.`);
                 load();
               } catch {
-                setMsg("Refresh all failed.");
+                toast.error("Refresh all failed.");
               } finally {
                 setBusy(null);
               }
@@ -406,12 +406,12 @@ export default function AdminSyndicationFeedsPage() {
                         setBusy(`probe-${row.id}`);
                         try {
                           const r = await adminProbeSyndicationFeed(row.id);
-                          setMsg(
-                            `Probe @${row.slug}: ${r.job_count} jobs${r.source?.error ? ` (${String(r.source.error)})` : ""}.`,
-                          );
+                          const probeText = `Probe @${row.slug}: ${r.job_count} jobs${r.source?.error ? ` (${String(r.source.error)})` : ""}.`;
+                          if (r.source?.error) toast.error(probeText);
+                          else toast.success(probeText);
                           load();
                         } catch {
-                          setMsg("Probe failed.");
+                          toast.error("Probe failed.");
                         } finally {
                           setBusy(null);
                         }
@@ -426,11 +426,11 @@ export default function AdminSyndicationFeedsPage() {
                         setBusy(`refresh-${row.id}`);
                         try {
                           const r = await adminRefreshSyndicationFeed(row.id);
-                          setMsg(`Refreshed @${row.slug}: ${r.job_count} jobs.`);
+                          toast.success(`Refreshed @${row.slug}: ${r.job_count} jobs.`);
                           selectFeed(row.slug);
                           load();
                         } catch {
-                          setMsg("Refresh failed.");
+                          toast.error("Refresh failed.");
                         } finally {
                           setBusy(null);
                         }
@@ -443,9 +443,13 @@ export default function AdminSyndicationFeedsPage() {
                       className="rounded border border-red-500/40 px-2 py-1 text-xs text-red-300"
                       onClick={async () => {
                         if (!confirm(`Delete feed "${row.name}"?`)) return;
-                        await adminDeleteSyndicationFeed(row.id);
-                        load();
-                        setMsg("Feed deleted.");
+                        try {
+                          await adminDeleteSyndicationFeed(row.id);
+                          load();
+                          toast.success("Feed deleted.");
+                        } catch {
+                          toast.error("Could not delete the feed.");
+                        }
                       }}
                     >
                       Delete
@@ -520,7 +524,7 @@ export default function AdminSyndicationFeedsPage() {
           {liveError ? (
             <p className="mt-4 text-sm text-amber-300">{liveError}</p>
           ) : liveLoading ? (
-            <p className="mt-4 text-sm text-slate-500">Loading live jobs…</p>
+            <ListSkeleton rows={4} className="mt-4" />
           ) : liveJobs.length === 0 ? (
             <p className="mt-4 text-sm text-slate-500">No live jobs in this feed right now.</p>
           ) : (

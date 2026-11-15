@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { adminFraudQueue, adminResolveFraud } from "@/lib/api/admin";
+import { toast } from "@/components/ui/Toast";
 
 export default function AdminFraudPage() {
   const [items, setItems] = useState<Array<Record<string, unknown>>>([]);
@@ -35,7 +36,12 @@ export default function AdminFraudPage() {
                   type="button"
                   className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-bold"
                   onClick={() =>
-                    adminResolveFraud(Number(row.id), { status: "dismissed" }).then(load)
+                    adminResolveFraud(Number(row.id), { status: "dismissed" })
+                      .then(() => {
+                        toast.success("Fraud review dismissed.");
+                        load();
+                      })
+                      .catch(() => toast.error("Could not update the review."))
                   }
                 >
                   Dismiss
@@ -44,7 +50,12 @@ export default function AdminFraudPage() {
                   type="button"
                   className="rounded-lg bg-red-600 px-3 py-1 text-xs font-bold"
                   onClick={() =>
-                    adminResolveFraud(Number(row.id), { status: "resolved" }).then(load)
+                    adminResolveFraud(Number(row.id), { status: "resolved" })
+                      .then(() => {
+                        toast.success("Fraud review resolved.");
+                        load();
+                      })
+                      .catch(() => toast.error("Could not update the review."))
                   }
                 >
                   Resolve

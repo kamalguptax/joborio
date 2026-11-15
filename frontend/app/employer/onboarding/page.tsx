@@ -2,13 +2,26 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Building2 } from "lucide-react";
+import OnboardingShell from "@/components/auth/OnboardingShell";
+import { authField, authLabel } from "@/components/auth/authStyles";
 import { registerEmployer } from "@/lib/api/employer";
 import { getAuthToken } from "@/lib/auth/session";
+
+const steps = [
+  {
+    icon: Building2,
+    title: "Create your company profile",
+    description:
+      "Add your company name to launch sponsored programs and start working with creators.",
+  },
+];
 
 export default function EmployerOnboardingPage() {
   const router = useRouter();
   const [company, setCompany] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -16,41 +29,52 @@ export default function EmployerOnboardingPage() {
     }
   }, [router]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async () => {
     setError(null);
+    if (!company.trim()) {
+      setError("Enter your company name to continue.");
+      return;
+    }
+    setSaving(true);
     try {
-      await registerEmployer({ company_name: company, country_code: "US" });
+      await registerEmployer({ company_name: company.trim(), country_code: "US" });
       router.push("/employer/dashboard");
     } catch {
       setError("Could not register. Use a logged-in account that is not already an employer.");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <main className="mx-auto max-w-md px-5 py-24">
-      <h1 className="text-2xl font-bold">Employer onboarding</h1>
-      <p className="mt-2 text-sm text-slate-500">
-        Create a company profile to launch sponsored programs.
-      </p>
-      <form onSubmit={submit} className="mt-8 space-y-4">
-        <label className="block text-sm font-semibold">
+    <OnboardingShell
+      steps={steps}
+      current={0}
+      intro="Set up your company to start running sponsored programs."
+      error={error}
+      exitHref="/employer/dashboard"
+      onNext={submit}
+      nextDisabled={saving}
+      nextLabel={saving ? "Saving…" : "Save and continue"}
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void submit();
+        }}
+      >
+        <label htmlFor="company" className={authLabel}>
           Company name
-          <input
-            required
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3"
-          />
         </label>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        <button
-          type="submit"
-          className="w-full rounded-full bg-[#172b63] py-3 font-bold text-white"
-        >
-          Continue
-        </button>
+        <input
+          id="company"
+          required
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+          placeholder="e.g. Acme Hiring"
+          className={authField}
+        />
       </form>
-    </main>
+    </OnboardingShell>
   );
 }

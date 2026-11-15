@@ -6,6 +6,7 @@ import {
   type FeedCountRow,
   type FeedJobStats,
 } from "@/lib/admin/feedJobStats";
+import { StatCardsSkeleton } from "@/components/ui/Skeleton";
 
 function StatCard({
   label,
@@ -189,7 +190,7 @@ export default function SyndicationFeedDashboard({
         </div>
 
         {loading ? (
-          <p className="mt-6 text-sm text-slate-500">Loading feed analytics…</p>
+          <StatCardsSkeleton count={4} />
         ) : !selectedFeed ? (
           <p className="mt-6 text-sm text-slate-500">Choose a feed from the table below.</p>
         ) : (

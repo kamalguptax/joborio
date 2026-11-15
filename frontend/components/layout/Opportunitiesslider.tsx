@@ -12,6 +12,7 @@ import {
   type HomeOpportunityCard,
 } from "@/lib/home/opportunityCards";
 import SectionHeading from "@/components/layout/SectionHeading";
+import { JobCardsSkeleton } from "@/components/ui/Skeleton";
 
 type Opportunity = HomeOpportunityCard;
 
@@ -304,18 +305,7 @@ export default function OpportunitiesSlider() {
         {/* Slider: 1 → 2 → 3 → 4 cards per view */}
         <div className="mt-8">
           {loading ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-64 animate-pulse rounded-3xl border border-indigo-100 bg-white/80"
-                  aria-hidden
-                />
-              ))}
-              <p className="col-span-full py-4 text-center text-sm text-slate-500 sm:text-base">
-                Loading live jobs…
-              </p>
-            </div>
+            <div><JobCardsSkeleton count={4} className="sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" /></div>
           ) : error ? (
             <p className="w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900 sm:px-6">
               {error}

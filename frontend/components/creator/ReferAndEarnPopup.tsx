@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Gift, X } from "lucide-react";
 
 const STORAGE_KEY = "joborio_refer_earn_popup_dismissed_at";
@@ -38,6 +38,11 @@ export default function ReferAndEarnPopup() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  const close = useCallback(() => {
+    markDismissed();
+    setOpen(false);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -50,12 +55,7 @@ export default function ReferAndEarnPopup() {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
-  }, [open]);
-
-  const close = () => {
-    markDismissed();
-    setOpen(false);
-  };
+  }, [open, close]);
 
   if (!open) return null;
 

@@ -7,6 +7,7 @@ import {
   fetchPublisherReports,
   type PublisherReport,
 } from "@/lib/api/publisher";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 function money(n: number) {
   return new Intl.NumberFormat("en-US", {
@@ -41,7 +42,7 @@ export default function PublisherReportsPage() {
   }
 
   if (!report) {
-    return <p className="text-sm text-slate-500">Loading performance reports…</p>;
+    return <PageSkeleton />;
   }
 
   const { summary, communities, assignments } = report;

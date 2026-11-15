@@ -14,6 +14,8 @@ import {
   updatePublisherIntegrationPreference,
   type PublisherIntegrations,
 } from "@/lib/api/publisher";
+import { PageSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
@@ -61,9 +63,10 @@ export default function PublisherIntegrationsPage() {
     setError(null);
     try {
       await updatePublisherIntegrationPreference(mode);
+      toast.success("Integration preference saved.");
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError ? err.message : "Could not update preference.",
       );
     } finally {
@@ -83,9 +86,10 @@ export default function PublisherIntegrationsPage() {
       });
       setSecrets(res.secrets);
       setOutboundUrl("");
+      toast.success("Credentials created. Copy the secret now — it won’t be shown again.");
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError ? err.message : "Could not create credentials.",
       );
     } finally {
@@ -100,9 +104,10 @@ export default function PublisherIntegrationsPage() {
     try {
       const res = await rotatePublisherCredential(id);
       setSecrets(res.secrets);
+      toast.success("Credentials rotated. Copy the new secret now.");
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError ? err.message : "Could not rotate credentials.",
       );
     } finally {
@@ -115,9 +120,10 @@ export default function PublisherIntegrationsPage() {
     setError(null);
     try {
       await revokePublisherCredential(id);
+      toast.success("Credentials revoked.");
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError ? err.message : "Could not revoke credentials.",
       );
     } finally {
@@ -133,9 +139,10 @@ export default function PublisherIntegrationsPage() {
         outbound_webhook_url: editUrl.trim() || null,
       });
       setEditUrlId(null);
+      toast.success("Webhook URL saved.");
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError ? err.message : "Could not update webhook URL.",
       );
     } finally {
@@ -154,8 +161,9 @@ export default function PublisherIntegrationsPage() {
         absoluteSiteUrl(res.invitation?.path, res.invite_url) || res.invite_url,
       );
       setMemberEmail("");
+      toast.success("Member invite created.");
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError ? err.message : "Could not create member invite.",
       );
     } finally {
@@ -164,7 +172,7 @@ export default function PublisherIntegrationsPage() {
   }
 
   if (!data && !error) {
-    return <p className="text-sm text-slate-500">Loading integrations…</p>;
+    return <PageSkeleton />;
   }
 
   return (

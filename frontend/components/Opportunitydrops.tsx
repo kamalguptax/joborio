@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ViewJobLink from "@/components/jobs/ViewJobLink";
 import { ArrowRight, Clock, Flame, MapPin } from "lucide-react";
+import { JobCardsSkeleton } from "@/components/ui/Skeleton";
 
 /* ---------- Types ---------- */
 type OpportunityType = "Job" | "Course" | "Campaign";
@@ -215,14 +216,7 @@ export default function OpportunityDrops({
       </div>
 
       {loading ? (
-        <ul className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <li
-              key={i}
-              className="h-64 animate-pulse rounded-2xl border border-slate-200 bg-slate-100"
-            />
-          ))}
-        </ul>
+        <div className="mt-5"><JobCardsSkeleton count={3} /></div>
       ) : (
       <ul className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (

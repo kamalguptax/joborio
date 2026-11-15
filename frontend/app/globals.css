@@ -486,3 +486,237 @@ body {
     transition: none;
   }
 }
+
+
+/* ——— Auth split-screen: orbit animation ——— */
+.auth-orbit {
+  --u: 0.85rem;
+  position: relative;
+  width: calc(var(--u) * 28);
+  height: calc(var(--u) * 28);
+  flex: none;
+}
+
+@media (min-width: 1280px) {
+  .auth-orbit {
+    --u: 1rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .auth-orbit {
+    --u: 1.12rem;
+  }
+}
+
+.auth-orbit-slot {
+  width: 0;
+  height: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: rotate(var(--a)) translateX(var(--r)) rotate(calc(var(--a) * -1));
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes auth-spin-rev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.auth-spin {
+  animation: auth-spin 90s linear infinite;
+}
+
+.auth-spin-rev {
+  animation: auth-spin-rev 90s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-spin,
+  .auth-spin-rev {
+    animation: none;
+  }
+}
+
+
+/* ——— Dashboard content polish (scoped to DashboardShell's <main>) ——— */
+.dash-content {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.dash-content h1 {
+  font-size: 1.75rem;
+  line-height: 2.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0f1b3d;
+}
+
+.dash-content h2 {
+  letter-spacing: -0.01em;
+  color: #0f1b3d;
+}
+
+/* Cards */
+.dash-content [class*="rounded-3xl"],
+.dash-content [class*="rounded-2xl"] {
+  border-radius: 0.875rem;
+}
+
+.dash-content [class*="border-slate-200"][class*="bg-white"] {
+  border-color: #e4e7f0;
+  box-shadow:
+    0 1px 2px rgb(15 27 61 / 0.04),
+    0 6px 16px -8px rgb(15 27 61 / 0.08);
+}
+
+/* Inputs, selects, textareas */
+.dash-content
+  :is(
+    input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"]),
+    select,
+    textarea
+  ) {
+  border-radius: 0.5rem;
+  border-color: #dde1ec;
+  background-color: #fff;
+  color: #0f1b3d;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.dash-content
+  :is(
+    input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"]),
+    select
+  ) {
+  min-height: 2.625rem;
+}
+
+.dash-content
+  :is(
+    input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"]),
+    select,
+    textarea
+  ):focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 4px rgb(124 58 237 / 0.14);
+  outline: none;
+}
+
+.dash-content input::placeholder,
+.dash-content textarea::placeholder {
+  color: #94a3b8;
+}
+
+.dash-content input[type="checkbox"],
+.dash-content input[type="radio"] {
+  accent-color: #7c3aed;
+}
+
+/* Primary gradient buttons */
+.dash-content :is(button, a)[class*="bg-gradient-to-r"][class*="rounded-full"] {
+  border-radius: 0.5rem;
+  background-image: linear-gradient(90deg, #6d3cf0, #2f5bea);
+  font-weight: 600;
+  box-shadow: 0 8px 18px -10px rgb(91 53 213 / 0.7);
+  transition: filter 0.15s;
+}
+
+.dash-content :is(button, a)[class*="bg-gradient-to-r"][class*="rounded-full"]:hover {
+  filter: brightness(1.08);
+}
+
+/* Tables */
+.dash-content table {
+  font-size: 0.875rem;
+}
+
+.dash-content thead th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.75rem 1rem;
+}
+
+.dash-content tbody td {
+  padding: 0.8rem 1rem;
+}
+
+.dash-content tbody tr:hover {
+  background: #fafafd;
+}
+
+
+/* ——— Skeleton loaders ——— */
+/* In @layer components so rounded-full / rounded-xl utilities can override the default radius. */
+@layer components {
+  .skeleton {
+    border-radius: 0.5rem;
+    background-color: #eceff5;
+    background-image: linear-gradient(90deg, #eceff5 0%, #f7f8fc 45%, #eceff5 90%);
+    background-size: 220% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* ——— Toasts (top-right) ——— */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast-in {
+  animation: toast-in 0.22s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-in {
+    animation: none;
+  }
+}
+
+/* ——— Dashboard card surface ——— */
+.dash-card {
+  border-radius: 1.5rem;
+  border: 1px solid rgb(226 232 240 / 0.8);
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(15, 27, 61, 0.04),
+    0 18px 36px -28px rgba(15, 27, 61, 0.28);
+}

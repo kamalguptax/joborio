@@ -10,6 +10,7 @@ import {
   type CreatorRegistrationRow,
 } from "@/lib/api/creator";
 import { formatMoney } from "@/lib/money";
+import { ListSkeleton, SectionSkeleton } from "@/components/ui/Skeleton";
 
 type PromoteId = "all" | "ppc" | "ppr" | "ppa" | "ppe";
 
@@ -110,9 +111,11 @@ export default function CreatorPerformancePage() {
     Record<string, number>
   >;
   const metrics = (data?.metrics ?? {}) as Record<string, number>;
-  const earningsCampaigns = (data?.earnings_by_campaign ?? []) as Array<
-    Record<string, unknown>
-  >;
+  const earningsCampaigns = useMemo(
+    () =>
+      (data?.earnings_by_campaign ?? []) as Array<Record<string, unknown>>,
+    [data],
+  );
   const currency = String(data?.currency ?? "USD");
 
   const pprCampaignOptions = useMemo(() => {
@@ -149,7 +152,7 @@ export default function CreatorPerformancePage() {
   useEffect(() => {
     if (promoteFilter !== "ppr") {
       setSelectedProgramId(null);
-      setRegistrations([]);
+      setRegistrations((prev) => (prev.length === 0 ? prev : []));
       setRegError(null);
       return;
     }
@@ -160,7 +163,7 @@ export default function CreatorPerformancePage() {
 
   useEffect(() => {
     if (promoteFilter !== "ppr" || selectedProgramId == null) {
-      setRegistrations([]);
+      setRegistrations((prev) => (prev.length === 0 ? prev : []));
       return;
     }
     setRegLoading(true);
@@ -198,7 +201,7 @@ export default function CreatorPerformancePage() {
         </p>
       ) : null}
 
-      {!data && !error ? <p className="text-sm text-slate-500">Loading…</p> : null}
+      {!data && !error ? <SectionSkeleton /> : null}
 
       {data ? (
         <>
@@ -471,9 +474,7 @@ export default function CreatorPerformancePage() {
                           </tbody>
                         </table>
                         {regLoading ? (
-                          <p className="p-6 text-center text-sm text-slate-500">
-                            Loading registrations…
-                          </p>
+                          <div className="p-4"><ListSkeleton rows={3} /></div>
                         ) : null}
                         {!regLoading && registrations.length === 0 && !regError ? (
                           <p className="p-8 text-center text-sm text-slate-500">

@@ -10,6 +10,7 @@ import {
   type CreatorCampaignRow,
 } from "@/lib/api/creator";
 import { formatMoney } from "@/lib/money";
+import { CardGridSkeleton } from "@/components/ui/Skeleton";
 
 type TabId = "all" | "ppc" | "ppr" | "course" | "ppa" | "ppe" | "branding";
 
@@ -178,7 +179,7 @@ export default function LiveCampaignsPanel({
       </div>
 
       {loading ? (
-        <p className="mt-6 text-sm text-slate-500">Loading live campaigns…</p>
+        <CardGridSkeleton count={3} className="mt-6 sm:grid-cols-2 xl:grid-cols-3" />
       ) : error ? (
         <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {error}

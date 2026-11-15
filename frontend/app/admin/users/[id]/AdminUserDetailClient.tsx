@@ -6,6 +6,8 @@ import { TransactionHistory, type TransactionRow } from "@/components/payouts/Tr
 import { adminActivity, adminGetUser, adminPayoutTransactions, adminUpdateUser } from "@/lib/api/admin";
 import { useResolvedParam } from "@/lib/hooks/useResolvedParam";
 import { formatMoney } from "@/lib/money";
+import { PageSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 function formatClickTime(value?: string): string {
   if (!value) return "time unknown";
@@ -96,18 +98,17 @@ export default function AdminUserDetailClient() {
 
   const toggleActive = async () => {
     if (!payload?.user) return;
-    setMsg(null);
     try {
       await adminUpdateUser(id, { is_active: !payload.user.is_active });
       load();
-      setMsg("User updated");
+      toast.success("User updated.");
     } catch {
-      setMsg("Update failed");
+      toast.error("Could not update the user.");
     }
   };
 
   if (!payload && !msg) {
-    return <p className="text-sm text-slate-400">Loading…</p>;
+    return <PageSkeleton />;
   }
 
   if (!payload) {
@@ -487,13 +488,12 @@ export default function AdminUserDetailClient() {
                   <button
                     type="button"
                     onClick={async () => {
-                      setMsg(null);
                       try {
                         await adminUpdateUser(id, { creator_approval_status: "approved" });
                         load();
-                        setMsg("Creator approved");
+                        toast.success("Creator approved.");
                       } catch {
-                        setMsg("Approve failed");
+                        toast.error("Could not approve the creator.");
                       }
                     }}
                     className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-semibold"
@@ -503,13 +503,12 @@ export default function AdminUserDetailClient() {
                   <button
                     type="button"
                     onClick={async () => {
-                      setMsg(null);
                       try {
                         await adminUpdateUser(id, { creator_approval_status: "rejected" });
                         load();
-                        setMsg("Creator rejected");
+                        toast.success("Creator rejected.");
                       } catch {
-                        setMsg("Reject failed");
+                        toast.error("Could not reject the creator.");
                       }
                     }}
                     className="rounded-lg border border-red-400/40 px-3 py-1.5 text-sm text-red-300"

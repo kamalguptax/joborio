@@ -5,7 +5,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import SectionHeading from "@/components/layout/SectionHeading";
 
 type Theme = {
@@ -162,13 +161,10 @@ const steps: Step[] = [
   },
 ];
 
-/** Approx scrolled navbar height (h-16). */
-const NAV_H = 64;
+/** Sheets stick at the very top of the viewport (0px). */
+const NAV_H = 0;
 /** Each next sheet sticks this many px lower, so the rounded edges of earlier sheets peek out. */
 const PEEK = 0;
-/** Space kept free at the bottom of the viewport while a sheet is stuck. */
-const BOTTOM_GAP = 8;
-
 const stickyTop = (i: number) => NAV_H + i * PEEK;
 
 /* ------------------------------------------------------------------ */
@@ -329,7 +325,7 @@ function StepCard({
       style={{
         top: stickyTop(index),
         zIndex: index + 1,
-        height: `calc(100svh - ${stickyTop(index) + BOTTOM_GAP}px)`,
+        height: "100vh",
         minHeight: 560,
       }}
     >
@@ -345,7 +341,7 @@ function StepCard({
           <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(60,30,160,0.14)_1px,transparent_1.5px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
         </div>
 
-        <div className="relative mx-auto grid h-full max-w-[1400px] grid-rows-[minmax(0,1fr)_auto] gap-4 px-5 pb-6 pt-6 sm:px-8 sm:pb-8 sm:pt-8 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-10 md:px-12 lg:gap-20 lg:px-16">
+        <div className="relative mx-auto grid h-full max-w-[1400px] grid-rows-[minmax(0,1fr)_auto] gap-4 px-5 pb-6 pt-20 sm:px-8 sm:pb-8 sm:pt-24 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-10 md:px-12 lg:gap-20 lg:px-16">
           {/* Image */}
           <div className={`relative h-full min-h-[160px] md:h-[min(100%,560px)] ${imageRight ? "md:order-last" : ""}`}>
             <div aria-hidden className="absolute inset-[6%] rounded-full bg-gradient-to-br from-white/90 via-white/50 to-white/0" />
@@ -423,7 +419,7 @@ export default function HowItWorks() {
       raf = 0;
       let current = 0;
       cardEls.current.forEach((el, i) => {
-        if (el && el.getBoundingClientRect().top <= stickyTop(i) + 4) current = i;
+        if (el && el.getBoundingClientRect().top <= stickyTop(i)) current = i;
       });
       setActive((prev) => (prev === current ? prev : current));
     };
@@ -440,8 +436,6 @@ export default function HowItWorks() {
       window.removeEventListener("resize", onScroll);
     };
   }, []);
-
-  const progress = (active + 1) / steps.length;
 
   return (
     // No overflow-y / overflow:hidden on parents — sticky would break

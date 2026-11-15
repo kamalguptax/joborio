@@ -26,6 +26,7 @@ import {
 import { useState } from "react";
 import { logoutApi } from "@/lib/api/auth";
 import { clearAuthToken } from "@/lib/auth/session";
+import { Toaster } from "@/components/ui/Toast";
 
 const navGroups = [
   {
@@ -83,6 +84,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="admin-console min-h-screen bg-zinc-950 text-zinc-200">
+      <Toaster />
       <div className="flex min-h-screen">
         {/* Sidebar — desktop */}
         <aside

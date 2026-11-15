@@ -7,6 +7,7 @@ import {
   fetchPublisherPayments,
   type PublisherPaymentHistory,
 } from "@/lib/api/publisher";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 function money(n: number | string) {
   return new Intl.NumberFormat("en-US", {
@@ -46,7 +47,7 @@ export default function PublisherPaymentsPage() {
   }
 
   if (!data) {
-    return <p className="text-sm text-slate-500">Loading payment history…</p>;
+    return <PageSkeleton />;
   }
 
   return (

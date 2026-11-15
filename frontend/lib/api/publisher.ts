@@ -19,30 +19,33 @@ export type PublisherCommunity = {
 };
 
 /** Prefer current site origin + path so production never shows API localhost. */
+function rewriteLocalUrl(raw: string): string {
+  if (typeof window === "undefined" || !raw) return raw;
+  if (raw.startsWith("/")) {
+    return `${window.location.origin}${raw}`;
+  }
+  try {
+    const u = new URL(raw);
+    if (
+      u.hostname === "localhost" ||
+      u.hostname === "127.0.0.1" ||
+      u.hostname.endsWith(".local")
+    ) {
+      return `${window.location.origin}${u.pathname}${u.search}${u.hash}`;
+    }
+  } catch {
+    /* keep raw */
+  }
+  return raw;
+}
+
 export function absoluteSiteUrl(
   pathOrUrl: string | null | undefined,
   fallbackUrl?: string | null,
 ): string {
   const raw = (pathOrUrl ?? "").trim();
-  if (typeof window !== "undefined" && raw) {
-    if (raw.startsWith("/")) {
-      return `${window.location.origin}${raw}`;
-    }
-    try {
-      const u = new URL(raw);
-      if (
-        u.hostname === "localhost" ||
-        u.hostname === "127.0.0.1" ||
-        u.hostname.endsWith(".local")
-      ) {
-        return `${window.location.origin}${u.pathname}${u.search}${u.hash}`;
-      }
-    } catch {
-      /* keep fallback */
-    }
-  }
-  if (raw) return raw;
-  return (fallbackUrl ?? "").trim();
+  if (raw) return rewriteLocalUrl(raw);
+  return rewriteLocalUrl((fallbackUrl ?? "").trim());
 }
 
 export function communityJoinUrl(

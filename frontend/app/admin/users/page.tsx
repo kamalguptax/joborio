@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { toast } from "@/components/ui/Toast";
 import {
   adminListUsers,
   adminUpdateUser,
@@ -176,9 +177,10 @@ export default function AdminUsersPage() {
                               await adminUpdateUser(u.id, {
                                 creator_approval_status: "approved",
                               });
+                              toast.success("Creator approved.");
                               load();
                             } catch {
-                              setError("Approve failed");
+                              toast.error("Could not approve the creator.");
                             } finally {
                               setBusyId(null);
                             }

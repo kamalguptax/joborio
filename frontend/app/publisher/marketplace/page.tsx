@@ -13,6 +13,8 @@ import {
   type PublisherCommunity,
 } from "@/lib/api/publisher";
 import { formatMoney } from "@/lib/money";
+import { CardGridSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 export default function PublisherMarketplacePage() {
   const [campaigns, setCampaigns] = useState<MarketplaceCampaign[]>([]);
@@ -20,7 +22,6 @@ export default function PublisherMarketplacePage() {
   const [communities, setCommunities] = useState<PublisherCommunity[]>([]);
   const [communityId, setCommunityId] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,18 +52,16 @@ export default function PublisherMarketplacePage() {
   }, []);
 
   async function assign(programId: number) {
-    setError(null);
-    setMsg(null);
     setBusyId(programId);
     try {
       await assignPublisherCampaign({
         program_id: programId,
         community_id: communityId ? Number(communityId) : null,
       });
-      setMsg("Campaign assigned. Rate locked for this assignment.");
+      toast.success("Campaign assigned. Rate locked for this assignment.");
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not assign campaign.",
@@ -76,9 +75,10 @@ export default function PublisherMarketplacePage() {
     setBusyId(id);
     try {
       await pausePublisherAssignment(id);
+      toast.success("Assignment paused.");
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not pause assignment.",
@@ -106,11 +106,6 @@ export default function PublisherMarketplacePage() {
           {error}
         </p>
       ) : null}
-      {msg ? (
-        <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {msg}
-        </p>
-      ) : null}
 
       <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -133,7 +128,7 @@ export default function PublisherMarketplacePage() {
       <div className="mb-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-bold">Live campaigns</h2>
         {loading ? (
-          <p className="mt-4 text-sm text-slate-500">Loading…</p>
+          <CardGridSkeleton count={4} className="mt-4 sm:grid-cols-2" />
         ) : campaigns.length === 0 ? (
           <p className="mt-4 text-sm text-slate-500">No active campaigns available.</p>
         ) : (

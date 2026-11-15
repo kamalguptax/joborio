@@ -7,6 +7,7 @@ import {
   leaveNetworkMembership,
   type NetworkDashboard,
 } from "@/lib/api/network";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 export default function NetworkDashboardPage() {
   const [data, setData] = useState<NetworkDashboard | null>(null);
@@ -65,7 +66,7 @@ export default function NetworkDashboardPage() {
   }
 
   if (!data) {
-    return <p className="text-sm text-slate-500">Loading activity…</p>;
+    return <PageSkeleton />;
   }
 
   const communityLabel =

@@ -7,6 +7,8 @@ import {
   type AdminPlatformSettings,
 } from "@/lib/api/admin";
 import { CURRENCIES, isCurrencyCode } from "@/lib/money";
+import { SectionSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 function SecretHint({ meta }: { meta: { configured: boolean; source: string; masked: string | null } }) {
   if (!meta.configured) {
@@ -71,7 +73,6 @@ export default function AdminPlatformSettingsPage() {
 
   const save = async () => {
     setSaving(true);
-    setMsg(null);
     try {
       const updated = await adminUpdatePlatformSettings({
         maps: {
@@ -105,9 +106,9 @@ export default function AdminPlatformSettingsPage() {
       setServerKey("");
       setBrowserKey("");
       setOpenaiKey("");
-      setMsg("Settings saved. Referral amounts and the site URL update for new activity.");
+      toast.success("Settings saved. Referral amounts and the site URL update for new activity.");
     } catch {
-      setMsg("Save failed. Check values and try again.");
+      toast.error("Save failed. Check values and try again.");
     } finally {
       setSaving(false);
     }
@@ -134,7 +135,7 @@ export default function AdminPlatformSettingsPage() {
       ) : null}
 
       {!data ? (
-        <p className="mt-8 text-sm text-zinc-500">Loading…</p>
+        <SectionSkeleton className="mt-8" />
       ) : (
         <div className="mt-8 space-y-8">
           <section className="rounded-2xl border border-white/10 bg-zinc-900/50 p-6">

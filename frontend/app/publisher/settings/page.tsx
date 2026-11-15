@@ -13,6 +13,8 @@ import {
   type PublisherNotificationPrefs,
   type PublisherSettings,
 } from "@/lib/api/publisher";
+import { PageSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
@@ -42,7 +44,6 @@ export default function PublisherSettingsPage() {
   const [data, setData] = useState<PublisherSettings | null>(null);
   const [niches, setNiches] = useState<Niche[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const [fullName, setFullName] = useState("");
@@ -90,8 +91,6 @@ export default function PublisherSettingsPage() {
   async function onSaveProfile(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setError(null);
-    setMessage(null);
     try {
       const res = await updatePublisherProfile({
         full_name: fullName.trim(),
@@ -108,9 +107,9 @@ export default function PublisherSettingsPage() {
           ? { ...prev, publisher: res.publisher, user: res.user }
           : prev,
       );
-      setMessage(res.message);
+      toast.success(res.message);
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError ? err.message : "Could not save profile.",
       );
     } finally {
@@ -121,8 +120,6 @@ export default function PublisherSettingsPage() {
   async function onPassword(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setError(null);
-    setMessage(null);
     try {
       const res = await updatePublisherPassword({
         current_password: currentPassword,
@@ -132,11 +129,11 @@ export default function PublisherSettingsPage() {
       setCurrentPassword("");
       setPassword("");
       setPasswordConfirm("");
-      setMessage(res.message);
+      toast.success(res.message);
       const refreshed = await fetchPublisherSettings();
       setData(refreshed);
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not update password.",
@@ -148,14 +145,12 @@ export default function PublisherSettingsPage() {
 
   async function onRevokeOthers() {
     setBusy(true);
-    setError(null);
-    setMessage(null);
     try {
       const res = await revokePublisherOtherSessions();
       setData((prev) => (prev ? { ...prev, sessions: res.sessions } : prev));
-      setMessage(res.message);
+      toast.success(res.message);
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not revoke sessions.",
@@ -166,7 +161,7 @@ export default function PublisherSettingsPage() {
   }
 
   if (!data && !error) {
-    return <p className="text-sm text-slate-500">Loading account settings…</p>;
+    return <PageSkeleton />;
   }
 
   return (
@@ -185,11 +180,6 @@ export default function PublisherSettingsPage() {
       {error ? (
         <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
-        </p>
-      ) : null}
-      {message ? (
-        <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {message}
         </p>
       ) : null}
 

@@ -8,6 +8,7 @@ import {
 } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import { openRazorpayCheckout } from "@/lib/payments/razorpay";
+import { toast } from "@/components/ui/Toast";
 
 const PRESETS = [25, 50, 100, 250, 500];
 
@@ -34,7 +35,6 @@ export default function RazorpayTopUp({
   const [amountUsd, setAmountUsd] = useState(100);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
 
   const fx = razorpay?.usd_inr_rate ?? 83;
   const inrEstimate = useMemo(
@@ -46,7 +46,6 @@ export default function RazorpayTopUp({
 
   const pay = async () => {
     setError(null);
-    setMsg(null);
     const amount = Number(amountUsd);
     if (!Number.isFinite(amount) || amount < 1) {
       setError("Enter at least $1.00 USD.");
@@ -83,13 +82,13 @@ export default function RazorpayTopUp({
         razorpay_signature: checkout.razorpay_signature,
       });
 
-      setMsg(verified.message || "Payment successful.");
+      toast.success(verified.message || "Payment successful.");
       onSuccess?.(verified);
     } catch (err) {
       if (err instanceof Error && err.message === "Payment cancelled.") {
-        setError("Payment cancelled.");
+        toast.info("Payment cancelled.");
       } else {
-        setError(
+        toast.error(
           err instanceof ApiClientError
             ? err.message
             : err instanceof Error
@@ -172,7 +171,6 @@ export default function RazorpayTopUp({
           </p>
 
           {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-          {msg ? <p className="mt-3 text-sm text-emerald-700">{msg}</p> : null}
 
           <button
             type="button"

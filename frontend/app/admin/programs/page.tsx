@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/components/ui/Toast";
 import {
   adminActivateProgram,
   adminListPrograms,
@@ -44,8 +45,13 @@ export default function AdminProgramsPage() {
                   type="button"
                   className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-bold"
                   onClick={async () => {
-                    await adminActivateProgram(Number(p.id));
-                    load();
+                    try {
+                      await adminActivateProgram(Number(p.id));
+                      toast.success("Program activated.");
+                      load();
+                    } catch {
+                      toast.error("Could not activate the program.");
+                    }
                   }}
                 >
                   Activate
@@ -56,8 +62,13 @@ export default function AdminProgramsPage() {
                   type="button"
                   className="rounded-lg border border-white/20 px-3 py-1.5 text-sm"
                   onClick={async () => {
-                    await adminPauseProgram(Number(p.id));
-                    load();
+                    try {
+                      await adminPauseProgram(Number(p.id));
+                      toast.success("Program paused.");
+                      load();
+                    } catch {
+                      toast.error("Could not pause the program.");
+                    }
                   }}
                 >
                   Pause

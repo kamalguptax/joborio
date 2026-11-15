@@ -11,12 +11,14 @@ import {
   Wallet,
 } from "lucide-react";
 import LiveCampaignsPanel from "@/components/creator/LiveCampaignsPanel";
+import PageHeader from "@/components/layout/PageHeader";
 import ReferAndEarnPopup from "@/components/creator/ReferAndEarnPopup";
 import {
   fetchCreatorDashboard,
 } from "@/lib/api/creator";
 import { creatorProfilePath } from "@/lib/staticExport";
 import { formatMoney } from "@/lib/money";
+import { StatCardsSkeleton } from "@/components/ui/Skeleton";
 
 type RangeKey = "1d" | "3d" | "7d" | "30d" | "all";
 type CampaignKey =
@@ -387,51 +389,82 @@ export default function CreatorDashboardPage() {
     <>
       <ReferAndEarnPopup />
 
-      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-purple-600">
-            Overview
-          </p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="mt-2 text-slate-500">
-            Showing <span className="font-semibold text-slate-700">{campaignLabel}</span>
-            {" · "}
-            live clicks, registrations, and earnings.
-          </p>
+      <PageHeader title="Dashboard" />
+
+      <section
+        className="relative isolate mb-6 overflow-hidden rounded-3xl p-6 text-white shadow-[0_28px_60px_-34px_rgba(46,34,151,0.75)] sm:p-8"
+        style={{ backgroundImage: "linear-gradient(135deg, #0B1D4F 0%, #14296B 48%, #2E2297 100%)" }}
+      >
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-violet-500/35 blur-[90px]" />
+          <div className="absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-sky-400/20 blur-[90px]" />
+          <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:linear-gradient(to_right,black,transparent_75%)]" />
         </div>
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-indigo-200">
+              Welcome back{creator?.handle ? `, @${String(creator.handle).replace(/^@/, "")}` : ""}
+            </p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+              Here is how your links are performing
+            </h2>
+            <p className="mt-2 text-sm text-indigo-100/80">
+              Showing <span className="font-semibold text-white">{campaignLabel}</span>
+              {" · "}live clicks, registrations and earnings.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:min-w-[22rem]">
+            <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur">
+              <p className="text-xs font-medium text-indigo-200">Total earning</p>
+              <p className="mt-1 text-2xl font-bold tracking-tight">
+                {data ? formatMoney(totalEarning, currencyCode) : "—"}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur">
+              <p className="text-xs font-medium text-indigo-200">Payable now</p>
+              <p className="mt-1 text-2xl font-bold tracking-tight">
+                {data ? formatMoney(Number(earnings.payable_usd ?? 0), currencyCode) : "—"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="dash-card mb-6 flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between sm:p-5">
+        <p className="text-sm font-semibold text-slate-600">Filter your numbers</p>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <label className="flex min-w-[12rem] flex-col gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Campaign
-            </span>
-            <select
-              value={campaign}
-              onChange={(e) => setCampaign(e.target.value as CampaignKey)}
-              className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#172b63] shadow-sm outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10"
-            >
-              {campaignFilters.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex min-w-[10rem] flex-col gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Date range
-            </span>
-            <select
-              value={range}
-              onChange={(e) => setRange(e.target.value as RangeKey)}
-              className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#172b63] shadow-sm outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10"
-            >
-              <option value="1d">Today</option>
-              <option value="3d">Last 3 days</option>
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="all">All time</option>
-            </select>
-          </label>
+            <label className="flex min-w-[12rem] flex-col gap-1">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Campaign
+              </span>
+              <select
+                value={campaign}
+                onChange={(e) => setCampaign(e.target.value as CampaignKey)}
+                className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#172b63] shadow-sm outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10"
+              >
+                {campaignFilters.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex min-w-[10rem] flex-col gap-1">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Date range
+              </span>
+              <select
+                value={range}
+                onChange={(e) => setRange(e.target.value as RangeKey)}
+                className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#172b63] shadow-sm outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10"
+              >
+                <option value="1d">Today</option>
+                <option value="3d">Last 3 days</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="all">All time</option>
+              </select>
+            </label>
         </div>
       </div>
 
@@ -453,33 +486,33 @@ export default function CreatorDashboardPage() {
       ) : null}
 
       {!data && !error ? (
-        <p className="text-sm text-slate-500">Loading…</p>
+        <StatCardsSkeleton count={6} className="sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6" />
       ) : null}
 
       {data ? (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
             {statCards.map(({ label, value, icon: Icon, tone, href }) => {
               const body = (
                 <>
-                  <div
-                    className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${tone} text-white`}
-                  >
-                    <Icon size={20} />
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-[13px] font-medium text-slate-500">{label}</p>
+                    <div
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${tone} text-white shadow-sm`}
+                    >
+                      <Icon size={18} />
+                    </div>
                   </div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {label}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold">{value}</p>
+                  <p className="mt-3 text-[1.75rem] font-bold leading-none tracking-tight">{value}</p>
                   {href ? (
-                    <p className="mt-2 text-xs font-semibold text-emerald-700">
+                    <p className="mt-3 text-xs font-semibold text-emerald-700">
                       Open ledger →
                     </p>
                   ) : null}
                 </>
               );
               const className =
-                "rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:border-purple-200 hover:shadow-md";
+                "group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,27,61,0.04),0_14px_30px_-24px_rgba(15,27,61,0.3)] transition duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_22px_40px_-26px_rgba(91,53,213,0.45)]";
               return href ? (
                 <Link key={label} href={href} className={`block ${className}`}>
                   {body}
@@ -492,7 +525,7 @@ export default function CreatorDashboardPage() {
             })}
           </div>
 
-          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mt-8 dash-card p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-bold">Promote link types</h2>
               <Link
@@ -550,7 +583,7 @@ export default function CreatorDashboardPage() {
           </div>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-5">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-3">
+            <div className="dash-card p-6 lg:col-span-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold">
                   Earnings · {campaignLabel} ({String(data?.currency ?? "USD")})
@@ -600,7 +633,7 @@ export default function CreatorDashboardPage() {
           </div>
 
           {recentTraffic.length > 0 ? (
-            <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mt-8 dash-card p-6">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-lg font-bold">Recent traffic</h2>
                 <Link href="/creator/clicks" className="text-sm font-semibold text-purple-700">
@@ -665,9 +698,16 @@ export default function CreatorDashboardPage() {
                 <Link
                   key={m.href}
                   href={m.href}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-purple-200 hover:shadow-sm"
+                  className="group rounded-2xl border border-slate-200 bg-white p-4 transition duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_18px_34px_-24px_rgba(91,53,213,0.45)]"
                 >
-                  <p className="font-bold text-indigo-950">{m.title}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-indigo-950">{m.title}</p>
+                    <ArrowUpRight
+                      size={16}
+                      aria-hidden="true"
+                      className="shrink-0 text-slate-300 transition group-hover:text-violet-600"
+                    />
+                  </div>
                   <p className="mt-1 text-xs text-slate-500">{m.desc}</p>
                   <p className="mt-2 text-sm font-semibold text-purple-600">{m.stat}</p>
                 </Link>
@@ -676,7 +716,7 @@ export default function CreatorDashboardPage() {
           </div>
 
           {topListings.length > 0 && campaign === "all" ? (
-            <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mt-8 dash-card p-6">
               <h2 className="font-bold">Top listings by clicks</h2>
               <ul className="mt-4 space-y-2 text-sm">
                 {topListings.map((row) => (

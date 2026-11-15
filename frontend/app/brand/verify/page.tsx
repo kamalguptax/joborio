@@ -6,6 +6,16 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { resendEmailOtp, verifyEmailOtp } from "@/lib/api/brandAuth";
 import { ApiClientError } from "@/lib/api/client";
 import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
+import AuthShell from "@/components/auth/AuthShell";
+import {
+  authAlertError,
+  authAlertSuccess,
+  authField,
+  authLabel,
+  authLink,
+  authPrimaryButton,
+} from "@/components/auth/authStyles";
+import { FormSkeleton } from "@/components/ui/Skeleton";
 
 function VerifyForm() {
   const router = useRouter();
@@ -59,31 +69,27 @@ function VerifyForm() {
   }
 
   return (
-    <form className="mt-8 space-y-5" onSubmit={onSubmit}>
+    <form className="space-y-4" onSubmit={onSubmit}>
       {error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </p>
+        <p className={authAlertError}>{error}</p>
       ) : null}
       {info ? (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {info}
-        </p>
+        <p className={authAlertSuccess}>{info}</p>
       ) : null}
 
-      <label className="block text-sm font-semibold text-[#0F1B3D]">
-        Work email
+      <label className={authLabel}>
+        Work email<span className="text-violet-600">*</span>
         <input
           required
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-2 h-12 w-full rounded-xl border border-indigo-100 px-4"
+          className={authField}
         />
       </label>
 
-      <label className="block text-sm font-semibold text-[#0F1B3D]">
-        6-digit verification code
+      <label className={authLabel}>
+        6-digit verification code<span className="text-violet-600">*</span>
         <input
           required
           inputMode="numeric"
@@ -92,14 +98,14 @@ function VerifyForm() {
           value={otp}
           onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
           placeholder="••••••"
-          className="mt-2 h-12 w-full rounded-xl border border-indigo-100 px-4 tracking-[0.35em]"
+          className={`${authField} text-center text-lg tracking-[0.5em]`}
         />
       </label>
 
       <button
         type="submit"
         disabled={loading || otp.length !== 6}
-        className="flex min-h-12 w-full items-center justify-center rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] text-sm font-semibold text-white disabled:opacity-60"
+        className={authPrimaryButton}
       >
         {loading ? "Verifying…" : "Verify email"}
       </button>
@@ -107,14 +113,14 @@ function VerifyForm() {
       <button
         type="button"
         onClick={() => void resend()}
-        className="w-full text-sm font-semibold text-violet-600 hover:underline"
+        className={`${authLink} w-full text-center text-sm`}
       >
         Resend code
       </button>
 
       <p className="text-center text-sm text-slate-500">
         Wrong account?{" "}
-        <Link href="/brand/register" className="font-semibold text-violet-600 hover:underline">
+        <Link href="/brand/register" className={authLink}>
           Register again
         </Link>
       </p>
@@ -124,21 +130,18 @@ function VerifyForm() {
 
 export default function BrandVerifyPage() {
   return (
-    <section className="relative overflow-x-clip rounded-b-[32px] bg-[linear-gradient(135deg,#0B1D4F_0%,#14296B_45%,#3F2AA8_100%)] px-4 pb-12 pt-[clamp(6.5rem,16vw,10rem)] text-white sm:rounded-b-[48px] sm:px-8 sm:pb-24">
-      <div className="relative mx-auto max-w-lg">
-        <div className="rounded-[24px] bg-white p-5 text-slate-900 shadow-2xl sm:rounded-[28px] sm:p-10">
-          <h1 className="text-section-heading text-center text-[#0F1B3D]">
-            Verify your email
-          </h1>
-          <p className="text-section-copy mx-auto mt-4 text-center">
-            We sent a one-time code to your work email. Enter it below to activate your brand
-            account.
-          </p>
-          <Suspense fallback={<p className="mt-8 text-center text-sm text-slate-400">Loading…</p>}>
-            <VerifyForm />
-          </Suspense>
-        </div>
-      </div>
-    </section>
+    <AuthShell
+      title="Verify your email"
+      subtitle="We sent a one-time code to your work email. Enter it below to activate your brand account."
+      topPrompt="Wrong account?"
+      topLinkLabel="Register again"
+      topLinkHref="/brand/register"
+      panelHeading="One quick step to go."
+      panelBody="Confirm your work email to activate your brand account."
+    >
+      <Suspense fallback={<FormSkeleton />}>
+        <VerifyForm />
+      </Suspense>
+    </AuthShell>
   );
 }

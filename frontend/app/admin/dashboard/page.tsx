@@ -10,6 +10,7 @@ import {
   AdminLinkButton,
   AdminAlert,
 } from "@/components/admin/admin-ui";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 const quickLinks = [
   { href: "/admin/users", label: "Users", desc: "Accounts & roles" },
@@ -48,7 +49,7 @@ export default function AdminDashboardPage() {
 
   if (!data) {
     return (
-      <p className="text-sm text-zinc-500">Loading dashboard…</p>
+      <PageSkeleton />
     );
   }
 

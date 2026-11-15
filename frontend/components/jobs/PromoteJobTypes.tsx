@@ -13,8 +13,8 @@ export default function PromoteJobTypes({
 }) {
   return (
     <fieldset>
-      <legend className="text-sm font-semibold text-[#0F1B3D]">{legend}</legend>
-      <div className="mt-2 flex flex-wrap gap-2">
+      <legend className="text-[13px] font-semibold text-[#26385D]">{legend}</legend>
+      <div className="mt-1.5 flex flex-wrap gap-2">
         {PROMOTE_JOB_TYPES.map((type) => {
           const on = selected.includes(type.id);
           return (
@@ -22,10 +22,10 @@ export default function PromoteJobTypes({
               key={type.id}
               type="button"
               onClick={() => onToggle(type.id)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                 on
-                  ? "bg-indigo-600 text-white"
-                  : "bg-slate-100 text-slate-600"
+                  ? "border-violet-600 bg-violet-600 text-white"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-violet-300"
               }`}
             >
               {type.label}

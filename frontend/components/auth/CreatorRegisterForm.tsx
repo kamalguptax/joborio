@@ -4,6 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, Suspense, useCallback, useEffect, useState } from "react";
 import MathCaptcha from "@/components/auth/MathCaptcha";
+import AuthDivider from "@/components/auth/AuthDivider";
+import {
+  authAlertError,
+  authField,
+  authLabel,
+  authLink,
+  authPrimaryButton,
+  authSectionHeading,
+} from "@/components/auth/authStyles";
 import ReferralCapture from "@/components/auth/ReferralCapture";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { register } from "@/lib/api/auth";
@@ -12,8 +21,7 @@ import { ApiClientError } from "@/lib/api/client";
 import { getReferralCode, saveReferralCode, clearReferralCode } from "@/lib/auth/referralStorage";
 import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
 
-const field =
-  "mt-2 h-12 w-full rounded-xl border border-indigo-100 bg-white px-4 text-base text-[#0F1B3D] placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15";
+const field = authField;
 
 function makeHandle(name: string, email: string): string {
   const fromName = name
@@ -156,29 +164,19 @@ export default function CreatorRegisterForm() {
         <ReferralCapture />
       </Suspense>
 
-      <div className="space-y-3">
-        <SocialAuthButtons intent="login" />
-      </div>
+      <SocialAuthButtons intent="login" />
 
-      <div className="my-7 flex items-center gap-4">
-        <div className="h-px flex-1 bg-slate-200" />
-        <span className="text-caption font-medium uppercase tracking-wide text-slate-400">
-          Or create a creator account
-        </span>
-        <div className="h-px flex-1 bg-slate-200" />
-      </div>
+      <AuthDivider label="or create an account with email" />
 
-      <form className="space-y-8" onSubmit={onSubmit}>
+      <form className="space-y-7" onSubmit={onSubmit}>
         {error ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
+          <p className={authAlertError}>{error}</p>
         ) : null}
 
         <section>
-          <h2 className="text-card-heading">1. Account Details</h2>
-          <div className="mt-4 space-y-4">
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+          <h2 className={authSectionHeading}>1. Account Details</h2>
+          <div className="mt-3 space-y-4">
+            <label className={authLabel}>
               Full Name
               <input
                 required
@@ -189,7 +187,7 @@ export default function CreatorRegisterForm() {
                 className={field}
               />
             </label>
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+            <label className={authLabel}>
               Email
               <input
                 required
@@ -201,7 +199,7 @@ export default function CreatorRegisterForm() {
                 className={field}
               />
             </label>
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+            <label className={authLabel}>
               Referral Code{" "}
               <span className="font-normal text-slate-400">(Optional)</span>
               <input
@@ -215,7 +213,7 @@ export default function CreatorRegisterForm() {
                 Have a friend&apos;s invite? Enter it here.{" "}
                 <Link
                   href="/refer-and-earn"
-                  className="font-semibold text-violet-600 hover:underline"
+                  className={authLink}
                 >
                   How Refer & Earn works
                 </Link>
@@ -225,9 +223,9 @@ export default function CreatorRegisterForm() {
         </section>
 
         <section>
-          <h2 className="text-card-heading">2. Secure Credentials</h2>
-          <div className="mt-4 space-y-4">
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+          <h2 className={authSectionHeading}>2. Secure Credentials</h2>
+          <div className="mt-3 space-y-4">
+            <label className={authLabel}>
               Password
               <input
                 required
@@ -239,7 +237,7 @@ export default function CreatorRegisterForm() {
                 className={field}
               />
             </label>
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+            <label className={authLabel}>
               Confirm Password
               <input
                 required
@@ -255,12 +253,12 @@ export default function CreatorRegisterForm() {
         </section>
 
         <section>
-          <h2 className="text-card-heading">3. Social Media Links</h2>
+          <h2 className={authSectionHeading}>3. Social Media Links</h2>
           <p className="mt-1 text-sm text-slate-500">
             Add LinkedIn and/or Instagram so we can verify your creator profile.
           </p>
-          <div className="mt-4 space-y-4">
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+          <div className="mt-3 space-y-4">
+            <label className={authLabel}>
               LinkedIn
               <input
                 type="url"
@@ -270,7 +268,7 @@ export default function CreatorRegisterForm() {
                 className={field}
               />
             </label>
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+            <label className={authLabel}>
               Instagram
               <input
                 type="url"
@@ -285,16 +283,16 @@ export default function CreatorRegisterForm() {
 
         <MathCaptcha onChange={onCaptcha} />
 
-        <label className="flex items-start gap-3 text-sm text-slate-600">
+        <label className="flex items-start gap-3 text-[13px] text-slate-600">
           <input
             type="checkbox"
             checked={accepted}
             onChange={(e) => setAccepted(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-violet-600 focus:ring-violet-500"
           />
           <span>
             I agree to JobOrio&apos;s{" "}
-            <Link href="/terms" className="font-semibold text-violet-600 hover:underline">
+            <Link href="/terms" className={authLink}>
               Terms & Conditions
             </Link>{" "}
             & Creator Privacy Policy
@@ -304,7 +302,7 @@ export default function CreatorRegisterForm() {
         <button
           type="submit"
           disabled={loading}
-          className="btn-tap flex min-h-12 w-full items-center justify-center rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-6 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 disabled:opacity-60"
+          className={authPrimaryButton}
         >
           {loading ? "Creating account…" : "Create Creator Account"}
         </button>
@@ -313,12 +311,12 @@ export default function CreatorRegisterForm() {
           Already have an account?{" "}
           <Link
             href="/login?next=/creator/dashboard"
-            className="font-semibold text-violet-600 hover:underline"
+            className={authLink}
           >
             Sign in
           </Link>
           {" · "}
-          <Link href="/brand/register" className="font-semibold text-violet-600 hover:underline">
+          <Link href="/brand/register" className={authLink}>
             Register as a brand
           </Link>
         </p>

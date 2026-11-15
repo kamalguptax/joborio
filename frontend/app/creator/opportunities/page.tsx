@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Copy, Check, Pin, EyeOff } from "lucide-react";
+import { toast } from "@/components/ui/Toast";
 import {
   fetchCreatorListings,
   patchCreatorListing,
@@ -134,8 +135,21 @@ export default function CreatorOpportunitiesPage() {
     field: "is_pinned" | "is_hidden",
     value: boolean,
   ) => {
-    await patchCreatorListing(listingId, { [field]: value });
-    load();
+    try {
+      await patchCreatorListing(listingId, { [field]: value });
+      toast.success(
+        field === "is_pinned"
+          ? value
+            ? "Listing pinned to your page."
+            : "Listing unpinned."
+          : value
+            ? "Listing hidden from your page."
+            : "Listing is visible again.",
+      );
+      load();
+    } catch {
+      toast.error("Could not update the listing. Please try again.");
+    }
   };
 
   return (

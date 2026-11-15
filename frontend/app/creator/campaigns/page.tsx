@@ -6,6 +6,7 @@ import { Check, Copy } from "lucide-react";
 import ShareLinkButton from "@/components/share/ShareLinkButton";
 import { fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
+import { toast } from "@/components/ui/Toast";
 import {
   fetchCreatorCampaigns,
   fetchTrackLink,
@@ -73,7 +74,6 @@ export default function CreatorCampaignsPage() {
   const [actionsDone, setActionsDone] = useState<ActionId[]>([]);
   const [proofUrl, setProofUrl] = useState("");
   const [proofNote, setProofNote] = useState("");
-  const [submitMsg, setSubmitMsg] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [xmlJobs, setXmlJobs] = useState<SyndicatedJob[]>([]);
   const [xmlError, setXmlError] = useState<string | null>(null);
@@ -158,13 +158,11 @@ export default function CreatorCampaignsPage() {
     setActionsDone(required);
     setProofUrl("");
     setProofNote("");
-    setSubmitMsg(null);
     setSubmitError(null);
   };
 
   const sendProof = async (programId: number) => {
     setSubmitError(null);
-    setSubmitMsg(null);
     if (actionsDone.length === 0) {
       setSubmitError("Select the actions you completed.");
       return;
@@ -175,10 +173,10 @@ export default function CreatorCampaignsPage() {
         proof_url: proofUrl.trim() || undefined,
         proof_note: proofNote.trim() || undefined,
       });
-      setSubmitMsg("Proof submitted. Waiting for employer review.");
+      toast.success("Proof submitted. Waiting for employer review.");
       setSubmitFor(null);
     } catch (err) {
-      setSubmitError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not submit engagement proof.",
@@ -246,11 +244,6 @@ export default function CreatorCampaignsPage() {
       {error ? (
         <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {error}
-        </p>
-      ) : null}
-      {submitMsg ? (
-        <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          {submitMsg}
         </p>
       ) : null}
 

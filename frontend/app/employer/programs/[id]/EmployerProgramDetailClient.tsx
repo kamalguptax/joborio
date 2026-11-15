@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/employer";
 import { useResolvedParam } from "@/lib/hooks/useResolvedParam";
 import RazorpayTopUp from "@/components/employer/RazorpayTopUp";
+import { toast } from "@/components/ui/Toast";
 
 export default function EmployerProgramDetailClient() {
   const idParam = useResolvedParam("id", /^\/employer\/programs\/([^/]+)/);
@@ -19,7 +20,6 @@ export default function EmployerProgramDetailClient() {
   const [data, setData] = useState<Record<string, unknown> | null>(null);
   const [razorpay, setRazorpay] = useState<RazorpayConfig | null>(null);
   const [adsBusy, setAdsBusy] = useState(false);
-  const [adsMsg, setAdsMsg] = useState<string | null>(null);
 
   const load = () => {
     fetchEmployerProgramStats(programId).then(setData).catch(() => setData(null));
@@ -62,7 +62,14 @@ export default function EmployerProgramDetailClient() {
           <button
             type="button"
             className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold"
-            onClick={() => pauseEmployerProgram(programId).then(load)}
+            onClick={() =>
+              pauseEmployerProgram(programId)
+                .then(() => {
+                  toast.success("Program paused.");
+                  load();
+                })
+                .catch(() => toast.error("Could not pause the program."))
+            }
           >
             Pause program
           </button>
@@ -71,7 +78,14 @@ export default function EmployerProgramDetailClient() {
           <button
             type="button"
             className="rounded-full bg-purple-600 px-4 py-2 text-sm font-bold text-white"
-            onClick={() => resumeEmployerProgram(programId).then(load)}
+            onClick={() =>
+              resumeEmployerProgram(programId)
+                .then(() => {
+                  toast.success("Program resumed.");
+                  load();
+                })
+                .catch(() => toast.error("Could not resume the program."))
+            }
           >
             Resume program
           </button>
@@ -150,13 +164,12 @@ export default function EmployerProgramDetailClient() {
               className="rounded-full bg-[#172b63] px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
               onClick={() => {
                 setAdsBusy(true);
-                setAdsMsg(null);
                 syncEmployerProgramAds(programId)
                   .then((r) => {
-                    setAdsMsg(r.message ?? "Sync complete.");
+                    toast.success(r.message ?? "Sync complete.");
                     load();
                   })
-                  .catch(() => setAdsMsg("Ads sync failed. Check API credentials."))
+                  .catch(() => toast.error("Ads sync failed. Check API credentials."))
                   .finally(() => setAdsBusy(false));
               }}
             >
@@ -211,7 +224,6 @@ export default function EmployerProgramDetailClient() {
             No platform sync yet. Enable Meta/LinkedIn on launch, or sync after go-live.
           </p>
         )}
-        {adsMsg ? <p className="mt-3 text-sm text-slate-600">{adsMsg}</p> : null}
       </section>
 
       <p className="mt-6 text-sm text-slate-500">

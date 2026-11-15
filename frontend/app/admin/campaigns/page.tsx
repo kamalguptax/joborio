@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/components/ui/Toast";
 import {
   adminActivateProgram,
   adminCreateProgram,
@@ -36,7 +37,6 @@ export default function AdminManualCampaignsPage() {
   const [launchId, setLaunchId] = useState<LaunchOptionId>("ppc");
   const [programs, setPrograms] = useState<Array<Record<string, unknown>>>([]);
   const [form, setForm] = useState(emptyForm);
-  const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -56,7 +56,6 @@ export default function AdminManualCampaignsPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMsg(null);
     setError(null);
     setBusy(true);
     try {
@@ -81,10 +80,10 @@ export default function AdminManualCampaignsPage() {
         rate_usd: selected.defaultRate,
         budget_total_usd: selected.defaultBudget,
       });
-      setMsg(`${selected.label} campaign added.`);
+      toast.success(`${selected.label} campaign added.`);
       load();
     } catch {
-      setError("Could not create campaign. Check the URL and amounts.");
+      toast.error("Could not create campaign. Check the URL and amounts.");
     } finally {
       setBusy(false);
     }
@@ -129,11 +128,6 @@ export default function AdminManualCampaignsPage() {
         </div>
       </section>
 
-      {msg ? (
-        <div className="mt-4">
-          <AdminAlert tone="info">{msg}</AdminAlert>
-        </div>
-      ) : null}
       {error ? (
         <div className="mt-4">
           <AdminAlert tone="error">{error}</AdminAlert>
@@ -264,8 +258,13 @@ export default function AdminManualCampaignsPage() {
                   <AdminButton
                     variant="primary"
                     onClick={async () => {
-                      await adminActivateProgram(Number(p.id));
-                      load();
+                      try {
+                        await adminActivateProgram(Number(p.id));
+                        toast.success("Campaign activated.");
+                        load();
+                      } catch {
+                        toast.error("Could not activate the campaign.");
+                      }
                     }}
                   >
                     Activate
@@ -275,8 +274,13 @@ export default function AdminManualCampaignsPage() {
                   <AdminButton
                     variant="secondary"
                     onClick={async () => {
-                      await adminPauseProgram(Number(p.id));
-                      load();
+                      try {
+                        await adminPauseProgram(Number(p.id));
+                        toast.success("Campaign paused.");
+                        load();
+                      } catch {
+                        toast.error("Could not pause the campaign.");
+                      }
                     }}
                   >
                     Pause

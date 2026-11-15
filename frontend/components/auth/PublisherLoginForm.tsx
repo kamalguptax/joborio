@@ -4,12 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useState } from "react";
 import MathCaptcha from "@/components/auth/MathCaptcha";
+import {
+  authAlertError,
+  authField,
+  authLabel,
+  authLink,
+  authPrimaryButton,
+} from "@/components/auth/authStyles";
 import { ApiClientError } from "@/lib/api/client";
 import { loginPublisher } from "@/lib/api/publisherAuth";
 import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
 
-const field =
-  "mt-2 h-12 w-full rounded-xl border border-indigo-100 bg-white px-4 text-base text-[#0F1B3D] placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15";
+const field = authField;
 
 export default function PublisherLoginForm() {
   const router = useRouter();
@@ -53,15 +59,13 @@ export default function PublisherLoginForm() {
   }
 
   return (
-    <form className="mt-5 space-y-3.5" onSubmit={onSubmit}>
+    <form className="space-y-4" onSubmit={onSubmit}>
       {error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </p>
+        <p className={authAlertError}>{error}</p>
       ) : null}
 
-      <label className="block text-sm font-semibold text-slate-700">
-        Email
+      <label className={authLabel}>
+        Email address<span className="text-violet-600">*</span>
         <input
           id="publisher-email"
           type="email"
@@ -73,8 +77,8 @@ export default function PublisherLoginForm() {
         />
       </label>
 
-      <label className="block text-sm font-semibold text-slate-700">
-        Password
+      <label className={authLabel}>
+        Password<span className="text-violet-600">*</span>
         <input
           id="publisher-password"
           type="password"
@@ -89,10 +93,10 @@ export default function PublisherLoginForm() {
       <MathCaptcha onChange={onCaptcha} />
 
       <div className="flex items-center justify-between text-sm">
-        <Link href="/forgot-password" className="font-semibold text-violet-600">
+        <Link href="/forgot-password" className={authLink}>
           Forgot password?
         </Link>
-        <Link href="/login" className="font-semibold text-slate-500">
+        <Link href="/login" className="font-semibold text-slate-500 transition hover:text-violet-600">
           Creator / brand login
         </Link>
       </div>
@@ -100,14 +104,14 @@ export default function PublisherLoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="h-12 w-full rounded-full bg-gradient-to-r from-blue-600 to-violet-600 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+        className={authPrimaryButton}
       >
         {loading ? "Signing in…" : "Sign in to publisher studio"}
       </button>
 
       <p className="text-center text-sm text-slate-500">
         New publisher?{" "}
-        <Link href="/publisher/register" className="font-bold text-violet-600">
+        <Link href="/publisher/register" className={authLink}>
           Apply here
         </Link>
       </p>

@@ -44,15 +44,16 @@ type NavItem = {
 };
 
 type NavGroup = {
-  id: "explore" | "earn" | "company";
+  id: "explore" | "earn";
   label: string;
   items: NavItem[];
 };
 
 const topLinks = [
   { label: "Home", href: "/" },
-  { label: "Opportunities", href: "/opportunities" },
   { label: "Creators", href: "/creators" },
+  { label: "Brands", href: "/brands" },
+  { label: "About", href: "/about" },
 ] as const;
 
 const iconCls = "h-5 w-5";
@@ -89,12 +90,6 @@ const IconPartner = () => (
     <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
     <circle cx="9" cy="7" r="4" />
     <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-  </svg>
-);
-const IconAbout = () => (
-  <svg className={iconCls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 16v-4M12 8h.01" />
   </svg>
 );
 const IconResources = () => (
@@ -140,6 +135,18 @@ const navGroups: NavGroup[] = [
         description: "Tools and offers ready to share",
         icon: <IconMarket />,
       },
+      {
+        label: "Resources",
+        href: "/resources",
+        description: "Guides, tips and growth playbooks",
+        icon: <IconResources />,
+      },
+      {
+        label: "FAQ",
+        href: "/faq",
+        description: "Earnings, payouts and how it works",
+        icon: <IconFaq />,
+      },
     ],
   },
   {
@@ -157,30 +164,6 @@ const navGroups: NavGroup[] = [
         href: "/partners",
         description: "Monetize your community traffic",
         icon: <IconPartner />,
-      },
-    ],
-  },
-  {
-    id: "company",
-    label: "Company",
-    items: [
-      {
-        label: "About",
-        href: "/about",
-        description: "Why JobOrio exists for creators",
-        icon: <IconAbout />,
-      },
-      {
-        label: "Resources",
-        href: "/resources",
-        description: "Guides, tips and growth playbooks",
-        icon: <IconResources />,
-      },
-      {
-        label: "FAQ",
-        href: "/faq",
-        description: "Earnings, payouts and how it works",
-        icon: <IconFaq />,
       },
     ],
   },
@@ -348,7 +331,6 @@ function DesktopDropdown({
 export default function Header() {
   const pathname = usePathname() ?? "/";
   const overHero = TRANSPARENT_ON_TOP.includes(pathname);
-  const hideOpportunities = pathname.startsWith("/creator");
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<NavGroup["id"] | null>(null);
@@ -359,10 +341,6 @@ export default function Header() {
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
-
-  const visibleTopLinks = hideOpportunities
-    ? topLinks.filter((l) => l.href !== "/opportunities")
-    : topLinks;
 
   const isActive = useCallback(
     (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href)),
@@ -473,25 +451,11 @@ export default function Header() {
 
   return (
     <>
-      <header
-        ref={headerRef}
-        className="fixed inset-x-0 top-0 z-[100] w-full"
-      >
-        {/*
-          Background lives on its own layer. A backdrop-filter on <header> itself makes it the
-          containing block of `position: fixed` children, which collapsed the mobile drawer.
-        */}
-        <div
-          aria-hidden="true"
-          className={`pointer-events-none absolute inset-0 border-b transition-all duration-300 ${
-            solid
-              ? "border-white/10 bg-[linear-gradient(135deg,#0B1D4F_0%,#14296B_45%,#3F2AA8_100%)] shadow-[0_10px_30px_-12px_rgba(5,10,40,0.6)] backdrop-blur-xl"
-              : "border-transparent bg-transparent"
-          }`}
-        />
+      <header ref={headerRef} className="fixed inset-x-0 top-4 z-[100] w-full">
+     
         <nav
-          className={`relative mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 transition-[height] duration-300 sm:px-8 xl:px-10 ${
-            scrolled || drawerOpen ? "h-16" : "h-16 sm:h-20"
+          className={`relative mx-auto flex max-w-[1600px]  items-center justify-between gap-3 px-4 transition-[height] duration-300 sm:px-8 xl:px-10 rounded-[12px] lg:rounded-[34px] bg-[#0c1e52] ${
+            scrolled || drawerOpen ? "py-2 " : "py-2"
           }`}
           aria-label="Primary"
         >
@@ -499,7 +463,7 @@ export default function Header() {
 
           {/* Desktop (≥1280) */}
           <ul className="hidden items-center gap-7 xl:flex 2xl:gap-9">
-            {visibleTopLinks.map((l) => {
+            {topLinks.map((l) => {
               const active = isActive(l.href);
               return (
                 <li key={l.href}>
@@ -664,7 +628,7 @@ export default function Header() {
           >
             <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
               <ul className="space-y-1">
-                {visibleTopLinks.map((l) => (
+                {topLinks.map((l) => (
                   <li key={l.href}>
                     <Link
                       href={l.href}
@@ -795,7 +759,7 @@ export default function Header() {
       </header>
 
       {/* Push content below the fixed header on pages without a dark hero overlay */}
-      {!overHero && <div aria-hidden="true" className="h-16 sm:h-20" />}
+      {/* {!overHero && <div aria-hidden="true" className="h-16 sm:h-20" />} */}
     </>
   );
 }

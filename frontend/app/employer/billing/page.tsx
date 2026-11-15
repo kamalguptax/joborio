@@ -11,6 +11,7 @@ import {
 } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import RazorpayTopUp from "@/components/employer/RazorpayTopUp";
+import { toast } from "@/components/ui/Toast";
 
 export default function EmployerBillingPage() {
   const [companyName, setCompanyName] = useState("");
@@ -30,7 +31,6 @@ export default function EmployerBillingPage() {
   const [prepaidBalance, setPrepaidBalance] = useState(0);
   const [razorpay, setRazorpay] = useState<RazorpayConfig | null>(null);
   const [orders, setOrders] = useState<Array<Record<string, unknown>>>([]);
-  const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -77,7 +77,6 @@ export default function EmployerBillingPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    setMsg(null);
     setError(null);
     try {
       const result = await saveEmployerBilling({
@@ -95,13 +94,13 @@ export default function EmployerBillingPage() {
         payment_ifsc: ifsc.trim().toUpperCase() || undefined,
       });
       setCanGoLive(Boolean(result.can_go_live));
-      setMsg(
-        result.can_go_live
-          ? "Billing saved. You can take campaigns live now."
-          : "Saved, but some required details are still missing.",
-      );
+      if (result.can_go_live) {
+        toast.success("Billing saved. You can take campaigns live now.");
+      } else {
+        toast.info("Billing saved, but some required details are still missing.");
+      }
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not save billing details.",
@@ -313,7 +312,6 @@ export default function EmployerBillingPage() {
         ) : null}
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        {msg ? <p className="text-sm text-emerald-700">{msg}</p> : null}
 
         <div className="flex flex-wrap gap-3 pt-2">
           <button

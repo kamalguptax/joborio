@@ -1,4 +1,5 @@
 /* Minimal types for Maps JS API (full types via @types/google.maps optional). */
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace GoogleMapsStub {
   export type Map = object;
   export type Marker = object;

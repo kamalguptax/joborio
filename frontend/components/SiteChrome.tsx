@@ -5,6 +5,24 @@ import { useLayoutEffect } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
+/** Auth screens render their own split-screen shell (logo + form + brand panel). */
+const AUTH_ROUTES = new Set([
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/publisher/login",
+  "/publisher/register",
+  "/creator/register",
+  "/brand/register",
+  "/brand/verify",
+]);
+
+/** True for `/base` and anything under `/base/…`, but not `/base-something` (e.g. `/creators`). */
+function inArea(pathname: string, base: string): boolean {
+  return pathname === base || pathname.startsWith(`${base}/`);
+}
+
 export default function SiteChrome({
   children,
 }: {
@@ -20,16 +38,13 @@ export default function SiteChrome({
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
 
-  // Publisher studio keeps site Header/Footer (same as creator). Hide only
-  // full-bleed / alternate shells.
+  // Signed-in dashboards (creator, employer, publisher, admin) and auth /
+  // onboarding screens use their own shells, so the marketing Header/Footer is hidden.
   const hideChrome =
-    pathname.startsWith("/onboarding") ||
-    pathname.startsWith("/auth/") ||
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/network") ||
-    pathname.startsWith("/p/") ||
-    pathname.startsWith("/verify/") ||
-    pathname.startsWith("/ppr/");
+    AUTH_ROUTES.has(pathname) ||
+    ["/onboarding", "/auth", "/admin", "/creator", "/employer", "/publisher", "/network", "/p", "/verify", "/ppr"].some(
+      (base) => inArea(pathname, base),
+    );
   if (hideChrome) {
     return <>{children}</>;
   }

@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import MathCaptcha from "@/components/auth/MathCaptcha";
 import MultiSelect from "@/components/ui/MultiSelect";
+import {
+  authAlertError,
+  authField,
+  authFieldError,
+  authLabel,
+  authLink,
+  authPrimaryButton,
+} from "@/components/auth/authStyles";
 import { fetchNiches } from "@/lib/api/creator";
 import { ApiClientError } from "@/lib/api/client";
 import {
@@ -14,12 +22,8 @@ import {
 import type { Niche } from "@/lib/api/types";
 import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
 
-const baseField =
-  "mt-2 h-12 w-full rounded-xl border bg-white px-4 text-base text-[#0F1B3D] placeholder:text-slate-400 focus:outline-none focus:ring-4";
-const fieldOk =
-  `${baseField} border-indigo-100 focus:border-violet-500 focus:ring-violet-500/15`;
-const fieldErr =
-  `${baseField} border-red-400 focus:border-red-500 focus:ring-red-500/15`;
+const fieldOk = authField;
+const fieldErr = authFieldError;
 
 const countries = [
   { value: "IN", label: "India" },
@@ -67,7 +71,7 @@ type FieldKey =
 type FieldErrors = Partial<Record<FieldKey, string>>;
 
 function RequiredMark() {
-  return <span className="text-red-500"> *</span>;
+  return <span className="text-violet-600"> *</span>;
 }
 
 function FieldError({ message }: { message?: string }) {
@@ -311,19 +315,17 @@ export default function PublisherRegisterForm() {
   }
 
   return (
-    <form className="space-y-6" onSubmit={onSubmit} noValidate>
+    <form className="space-y-5" onSubmit={onSubmit} noValidate>
       {formError ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {formError}
-        </p>
+        <p className={authAlertError}>{formError}</p>
       ) : null}
 
       <p className="text-xs text-slate-500">
-        Fields marked <span className="font-semibold text-red-500">*</span> are mandatory.
+        Fields marked <span className="font-semibold text-violet-600">*</span> are mandatory.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-semibold text-slate-700">
+        <label className={authLabel}>
           Full name
           <RequiredMark />
           <input
@@ -338,7 +340,7 @@ export default function PublisherRegisterForm() {
           />
           <FieldError message={errors.fullName} />
         </label>
-        <label className="block text-sm font-semibold text-slate-700">
+        <label className={authLabel}>
           Username
           <RequiredMark />
           <input
@@ -346,7 +348,7 @@ export default function PublisherRegisterForm() {
               errors.username || usernameStatus === "taken" || usernameStatus === "invalid"
                 ? fieldErr
                 : usernameStatus === "available"
-                  ? `${baseField} border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/15`
+                  ? `${fieldOk} border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/15`
                   : fieldOk
             }
             value={username}
@@ -377,7 +379,7 @@ export default function PublisherRegisterForm() {
         </label>
       </div>
 
-      <label className="block text-sm font-semibold text-slate-700">
+      <label className={authLabel}>
         Email
         <RequiredMark />
         <input
@@ -395,7 +397,7 @@ export default function PublisherRegisterForm() {
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-semibold text-slate-700">
+        <label className={authLabel}>
           Password
           <RequiredMark />
           <input
@@ -411,7 +413,7 @@ export default function PublisherRegisterForm() {
           />
           <FieldError message={errors.password} />
         </label>
-        <label className="block text-sm font-semibold text-slate-700">
+        <label className={authLabel}>
           Confirm password
           <RequiredMark />
           <input
@@ -430,7 +432,7 @@ export default function PublisherRegisterForm() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-semibold text-slate-700">
+        <label className={authLabel}>
           Country
           <RequiredMark />
           <select
@@ -451,7 +453,7 @@ export default function PublisherRegisterForm() {
           </select>
           <FieldError message={errors.country} />
         </label>
-        <label className="block text-sm font-semibold text-slate-700">
+        <label className={authLabel}>
           Network type
           <RequiredMark />
           <select
@@ -475,14 +477,14 @@ export default function PublisherRegisterForm() {
       </div>
 
       <div>
-        <p className="text-sm font-semibold text-slate-700">
+        <p className={authLabel}>
           Audience niches
           <RequiredMark />
         </p>
         <div
           className={
             errors.niches
-              ? "rounded-xl ring-2 ring-red-400/70 ring-offset-1"
+              ? "rounded-lg ring-2 ring-red-400/70 ring-offset-1"
               : undefined
           }
         >
@@ -508,12 +510,12 @@ export default function PublisherRegisterForm() {
       </div>
 
       <div>
-        <p className="text-sm font-semibold text-slate-700">
+        <p className={authLabel}>
           Job preferences
           <RequiredMark />
         </p>
         <div
-          className={`mt-2 flex flex-wrap gap-2 rounded-xl p-1 ${
+          className={`mt-2 flex flex-wrap gap-2 rounded-lg p-1 ${
             errors.jobs ? "ring-2 ring-red-400/70" : ""
           }`}
         >
@@ -524,10 +526,10 @@ export default function PublisherRegisterForm() {
                 key={j.value}
                 type="button"
                 onClick={() => toggleJob(j.value)}
-                className={`rounded-full px-3 py-1.5 text-xs font-bold ${
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   active
-                    ? "bg-blue-600 text-white"
-                    : "border border-slate-200 bg-white text-slate-600"
+                    ? "border border-violet-600 bg-violet-600 text-white"
+                    : "border border-slate-200 bg-white text-slate-600 hover:border-violet-300"
                 }`}
               >
                 {j.label}
@@ -538,7 +540,7 @@ export default function PublisherRegisterForm() {
         <FieldError message={errors.jobs} />
       </div>
 
-      <label className="block text-sm font-semibold text-slate-700">
+      <label className={authLabel}>
         Social media URL
         <RequiredMark />
         <input
@@ -555,7 +557,7 @@ export default function PublisherRegisterForm() {
         <FieldError message={errors.socialUrl} />
       </label>
 
-      <label className="block text-sm font-semibold text-slate-700">
+      <label className={authLabel}>
         Website / community URL
         <RequiredMark />
         <input
@@ -572,7 +574,7 @@ export default function PublisherRegisterForm() {
         <FieldError message={errors.websiteUrl} />
       </label>
 
-      <label className="block text-sm font-semibold text-slate-700">
+      <label className={authLabel}>
         Integration preference
         <RequiredMark />
         <select
@@ -600,10 +602,10 @@ export default function PublisherRegisterForm() {
       </div>
 
       <div>
-        <label className="flex items-start gap-3 text-sm text-slate-600">
+        <label className="flex items-start gap-3 text-[13px] text-slate-600">
           <input
             type="checkbox"
-            className={`mt-1 ${errors.accepted ? "outline outline-2 outline-red-400" : ""}`}
+            className={`mt-0.5 h-4 w-4 accent-violet-600 ${errors.accepted ? "outline outline-2 outline-red-400" : ""}`}
             checked={accepted}
             onChange={(e) => {
               setAccepted(e.target.checked);
@@ -613,7 +615,7 @@ export default function PublisherRegisterForm() {
           />
           <span>
             I agree to the{" "}
-            <Link href="/terms" className="font-semibold text-violet-600">
+            <Link href="/terms" className={authLink}>
               Terms & Conditions
             </Link>
             <RequiredMark />
@@ -625,14 +627,14 @@ export default function PublisherRegisterForm() {
       <button
         type="submit"
         disabled={loading}
-        className="h-12 w-full rounded-full bg-gradient-to-r from-blue-600 to-violet-600 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+        className={authPrimaryButton}
       >
         {loading ? "Submitting…" : "Submit publisher application"}
       </button>
 
       <p className="text-center text-sm text-slate-500">
         Already a publisher?{" "}
-        <Link href="/publisher/login" className="font-bold text-violet-600">
+        <Link href="/publisher/login" className={authLink}>
           Sign in
         </Link>
       </p>

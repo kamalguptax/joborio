@@ -11,6 +11,8 @@ import {
 } from "@/lib/api/admin";
 import type { Listing } from "@/lib/api/types";
 import { companyName } from "@/lib/jobs/companyName";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 export default function AdminJobsPage() {
   const [listings, setListings] = useState<Listing[]>([]);
@@ -80,9 +82,9 @@ export default function AdminJobsPage() {
     try {
       await refreshSyndicationCache();
       await loadXmlJobs(selectedFeed);
-      setMsg("Syndication cache refreshed");
+      toast.success("Syndication cache refreshed.");
     } catch {
-      setMsg("Refresh failed");
+      toast.error("Could not refresh the syndication cache.");
     }
   };
 
@@ -167,7 +169,7 @@ export default function AdminJobsPage() {
 
         <ul className="mt-4 space-y-2 text-sm">
           {loadingXml ? (
-            <li className="text-slate-500">Loading XML jobs…</li>
+            <li aria-hidden="true" className="space-y-2.5 list-none"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></li>
           ) : sampleSyndicated.length === 0 ? (
             <li className="text-slate-500">
               No syndicated jobs

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import JobPreferencesForm, {
   type JobPreferencesValues,
@@ -12,6 +11,8 @@ import {
   updateCreatorJobPreferences,
 } from "@/lib/api/creator";
 import type { Listing } from "@/lib/api/types";
+import { SectionSkeleton } from "@/components/ui/Skeleton";
+import PageHeader from "@/components/layout/PageHeader";
 
 const emptyTargeting = {
   keywords: [] as string[],
@@ -93,16 +94,7 @@ export default function CreatorJobPreferencesPage() {
   return (
     <>
       <div className="mb-8">
-        <Link
-          href="/creator/settings"
-          className="text-sm font-semibold text-purple-600"
-        >
-          ← Settings
-        </Link>
-        <p className="mt-4 text-sm font-semibold uppercase tracking-wider text-purple-600">
-          Settings
-        </p>
-        <h1 className="mt-1 text-3xl font-bold">Opportunity preferences</h1>
+        <PageHeader title="Opportunity preferences" backHref="/creator/settings" backLabel="Settings" />
         <p className="mt-2 max-w-2xl text-slate-500">
           Categories, targeting, and filters for the opportunities you promote.
           Filters adapt to your selections — jobs unlock salary; courses unlock
@@ -117,7 +109,7 @@ export default function CreatorJobPreferencesPage() {
           onSave={onSave}
         />
       ) : (
-        <p className="text-sm text-slate-500">Loading…</p>
+        <SectionSkeleton />
       )}
 
       <div className="mt-10">

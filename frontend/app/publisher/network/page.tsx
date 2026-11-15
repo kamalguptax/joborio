@@ -1,11 +1,12 @@
 import { Suspense } from "react";
 import PublisherNetworkClient from "./PublisherNetworkClient";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 export default function PublisherNetworkPage() {
   return (
     <Suspense
       fallback={
-        <p className="text-sm text-slate-500">Loading network invites…</p>
+        <PageSkeleton />
       }
     >
       <PublisherNetworkClient />

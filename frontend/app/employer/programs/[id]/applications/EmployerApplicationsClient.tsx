@@ -8,6 +8,7 @@ import {
   rejectPpaApplication,
 } from "@/lib/api/employer";
 import { useResolvedParam } from "@/lib/hooks/useResolvedParam";
+import { toast } from "@/components/ui/Toast";
 
 export default function EmployerApplicationsClient() {
   const idParam = useResolvedParam("id", /^\/employer\/programs\/([^/]+)/);
@@ -37,6 +38,7 @@ export default function EmployerApplicationsClient() {
     }
     try {
       await disputePpaApplication(programId, disputeId, disputeReason.trim());
+      toast.success("Dispute submitted.");
       setDisputeId(null);
       setDisputeReason("");
       load();
@@ -68,8 +70,13 @@ export default function EmployerApplicationsClient() {
                   type="button"
                   className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-bold text-white"
                   onClick={async () => {
-                    await confirmPpaApplication(programId, Number(row.id));
-                    load();
+                    try {
+                      await confirmPpaApplication(programId, Number(row.id));
+                      toast.success("Application confirmed.");
+                      load();
+                    } catch {
+                      toast.error("Could not confirm the application.");
+                    }
                   }}
                 >
                   Confirm
@@ -78,8 +85,13 @@ export default function EmployerApplicationsClient() {
                   type="button"
                   className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold"
                   onClick={async () => {
-                    await rejectPpaApplication(programId, Number(row.id));
-                    load();
+                    try {
+                      await rejectPpaApplication(programId, Number(row.id));
+                      toast.success("Application rejected.");
+                      load();
+                    } catch {
+                      toast.error("Could not reject the application.");
+                    }
                   }}
                 >
                   Reject
