@@ -8,6 +8,7 @@ import {
   adminListListings,
 } from "@/lib/api/admin";
 import type { Listing } from "@/lib/api/types";
+import { toast } from "@/components/ui/Toast";
 
 export default function AdminListingsPage() {
   const [listings, setListings] = useState<Listing[]>([]);
@@ -26,11 +27,11 @@ export default function AdminListingsPage() {
   const ingest = async () => {
     setMsg(null);
     try {
-      const r = await adminIngestListings();
-      setMsg(`Ingest OK: ${JSON.stringify(r)}`);
+      await adminIngestListings();
+      toast.success("Ingest completed.");
       load();
     } catch {
-      setMsg("Ingest failed");
+      toast.error("Ingest failed.");
     }
   };
 
@@ -47,9 +48,10 @@ export default function AdminListingsPage() {
         ppc_rate_usd: 0.03,
         ppr_rate_usd: 0.3,
       });
+      toast.success("Sample listing added.");
       load();
     } catch {
-      setMsg("Create failed");
+      toast.error("Could not add the listing.");
     }
   };
 
@@ -89,8 +91,13 @@ export default function AdminListingsPage() {
               type="button"
               className="text-xs text-red-300 hover:text-red-200"
               onClick={async () => {
-                await adminDeleteListing(l.id);
-                load();
+                try {
+                  await adminDeleteListing(l.id);
+                  toast.success("Listing marked as expired.");
+                  load();
+                } catch {
+                  toast.error("Could not update the listing.");
+                }
               }}
             >
               Mark expired

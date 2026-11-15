@@ -5,6 +5,7 @@ import Link from "next/link";
 import { fetchPublisherDashboard } from "@/lib/api/publisher";
 import type { PublisherDashboard } from "@/lib/api/publisherAuth";
 import { ApiClientError } from "@/lib/api/client";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 type Dash = PublisherDashboard & {
   recent_communities?: Array<{
@@ -56,7 +57,7 @@ export default function PublisherDashboardPage() {
   }
 
   if (!data) {
-    return <p className="text-sm text-slate-500">Loading publisher overview…</p>;
+    return <PageSkeleton />;
   }
 
   const { publisher, overview, membership, recent_communities = [] } = data;

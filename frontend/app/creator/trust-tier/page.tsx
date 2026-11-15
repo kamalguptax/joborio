@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Briefcase, Building2, Gift, Megaphone, Wallet } from "lucide-react";
+import PageHeader from "@/components/layout/PageHeader";
 
 const creatorFeatures = [
   {
@@ -43,16 +44,7 @@ export default function AccountFeaturesPage() {
   return (
     <>
       <div className="mb-8">
-        <Link
-          href="/creator/earnings"
-          className="text-sm font-semibold text-purple-600 hover:text-blue-600"
-        >
-          ← Earnings
-        </Link>
-        <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-purple-600">
-          Account type
-        </p>
-        <h1 className="mt-1 text-3xl font-bold">Creator features</h1>
+        <PageHeader title="Creator features" backHref="/creator/earnings" backLabel="Earnings" />
         <p className="mt-2 max-w-2xl text-slate-500">
           Access is by user type — creator or employer — not by trust tier. You are on a
           creator account, so monetization tools below are available.

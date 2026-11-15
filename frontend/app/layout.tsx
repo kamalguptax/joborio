@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Manrope } from "next/font/google";
+import { Geist_Mono, Manrope, Young_Serif } from "next/font/google";
 import "./globals.css";
 import SiteChrome from "@/components/SiteChrome";
 import CookieConsent from "@/components/cookies/CookieConsent";
@@ -10,6 +10,14 @@ const brand = Manrope({
   subsets: ["latin"],
   variable: "--font-brand",
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+/** Display serif used only for editorial section headings (e.g. creators timeline). */
+const serif = Young_Serif({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  weight: "400",
   display: "swap",
 });
 
@@ -32,7 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${brand.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${brand.variable} ${serif.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-body antialiased">
         <SiteChrome>{children}</SiteChrome>

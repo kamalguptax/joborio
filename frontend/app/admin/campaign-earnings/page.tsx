@@ -14,6 +14,7 @@ import {
   AdminTableWrap,
 } from "@/components/admin/admin-ui";
 import { formatMoney } from "@/lib/money";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 function money(amount: number, currency: string) {
   return formatMoney(amount, currency);
@@ -34,7 +35,7 @@ export default function AdminCampaignEarningsPage() {
   }
 
   if (!data) {
-    return <p className="text-sm text-zinc-500">Loading campaign earnings…</p>;
+    return <PageSkeleton />;
   }
 
   const currency = data.currency || "USD";

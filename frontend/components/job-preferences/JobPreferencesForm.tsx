@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchNiches } from "@/lib/api/creator";
 import NicheSearch from "@/components/jobs/NicheSearch";
+import { toast } from "@/components/ui/Toast";
 import PromoteJobTypes from "@/components/jobs/PromoteJobTypes";
 import { readPromoteJobTypes, savePromoteJobTypes } from "@/lib/jobs/promoteTypes";
 import {
@@ -163,7 +164,6 @@ export default function JobPreferencesForm({
   );
   const [niches, setNiches] = useState<Array<{ id: number; name: string }>>([]);
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
 
   const visibleKeys = useMemo(
     () => visiblePreferenceKeys(categories),
@@ -215,11 +215,10 @@ export default function JobPreferencesForm({
       jobTypes.length === 0 &&
       categories.length === 0
     ) {
-      setMsg("Pick at least one opportunity category, niche, or job type.");
+      toast.error("Pick at least one opportunity category, niche, or job type.");
       return;
     }
     setSaving(true);
-    setMsg(null);
     try {
       const nextRemote =
         remoteOnly ||
@@ -235,9 +234,9 @@ export default function JobPreferencesForm({
         opportunity_preferences: prefs,
       });
       savePromoteJobTypes(jobTypes);
-      setMsg("Opportunity preferences saved.");
+      toast.success("Opportunity preferences saved.");
     } catch {
-      setMsg("Could not save preferences. Check you are signed in as a creator.");
+      toast.error("Could not save preferences. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -256,12 +255,6 @@ export default function JobPreferencesForm({
           creators won&apos;t see course duration filters.
         </p>
       </div>
-
-      {msg ? (
-        <p className="rounded-xl bg-purple-50 px-4 py-2 text-sm text-purple-800">
-          {msg}
-        </p>
-      ) : null}
 
       {/* 01 Opportunity Categories */}
       <section>

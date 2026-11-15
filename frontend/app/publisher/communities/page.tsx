@@ -14,6 +14,8 @@ import {
   type PublisherCommunity,
   type PublisherTeamMember,
 } from "@/lib/api/publisher";
+import { ListSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
@@ -24,7 +26,6 @@ export default function PublisherCommunitiesPage() {
   const [canInvite, setCanInvite] = useState(false);
   const [role, setRole] = useState<string>("owner");
   const [error, setError] = useState<string | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
@@ -82,7 +83,6 @@ export default function PublisherCommunitiesPage() {
   async function onCreate(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    setMsg(null);
     if (!name.trim()) {
       setError("Community name is required.");
       return;
@@ -103,7 +103,7 @@ export default function PublisherCommunitiesPage() {
       setDescription("");
       setManagerId("");
       setHighlightId(created.id);
-      setMsg(
+      toast.success(
         communityJoinUrl(created) || created.join_path
           ? `Community created. Share the join link below so members join “${created.name}”.`
           : "Community created.",
@@ -113,7 +113,7 @@ export default function PublisherCommunitiesPage() {
         listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not create community.",
@@ -127,9 +127,10 @@ export default function PublisherCommunitiesPage() {
     const next = row.status === "active" ? "paused" : "active";
     try {
       await updatePublisherCommunity(row.id, { status: next });
+      toast.success(next === "active" ? "Community activated." : "Community paused.");
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not update community.",
@@ -142,10 +143,10 @@ export default function PublisherCommunitiesPage() {
       await updatePublisherCommunity(row.id, {
         manager_user_id: userId ? Number(userId) : null,
       });
-      setMsg("Community manager updated.");
+      toast.success("Community manager updated.");
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not assign manager.",
@@ -157,7 +158,6 @@ export default function PublisherCommunitiesPage() {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    setMsg(null);
     try {
       const res = await invitePublisherManager({
         name: inviteName.trim(),
@@ -165,10 +165,10 @@ export default function PublisherCommunitiesPage() {
       });
       setInviteName("");
       setInviteEmail("");
-      setMsg(res.message);
+      toast.success(res.message);
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not invite manager.",
@@ -195,11 +195,6 @@ export default function PublisherCommunitiesPage() {
       {error ? (
         <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
-        </p>
-      ) : null}
-      {msg ? (
-        <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {msg}
         </p>
       ) : null}
 
@@ -343,7 +338,7 @@ export default function PublisherCommunitiesPage() {
           added as a member of that community.
         </p>
         {loading ? (
-          <p className="mt-4 text-sm text-slate-500">Loading…</p>
+          <ListSkeleton rows={3} className="mt-4" />
         ) : rows.length === 0 ? (
           <p className="mt-4 rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
             {isOwner

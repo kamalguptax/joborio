@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { adminDisputes, adminResolveDispute } from "@/lib/api/admin";
+import { toast } from "@/components/ui/Toast";
 
 export default function AdminDisputesPage() {
   const [items, setItems] = useState<Array<Record<string, unknown>>>([]);
@@ -52,7 +53,12 @@ export default function AdminDisputesPage() {
                       type="button"
                       className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-bold"
                       onClick={() =>
-                        adminResolveDispute(Number(row.id), { status: "upheld" }).then(load)
+                        adminResolveDispute(Number(row.id), { status: "upheld" })
+                          .then(() => {
+                            toast.success("Dispute upheld.");
+                            load();
+                          })
+                          .catch(() => toast.error("Could not update the dispute."))
                       }
                     >
                       Uphold
@@ -61,7 +67,12 @@ export default function AdminDisputesPage() {
                       type="button"
                       className="rounded-lg bg-red-600 px-3 py-1 text-xs font-bold"
                       onClick={() =>
-                        adminResolveDispute(Number(row.id), { status: "rejected" }).then(load)
+                        adminResolveDispute(Number(row.id), { status: "rejected" })
+                          .then(() => {
+                            toast.success("Dispute rejected.");
+                            load();
+                          })
+                          .catch(() => toast.error("Could not update the dispute."))
                       }
                     >
                       Reject

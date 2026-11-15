@@ -20,6 +20,8 @@ import {
   type PublisherCommunity,
   type PublisherInvitation,
 } from "@/lib/api/publisher";
+import { ListSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
@@ -139,9 +141,10 @@ export default function PublisherNetworkClient() {
         absoluteSiteUrl(res.invitation?.path, res.invite_url) || res.invite_url,
       );
       setEmail("");
+      toast.success("Invitation created.");
       loadNetwork(communityId);
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not create invitation.",
@@ -188,9 +191,10 @@ export default function PublisherNetworkClient() {
     setError(null);
     try {
       await removePublisherMember(id);
+      toast.success("Member removed.");
       loadNetwork(communityId);
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError ? err.message : "Could not remove member.",
       );
     } finally {
@@ -210,9 +214,10 @@ export default function PublisherNetworkClient() {
     setError(null);
     try {
       await releasePublisherMember(id, { settle_pending: true });
+      toast.success("Membership released.");
       loadNetwork(communityId);
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not release membership.",
@@ -244,9 +249,10 @@ export default function PublisherNetworkClient() {
       setCsvResult(result);
       setCsvFile(null);
       if (fileRef.current) fileRef.current.value = "";
+      toast.success("CSV invites imported.");
       loadNetwork(communityId);
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "CSV import failed.",
@@ -447,7 +453,7 @@ export default function PublisherNetworkClient() {
               Invites · {selectedCommunity?.name}
             </h2>
             {loading ? (
-              <p className="mt-4 text-sm text-slate-500">Loading…</p>
+              <ListSkeleton rows={3} className="mt-4" />
             ) : invites.length === 0 ? (
               <p className="mt-4 text-sm text-slate-500">
                 No invitations for this community yet.
@@ -495,7 +501,7 @@ export default function PublisherNetworkClient() {
         </div>
 
         {loading ? (
-          <p className="mt-4 text-sm text-slate-500">Loading…</p>
+          <ListSkeleton rows={3} className="mt-4" />
         ) : members.length === 0 ? (
           <p className="mt-4 text-sm text-slate-500">
             No members yet. Select a community and share an invite link.

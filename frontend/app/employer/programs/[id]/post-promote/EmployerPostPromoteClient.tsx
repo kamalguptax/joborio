@@ -9,6 +9,7 @@ import {
   type PostPromoteSubmissionRow,
 } from "@/lib/api/employer";
 import { useResolvedParam } from "@/lib/hooks/useResolvedParam";
+import { toast } from "@/components/ui/Toast";
 
 export default function EmployerPostPromoteClient() {
   const idParam = useResolvedParam("id", /^\/employer\/programs\/([^/]+)/);
@@ -35,7 +36,16 @@ export default function EmployerPostPromoteClient() {
       } else {
         await rejectPostPromoteSubmission(programId, id);
       }
+      toast.success(
+        action === "approve" ? "Submission approved." : "Submission rejected.",
+      );
       load();
+    } catch {
+      toast.error(
+        action === "approve"
+          ? "Could not approve the submission."
+          : "Could not reject the submission.",
+      );
     } finally {
       setBusyId(null);
     }

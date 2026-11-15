@@ -7,6 +7,7 @@ import {
   goLiveEmployerProgram,
 } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
+import { toast } from "@/components/ui/Toast";
 
 export default function EmployerProgramsPage() {
   const [programs, setPrograms] = useState<Array<Record<string, unknown>>>([]);
@@ -71,13 +72,16 @@ export default function EmployerProgramsPage() {
                       setBusyId(Number(p.id));
                       try {
                         await goLiveEmployerProgram(Number(p.id));
+                        toast.success("Program is now live.");
+                        setMsg(null);
                         load();
                       } catch (err) {
-                        setMsg(
+                        const text =
                           err instanceof ApiClientError
                             ? err.message
-                            : "Complete billing before going live.",
-                        );
+                            : "Complete billing before going live.";
+                        setMsg(text);
+                        toast.error(text);
                       } finally {
                         setBusyId(null);
                       }

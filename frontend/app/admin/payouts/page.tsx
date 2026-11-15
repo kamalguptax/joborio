@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/components/ui/Toast";
 import { TransactionHistory, type TransactionRow } from "@/components/payouts/TransactionHistory";
 import {
   adminCompletePayoutBatch,
@@ -79,16 +80,26 @@ export default function AdminPayoutsPage() {
 
   const createBatch = async () => {
     setError(null);
-    const created = await adminCreatePayoutBatch(mode);
-    setBatch(created);
-    loadHistory();
+    try {
+      const created = await adminCreatePayoutBatch(mode);
+      setBatch(created);
+      toast.success("Payout batch created.");
+      loadHistory();
+    } catch {
+      toast.error("Could not create the payout batch.");
+    }
   };
 
   const complete = async () => {
     const id = batch?.id as number | undefined;
     if (!id) return;
-    setBatch(await adminCompletePayoutBatch(id));
-    loadHistory();
+    try {
+      setBatch(await adminCompletePayoutBatch(id));
+      toast.success("Payout batch marked complete.");
+      loadHistory();
+    } catch {
+      toast.error("Could not complete the payout batch.");
+    }
   };
 
   return (

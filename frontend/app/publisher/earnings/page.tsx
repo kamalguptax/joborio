@@ -9,6 +9,8 @@ import {
   updatePublisherCommission,
   type PublisherEarnings,
 } from "@/lib/api/publisher";
+import { PageSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 function money(n: number | string) {
   return new Intl.NumberFormat("en-US", {
@@ -23,7 +25,6 @@ export default function PublisherEarningsPage() {
   const [permitted, setPermitted] = useState<number[]>([10, 15, 20, 25, 30]);
   const [selectedPct, setSelectedPct] = useState<number>(20);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = () => {
@@ -51,16 +52,14 @@ export default function PublisherEarningsPage() {
 
   async function onSaveCommission() {
     setBusy(true);
-    setError(null);
-    setMessage(null);
     try {
       const res = await updatePublisherCommission({
         commission_percent: selectedPct,
       });
-      setMessage(res.message);
+      toast.success(res.message);
       load();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof ApiClientError
           ? err.message
           : "Could not update commission.",
@@ -79,7 +78,7 @@ export default function PublisherEarningsPage() {
   }
 
   if (!data) {
-    return <p className="text-sm text-slate-500">Loading publisher earnings…</p>;
+    return <PageSkeleton />;
   }
 
   const { balances, commission, by_assignment, recent_entries } = data;
@@ -114,11 +113,6 @@ export default function PublisherEarningsPage() {
       {error ? (
         <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
-        </p>
-      ) : null}
-      {message ? (
-        <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {message}
         </p>
       ) : null}
 

@@ -6,13 +6,18 @@ import { FormEvent, useCallback, useState } from "react";
 import { sanitizeNextParam } from "@/lib/auth/safeRedirect";
 import { login, fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
-import {
-  postLoginRedirect,
-  rememberPublicCode,
-  setAuthToken,
-} from "@/lib/auth/session";
+import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
+import { homePathForUser } from "@/lib/auth/redirect";
 import MathCaptcha from "@/components/auth/MathCaptcha";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
+import AuthDivider from "@/components/auth/AuthDivider";
+import {
+  authAlertError,
+  authField,
+  authLabel,
+  authLink,
+  authPrimaryButton,
+} from "@/components/auth/authStyles";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -53,24 +58,7 @@ export default function LoginForm() {
 
       const me = await fetchMe();
       rememberPublicCode(me);
-      const isAdmin = me.roles?.some((r) => r.name === "admin");
-      const isPublisher =
-        me.roles?.some((r) => r.name === "publisher") ||
-        (me.publisher_users?.some((m) => m.is_active) ?? false);
-      const isNetworkMember = me.roles?.some((r) => r.name === "network_member");
-      if (isAdmin) {
-        router.push("/admin/dashboard");
-      } else if (isPublisher) {
-        router.push("/publisher/dashboard");
-      } else if (isNetworkMember) {
-        router.push("/network/dashboard");
-      } else if (me.roles?.some((r) => r.name === "employer") && !me.creator) {
-        router.push("/employer/dashboard");
-      } else if (me.creator) {
-        router.push("/creator/dashboard");
-      } else {
-        router.push(postLoginRedirect(false));
-      }
+      router.push(homePathForUser(me));
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -84,77 +72,54 @@ export default function LoginForm() {
 
   return (
     <>
-      <div className="mt-5 space-y-3">
-        <SocialAuthButtons intent="login" />
-      </div>
+      <SocialAuthButtons intent="login" />
 
-      <div className="my-4 flex items-center gap-4">
-        <div className="h-px flex-1 bg-slate-200" />
-        <span className="text-xs font-medium uppercase tracking-wider text-slate-400">
-          Or continue with email
-        </span>
-        <div className="h-px flex-1 bg-slate-200" />
-      </div>
+      <AuthDivider />
 
-      <form className="space-y-3.5" onSubmit={onSubmit}>
-        {error ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
-        ) : null}
+      <form className="space-y-4" onSubmit={onSubmit}>
+        {error ? <p className={authAlertError}>{error}</p> : null}
 
         <div>
-          <label
-            htmlFor="email"
-            className="mb-2 block text-sm font-semibold text-[#26385D]"
-          >
-            Email Address
+          <label htmlFor="email" className={authLabel}>
+            Email address<span className="text-violet-600">*</span>
           </label>
           <input
             id="email"
             type="email"
             required
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-purple-400 focus:bg-white focus:ring-4 focus:ring-purple-500/10"
+            className={authField}
           />
         </div>
 
         <div>
-          <div className="mb-2 flex items-center justify-between">
-            <label
-              htmlFor="password"
-              className="text-sm font-semibold text-[#26385D]"
-            >
-              Password
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className={authLabel}>
+              Password<span className="text-violet-600">*</span>
             </label>
-            <Link
-              href="/forgot-password"
-              className="text-xs font-semibold text-purple-600 transition hover:text-blue-600"
-            >
-              Forgot Password?
+            <Link href="/forgot-password" className={`${authLink} text-xs`}>
+              Forgot password?
             </Link>
           </div>
           <input
             id="password"
             type="password"
             required
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-purple-400 focus:bg-white focus:ring-4 focus:ring-purple-500/10"
+            className={authField}
           />
         </div>
 
         <MathCaptcha onChange={onCaptcha} />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="group relative flex w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-purple-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-purple-500/25 disabled:opacity-60"
-        >
-          {loading ? "Signing in…" : "Login to JobOrio"}
+        <button type="submit" disabled={loading} className={authPrimaryButton}>
+          {loading ? "Signing in…" : "Log in to JobOrio"}
         </button>
       </form>
     </>

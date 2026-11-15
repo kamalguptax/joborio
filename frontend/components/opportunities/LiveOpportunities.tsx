@@ -8,7 +8,8 @@ import {
   fetchHomeOpportunities,
   type HomeOpportunityCard,
 } from "@/lib/home/opportunityCards";
-import SectionHeading from "@/components/layout/SectionHeading";
+import PageHero from "@/components/layout/PageHero";
+import { JobCardsSkeleton } from "@/components/ui/Skeleton";
 
 function JobCard({ job }: { job: HomeOpportunityCard }) {
   const badge = CATEGORY_BADGE[job.category] ?? CATEGORY_BADGE.hiring;
@@ -68,29 +69,18 @@ export default function LiveOpportunities() {
   }, []);
 
   return (
-    <section className="section-pad bg-[#F7F8FC] px-5 sm:px-8">
+    <>
+      <PageHero
+        compact
+        eyebrow="Opportunities"
+        title="Jobs worth sharing"
+        description="Live openings from the JobOrio feed. Open a job to see details."
+      />
+      <section className="bg-[#F7F8FC] px-5 pb-20 pt-2 sm:px-8 sm:pb-28">
       <div className="mx-auto max-w-[1600px]">
-        <SectionHeading
-          as="h1"
-          variant="hero"
-          eyebrow="Opportunities"
-          title="Jobs worth sharing"
-          description="Live openings from the JobOrio feed. Open a job to see details."
-        />
 
         {loading ? (
-          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-52 animate-pulse rounded-3xl border border-indigo-100 bg-white/80"
-                aria-hidden
-              />
-            ))}
-            <p className="col-span-full py-2 text-center text-sm text-slate-500 sm:text-base">
-              Loading live jobs…
-            </p>
-          </div>
+          <div className="mt-10"><JobCardsSkeleton count={4} className="sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" /></div>
         ) : error ? (
           <p className="mt-10 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900 sm:px-6">
             {error}
@@ -112,6 +102,7 @@ export default function LiveOpportunities() {
           </ul>
         )}
       </div>
-    </section>
+      </section>
+    </>
   );
 }

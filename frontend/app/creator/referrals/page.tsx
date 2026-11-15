@@ -7,6 +7,7 @@ import {
   type CreatorReferralDashboard,
 } from "@/lib/api/creator";
 import { formatMoney } from "@/lib/money";
+import { SectionSkeleton } from "@/components/ui/Skeleton";
 
 const LIVE_SITE = "https://joborio.com";
 
@@ -148,7 +149,7 @@ export default function CreatorReferralsPage() {
           </div>
         </>
       ) : !error ? (
-        <p className="text-sm text-slate-500">Loading…</p>
+        <SectionSkeleton />
       ) : null}
     </>
   );

@@ -8,6 +8,7 @@ import {
   rememberPublicCode,
   setAuthToken,
 } from "@/lib/auth/session";
+import { CenteredCardSkeleton } from "@/components/ui/Skeleton";
 
 function AuthCallbackInner() {
   const params = useSearchParams();
@@ -52,11 +53,7 @@ function AuthCallbackInner() {
 export default function AuthCallbackPage() {
   return (
     <Suspense
-      fallback={
-        <main className="flex min-h-screen items-center justify-center bg-[#fff9fd]">
-          <p className="text-sm text-slate-500">Loading…</p>
-        </main>
-      }
+      fallback={<CenteredCardSkeleton />}
     >
       <AuthCallbackInner />
     </Suspense>

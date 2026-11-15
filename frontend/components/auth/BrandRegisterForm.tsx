@@ -4,12 +4,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useState } from "react";
 import MathCaptcha from "@/components/auth/MathCaptcha";
+import AuthDivider from "@/components/auth/AuthDivider";
+import {
+  authAlertError,
+  authField,
+  authLabel,
+  authLink,
+  authPrimaryButton,
+  authSectionHeading,
+  authTextarea,
+} from "@/components/auth/authStyles";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { registerBrand } from "@/lib/api/brandAuth";
 import { ApiClientError } from "@/lib/api/client";
 
-const field =
-  "mt-2 h-12 w-full rounded-xl border border-indigo-100 bg-white px-4 text-base text-[#0F1B3D] placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15";
+const field = authField;
 
 const regions = [
   { value: "IN", label: "India (Domestic)" },
@@ -99,29 +108,19 @@ export default function BrandRegisterForm() {
 
   return (
     <div>
-      <div className="space-y-3">
-        <SocialAuthButtons intent="login" />
-      </div>
+      <SocialAuthButtons intent="login" />
 
-      <div className="my-7 flex items-center gap-4">
-        <div className="h-px flex-1 bg-slate-200" />
-        <span className="text-caption font-medium uppercase tracking-wide text-slate-400">
-          Or create a brand account
-        </span>
-        <div className="h-px flex-1 bg-slate-200" />
-      </div>
+      <AuthDivider label="or create an account with email" />
 
-      <form className="space-y-8" onSubmit={onSubmit}>
+      <form className="space-y-7" onSubmit={onSubmit}>
         {error ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
+          <p className={authAlertError}>{error}</p>
         ) : null}
 
         <section>
-          <h2 className="text-card-heading">1. Company & Entity Information</h2>
-          <div className="mt-4 space-y-4">
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+          <h2 className={authSectionHeading}>1. Company & Entity Information</h2>
+          <div className="mt-3 space-y-4">
+            <label className={authLabel}>
               Company Full Legal Name
               <input
                 required
@@ -131,7 +130,7 @@ export default function BrandRegisterForm() {
                 className={field}
               />
             </label>
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+            <label className={authLabel}>
               Brand / Trading Name
               <input
                 required
@@ -141,7 +140,7 @@ export default function BrandRegisterForm() {
                 className={field}
               />
             </label>
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+            <label className={authLabel}>
               Entity Type / Country of Incorporation
               <select
                 required
@@ -156,7 +155,7 @@ export default function BrandRegisterForm() {
                 ))}
               </select>
             </label>
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+            <label className={authLabel}>
               Website (optional)
               <input
                 type="url"
@@ -170,14 +169,14 @@ export default function BrandRegisterForm() {
         </section>
 
         <section>
-          <h2 className="text-card-heading">2. Tax & Compliance Details</h2>
+          <h2 className={authSectionHeading}>2. Tax & Compliance Details</h2>
           <p className="mt-1 text-sm text-slate-500">
             Fields update based on your country selection.
           </p>
-          <div className="mt-4 space-y-4">
+          <div className="mt-3 space-y-4">
             {india ? (
               <>
-                <label className="block text-sm font-semibold text-[#0F1B3D]">
+                <label className={authLabel}>
                   GSTIN
                   <input
                     required
@@ -188,7 +187,7 @@ export default function BrandRegisterForm() {
                     className={field}
                   />
                 </label>
-                <label className="block text-sm font-semibold text-[#0F1B3D]">
+                <label className={authLabel}>
                   PAN
                   <input
                     required
@@ -199,19 +198,19 @@ export default function BrandRegisterForm() {
                     className={field}
                   />
                 </label>
-                <label className="block text-sm font-semibold text-[#0F1B3D]">
+                <label className={authLabel}>
                   Billing address (optional)
                   <textarea
                     value={billingAddress}
                     onChange={(e) => setBillingAddress(e.target.value)}
                     rows={3}
-                    className="mt-2 w-full rounded-xl border border-indigo-100 bg-white px-4 py-3 text-base text-[#0F1B3D] focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15"
+                    className={authTextarea}
                   />
                 </label>
               </>
             ) : (
               <>
-                <label className="block text-sm font-semibold text-[#0F1B3D]">
+                <label className={authLabel}>
                   Tax ID / EIN / VAT Number
                   <input
                     required
@@ -221,7 +220,7 @@ export default function BrandRegisterForm() {
                     className={field}
                   />
                 </label>
-                <label className="block text-sm font-semibold text-[#0F1B3D]">
+                <label className={authLabel}>
                   Billing Address & Country
                   <textarea
                     required
@@ -229,7 +228,7 @@ export default function BrandRegisterForm() {
                     onChange={(e) => setBillingAddress(e.target.value)}
                     placeholder="Street, City, State/Province, Postal Code, Country"
                     rows={3}
-                    className="mt-2 w-full rounded-xl border border-indigo-100 bg-white px-4 py-3 text-base text-[#0F1B3D] focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15"
+                    className={authTextarea}
                   />
                 </label>
               </>
@@ -238,9 +237,9 @@ export default function BrandRegisterForm() {
         </section>
 
         <section>
-          <h2 className="text-card-heading">3. Official Contact & Account Credentials</h2>
-          <div className="mt-4 space-y-4">
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+          <h2 className={authSectionHeading}>3. Official Contact & Account Credentials</h2>
+          <div className="mt-3 space-y-4">
+            <label className={authLabel}>
               Official Work Email
               <input
                 required
@@ -251,7 +250,7 @@ export default function BrandRegisterForm() {
                 className={field}
               />
             </label>
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+            <label className={authLabel}>
               Create Password
               <input
                 required
@@ -262,7 +261,7 @@ export default function BrandRegisterForm() {
                 className={field}
               />
             </label>
-            <label className="block text-sm font-semibold text-[#0F1B3D]">
+            <label className={authLabel}>
               Confirm Password
               <input
                 required
@@ -278,16 +277,16 @@ export default function BrandRegisterForm() {
 
         <MathCaptcha onChange={onCaptcha} />
 
-        <label className="flex items-start gap-3 text-sm text-slate-600">
+        <label className="flex items-start gap-3 text-[13px] text-slate-600">
           <input
             type="checkbox"
             checked={accepted}
             onChange={(e) => setAccepted(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-violet-600 focus:ring-violet-500"
           />
           <span>
             I agree to JobOrio&apos;s{" "}
-            <Link href="/terms" className="font-semibold text-violet-600 hover:underline">
+            <Link href="/terms" className={authLink}>
               Terms & Conditions
             </Link>{" "}
             & Brand Privacy Policy
@@ -297,14 +296,14 @@ export default function BrandRegisterForm() {
         <button
           type="submit"
           disabled={loading}
-          className="btn-tap flex min-h-12 w-full items-center justify-center rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-6 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 disabled:opacity-60"
+          className={authPrimaryButton}
         >
           {loading ? "Creating account…" : "Register & Verify Email"}
         </button>
 
         <p className="text-center text-sm text-slate-500">
           Already have an account?{" "}
-          <Link href="/login?next=/employer/dashboard" className="font-semibold text-violet-600 hover:underline">
+          <Link href="/login?next=/employer/dashboard" className={authLink}>
             Sign in
           </Link>
         </p>

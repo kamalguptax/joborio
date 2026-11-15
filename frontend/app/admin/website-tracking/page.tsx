@@ -9,6 +9,7 @@ import {
   type TrackedWebsiteRow,
 } from "@/lib/api/admin";
 import { API_BASE_URL } from "@/lib/config";
+import { toast } from "@/components/ui/Toast";
 import {
   AdminAlert,
   AdminButton,
@@ -57,19 +58,19 @@ export default function AdminWebsiteTrackingPage() {
       });
       setName("");
       setDomain("");
-      setMsg("Website added. Copy the embed code below into your site <head>.");
+      toast.success("Website added. Copy the embed code below into your site <head>.");
       load();
     } catch {
-      setMsg("Create failed — check name and domain.");
+      toast.error("Could not add the website. Check the name and domain.");
     }
   };
 
   const copySnippet = async (snippet: string) => {
     try {
       await navigator.clipboard.writeText(snippet);
-      setMsg("Embed code copied to clipboard.");
+      toast.success("Embed code copied to clipboard.");
     } catch {
-      setMsg("Copy failed — select the code manually.");
+      toast.error("Copy failed — select the code manually.");
     }
   };
 
@@ -173,7 +174,13 @@ export default function AdminWebsiteTrackingPage() {
                     variant="secondary"
                     onClick={async () => {
                       if (!confirm("Delete this property and all its events?")) return;
-                      await adminDeleteTrackedWebsite(site.id);
+                      try {
+                        await adminDeleteTrackedWebsite(site.id);
+                      } catch {
+                        toast.error("Could not delete the website.");
+                        return;
+                      }
+                      toast.success("Website deleted.");
                       load();
                       if (selectedId === site.id) {
                         setSelectedId(null);

@@ -8,6 +8,7 @@ import PublicCreatorView, {
 import { getApiBaseUrl } from "@/lib/config";
 import { useResolvedParam } from "@/lib/hooks/useResolvedParam";
 import { STATIC_EXPORT_PLACEHOLDER, creatorProfilePath } from "@/lib/staticExport";
+import { CenteredCardSkeleton } from "@/components/ui/Skeleton";
 
 export default function PublicCreatorClient() {
   const pathHandle = useResolvedParam("handle", /^\/p\/([^/]+)/);
@@ -64,9 +65,7 @@ export default function PublicCreatorClient() {
 
   if (!data) {
     return (
-      <main className="flex min-h-screen items-center justify-center text-slate-400">
-        Loading…
-      </main>
+      <CenteredCardSkeleton />
     );
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/components/ui/Toast";
 import {
   MASTER_TYPES,
   adminCreateJobMaster,
@@ -47,9 +48,9 @@ export default function AdminJobMastersPage() {
       setParentId("");
       setCode("");
       load();
-      setMsg("Added");
+      toast.success("Filter option added.");
     } catch {
-      setMsg("Create failed");
+      toast.error("Could not add the filter option.");
     }
   };
 
@@ -138,8 +139,13 @@ export default function AdminJobMastersPage() {
                     type="button"
                     className="text-xs text-rose-300 hover:text-rose-200"
                     onClick={async () => {
-                      await adminDeactivateJobMaster(r.id);
-                      load();
+                      try {
+                        await adminDeactivateJobMaster(r.id);
+                        toast.success("Filter option deactivated.");
+                        load();
+                      } catch {
+                        toast.error("Could not deactivate the filter option.");
+                      }
                     }}
                   >
                     Deactivate

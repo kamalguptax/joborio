@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchCaptcha } from "@/lib/api/brandAuth";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 type Props = {
   onChange: (value: { captcha_id: string; captcha_answer: string }) => void;
@@ -74,7 +75,9 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
   const widgetRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   const applyMathChallenge = useCallback(
     (data: { captcha_id: string; question: string }) => {
@@ -193,8 +196,8 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
   if (provider === "loading") {
     return (
       <div className={className}>
-        <p className="text-sm font-semibold text-[#0F1B3D]">Security check</p>
-        <p className="mt-2 text-xs text-slate-400">Loading captcha…</p>
+        <p className="text-[13px] font-semibold text-[#26385D]">Security check</p>
+        <Skeleton className="mt-2 h-11 w-full rounded-lg" />
       </div>
     );
   }
@@ -202,7 +205,7 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
   if (provider === "turnstile") {
     return (
       <div className={className}>
-        <p className="mb-2 text-sm font-semibold text-[#0F1B3D]">
+        <p className="mb-2 text-[13px] font-semibold text-[#26385D]">
           Security check
         </p>
         <div ref={widgetRef} className="cf-turnstile" />
@@ -225,16 +228,16 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
   return (
     <div className={className}>
       <div className="flex flex-wrap items-end gap-3">
-        <label className="min-w-0 flex-1 text-sm font-semibold text-[#0F1B3D]">
+        <label className="min-w-0 flex-1 text-[13px] font-semibold text-[#26385D]">
           Captcha
-          <span className="mt-2 block rounded-xl border border-indigo-100 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+          <span className="mt-1.5 flex h-11 items-center rounded-lg border border-slate-200 bg-slate-50 px-3.5 text-sm font-medium text-slate-700">
             {question}
           </span>
         </label>
         <button
           type="button"
           onClick={() => void loadChallenge()}
-          className="mb-0.5 rounded-xl border border-slate-200 px-3 py-3 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+          className="h-11 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-violet-300 hover:bg-violet-50/40"
         >
           Refresh
         </button>
@@ -249,7 +252,7 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
           setAnswer(v);
           onChange({ captcha_id: captchaId, captcha_answer: v });
         }}
-        className="mt-3 h-12 w-full rounded-xl border border-indigo-100 bg-white px-4 text-base text-[#0F1B3D] placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15"
+        className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3.5 text-sm text-[#0F1B3D] placeholder:text-slate-400 transition focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15"
         placeholder="Answer"
       />
       {error ? (

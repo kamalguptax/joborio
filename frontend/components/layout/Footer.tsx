@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 import Logo from "./Logo";
 import NewsletterForm from "./NewsletterForm";
 
@@ -11,6 +10,7 @@ const columns = [
     heading: "Platform",
     links: [
       { label: "Creators", href: "/creators" },
+      { label: "Brands", href: "/brands" },
       { label: "Opportunities", href: "/opportunities" },
       { label: "Campaigns", href: "/campaigns" },
       { label: "Courses", href: "/courses" },
@@ -99,13 +99,13 @@ export default function Footer() {
     : columns;
 
   return (
-    <footer className="relative mt-8 overflow-hidden bg-[#0B1D4F] text-slate-300">
+    <footer className="relative overflow-hidden bg-[#0B1D4F] text-slate-300">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/70 to-transparent" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-600/25 blur-3xl" />
       <div aria-hidden="true" className="pointer-events-none absolute -left-32 top-1/2 h-80 w-80 rounded-full bg-blue-500/15 blur-[110px]" />
 
       {/* ---------- Top: brand · links · newsletter ---------- */}
-      <div className="relative mx-auto grid max-w-[1600px] gap-10 px-4 pt-12 sm:gap-12 sm:px-8 sm:pt-14 lg:px-10 lg:pt-16 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,2.4fr)_minmax(0,1.3fr)] xl:gap-14">
+      <div className="relative mx-auto grid max-w-[1600px] gap-10 px-4 pb-12 pt-12 sm:gap-12 sm:px-8 sm:pt-14 lg:px-10 lg:pt-16 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,2.4fr)_minmax(0,1.3fr)] xl:gap-14">
         <div className="min-w-0">
           <Logo />
           <p className="mt-5 max-w-sm text-sm leading-7 text-slate-400 sm:text-base">

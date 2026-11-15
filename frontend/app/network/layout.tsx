@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchMe, logoutApi } from "@/lib/api/auth";
 import { clearAuthToken, getAuthToken } from "@/lib/auth/session";
+import { ShellSkeleton } from "@/components/ui/Skeleton";
 
 export default function NetworkLayout({
   children,
@@ -45,9 +46,7 @@ export default function NetworkLayout({
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f7ff] text-sm text-slate-500">
-        Loading member portal…
-      </div>
+      <ShellSkeleton />
     );
   }
 

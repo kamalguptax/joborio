@@ -12,6 +12,7 @@ import {
   updateEmployerJobPreferences,
 } from "@/lib/api/employer";
 import type { Listing } from "@/lib/api/types";
+import { SectionSkeleton } from "@/components/ui/Skeleton";
 
 export default function EmployerJobPreferencesPage() {
   const [initial, setInitial] = useState<JobPreferencesValues | null>(null);
@@ -80,7 +81,7 @@ export default function EmployerJobPreferencesPage() {
           onJobTypesChange={setJobTypes}
         />
       ) : (
-        <p className="text-sm text-slate-500">Loading…</p>
+        <SectionSkeleton />
       )}
 
       <PromoteJobsList types={jobTypes} />
