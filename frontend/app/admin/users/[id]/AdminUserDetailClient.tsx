@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { TransactionHistory, type TransactionRow } from "@/components/payouts/TransactionHistory";
 import { adminActivity, adminGetUser, adminPayoutTransactions, adminUpdateUser } from "@/lib/api/admin";
 import { useResolvedParam } from "@/lib/hooks/useResolvedParam";
+import { STATIC_EXPORT_PLACEHOLDER } from "@/lib/staticExport";
 import { formatMoney } from "@/lib/money";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
@@ -34,7 +35,10 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 type Tab = "activity" | "earnings" | "payouts" | "profile";
 
 export default function AdminUserDetailClient() {
-  const idParam = useResolvedParam("id", /^\/admin\/users\/([^/]+)/);
+  const pathId = useResolvedParam("id", /^\/admin\/users\/([^/]+)/);
+  const [queryId, setQueryId] = useState("");
+  const idParam =
+    pathId && pathId !== STATIC_EXPORT_PLACEHOLDER ? pathId : queryId;
   const id = Number(idParam);
   const [payload, setPayload] = useState<Awaited<ReturnType<typeof adminGetUser>> | null>(null);
   const [tab, setTab] = useState<Tab>("activity");
@@ -48,8 +52,17 @@ export default function AdminUserDetailClient() {
   const [txLastPage, setTxLastPage] = useState(1);
   const [msg, setMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setQueryId(params.get("id")?.trim() ?? "");
+    const t = params.get("tab");
+    if (t === "activity" || t === "earnings" || t === "payouts" || t === "profile") {
+      setTab(t);
+    }
+  }, []);
+
   const load = () => {
-    if (!Number.isFinite(id)) return;
+    if (!Number.isFinite(id) || id <= 0) return;
     adminGetUser(id)
       .then(setPayload)
       .catch(() => setMsg("User not found"));
@@ -57,15 +70,6 @@ export default function AdminUserDetailClient() {
 
   useEffect(() => {
     load();
-  }, [id]);
-
-  useEffect(() => {
-    if (!Number.isFinite(id)) return;
-    const params = new URLSearchParams(window.location.search);
-    const t = params.get("tab");
-    if (t === "activity" || t === "earnings" || t === "payouts" || t === "profile") {
-      setTab(t);
-    }
   }, [id]);
 
   useEffect(() => {

@@ -16,6 +16,7 @@ import {
   AdminAlert,
   AdminTableWrap,
 } from "@/components/admin/admin-ui";
+import { adminUserPath } from "@/lib/staticExport";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUserRow[]>([]);
@@ -135,7 +136,7 @@ export default function AdminUsersPage() {
             {users.map((u) => (
               <tr key={u.id} className="border-t border-zinc-800">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/users/${u.id}`} className="font-semibold text-amber-400/90 hover:text-amber-300">
+                  <Link href={adminUserPath(u.id)} className="font-semibold text-amber-400/90 hover:text-amber-300">
                     {u.name}
                   </Link>
                   <div className="text-xs text-zinc-500">{u.email}</div>
@@ -198,13 +199,13 @@ export default function AdminUsersPage() {
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2 text-xs font-semibold">
                     <Link
-                      href={`/admin/users/${u.id}?tab=activity`}
+                      href={adminUserPath(u.id, "activity")}
                       className="text-emerald-400 hover:text-emerald-300"
                     >
                       Activity
                     </Link>
                     <Link
-                      href={`/admin/users/${u.id}?tab=earnings`}
+                      href={adminUserPath(u.id, "earnings")}
                       className="text-amber-400 hover:text-amber-300"
                     >
                       Earnings

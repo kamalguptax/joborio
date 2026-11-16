@@ -335,37 +335,48 @@ export default function CreatorDashboardPage() {
     value: string | number;
     icon: typeof MousePointerClick;
     tone: string;
-    href?: string;
+    href: string;
+    cta: string;
   }> = [
     {
       label: range === "all" ? "Verified clicks" : `Clicks · ${RANGE_LABEL[range]}`,
       value: rangeClicks,
       icon: MousePointerClick,
       tone: "from-blue-500 to-blue-600",
+      href: "/creator/clicks",
+      cta: "View clicks →",
     },
     {
       label: "All-time clicks",
       value: metrics.clicks ?? 0,
       icon: TrendingUp,
       tone: "from-purple-500 to-purple-600",
+      href: "/creator/performance",
+      cta: "View performance →",
     },
     {
       label: "Duplicate clicks",
       value: metrics.clicks_duplicate ?? 0,
       icon: MousePointerClick,
       tone: "from-amber-500 to-orange-600",
+      href: "/creator/clicks",
+      cta: "View clicks →",
     },
     {
       label: range === "all" ? "Registrations" : `Regs · ${RANGE_LABEL[range]}`,
       value: rangeRegs,
       icon: UserPlus,
       tone: "from-pink-500 to-pink-600",
+      href: "/creator/registrations",
+      cta: "View regs →",
     },
     {
       label: "Pending verify",
       value: metrics.registrations_pending ?? 0,
       icon: ArrowUpRight,
       tone: "from-slate-500 to-slate-600",
+      href: "/creator/registrations",
+      cta: "View regs →",
     },
     {
       label: "Total earning",
@@ -373,6 +384,7 @@ export default function CreatorDashboardPage() {
       icon: Wallet,
       tone: "from-emerald-500 to-teal-600",
       href: "/creator/earnings",
+      cta: "Open ledger →",
     },
   ];
 
@@ -405,7 +417,7 @@ export default function CreatorDashboardPage() {
             <p className="text-sm font-semibold text-indigo-200">
               Welcome back{creator?.handle ? `, @${String(creator.handle).replace(/^@/, "")}` : ""}
             </p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2 className="mt-1 text-2xl font-bold tracking-tight !text-white sm:text-3xl">
               Here is how your links are performing
             </h2>
             <p className="mt-2 text-sm text-indigo-100/80">
@@ -430,42 +442,40 @@ export default function CreatorDashboardPage() {
         </div>
       </section>
 
-      <div className="dash-card mb-6 flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between sm:p-5">
-        <p className="text-sm font-semibold text-slate-600">Filter your numbers</p>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <label className="flex min-w-[12rem] flex-col gap-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Campaign
-              </span>
-              <select
-                value={campaign}
-                onChange={(e) => setCampaign(e.target.value as CampaignKey)}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#172b63] shadow-sm outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10"
-              >
-                {campaignFilters.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex min-w-[10rem] flex-col gap-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Date range
-              </span>
-              <select
-                value={range}
-                onChange={(e) => setRange(e.target.value as RangeKey)}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#172b63] shadow-sm outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10"
-              >
-                <option value="1d">Today</option>
-                <option value="3d">Last 3 days</option>
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="all">All time</option>
-              </select>
-            </label>
-        </div>
+      <div className="dash-card mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 sm:px-4">
+        <p className="text-xs font-semibold text-slate-500 sm:mr-auto">Filters</p>
+        <label className="flex min-w-0 items-center gap-2">
+          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            Campaign
+          </span>
+          <select
+            value={campaign}
+            onChange={(e) => setCampaign(e.target.value as CampaignKey)}
+            className="min-h-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-[#172b63] outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10"
+          >
+            {campaignFilters.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex min-w-0 items-center gap-2">
+          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            Date
+          </span>
+          <select
+            value={range}
+            onChange={(e) => setRange(e.target.value as RangeKey)}
+            className="min-h-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-[#172b63] outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10"
+          >
+            <option value="1d">Today</option>
+            <option value="3d">Last 3 days</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="all">All time</option>
+          </select>
+        </label>
       </div>
 
       {creator?.approval_status && creator.approval_status !== "approved" ? (
@@ -492,37 +502,26 @@ export default function CreatorDashboardPage() {
       {data ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-            {statCards.map(({ label, value, icon: Icon, tone, href }) => {
-              const body = (
-                <>
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-[13px] font-medium text-slate-500">{label}</p>
-                    <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${tone} text-white shadow-sm`}
-                    >
-                      <Icon size={18} />
-                    </div>
+            {statCards.map(({ label, value, icon: Icon, tone, href, cta }) => (
+              <Link
+                key={label}
+                href={href}
+                className="group relative block overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,27,61,0.04),0_14px_30px_-24px_rgba(15,27,61,0.3)] transition duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_22px_40px_-26px_rgba(91,53,213,0.45)]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-[13px] font-medium text-slate-500">{label}</p>
+                  <div
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${tone} text-white shadow-sm`}
+                  >
+                    <Icon size={18} />
                   </div>
-                  <p className="mt-3 text-[1.75rem] font-bold leading-none tracking-tight">{value}</p>
-                  {href ? (
-                    <p className="mt-3 text-xs font-semibold text-emerald-700">
-                      Open ledger →
-                    </p>
-                  ) : null}
-                </>
-              );
-              const className =
-                "group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,27,61,0.04),0_14px_30px_-24px_rgba(15,27,61,0.3)] transition duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_22px_40px_-26px_rgba(91,53,213,0.45)]";
-              return href ? (
-                <Link key={label} href={href} className={`block ${className}`}>
-                  {body}
-                </Link>
-              ) : (
-                <div key={label} className={className}>
-                  {body}
                 </div>
-              );
-            })}
+                <p className="mt-3 text-[1.75rem] font-bold leading-none tracking-tight">{value}</p>
+                <p className="mt-3 text-xs font-semibold text-emerald-700 opacity-80 group-hover:opacity-100">
+                  {cta}
+                </p>
+              </Link>
+            ))}
           </div>
 
           <div className="mt-8 dash-card p-6">

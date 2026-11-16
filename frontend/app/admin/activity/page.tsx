@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { adminActivity, CAMPAIGN_TYPES } from "@/lib/api/admin";
 import { formatMoney } from "@/lib/money";
+import { adminUserPath } from "@/lib/staticExport";
 
 function formatClickTime(value?: string): string {
   if (!value) return "time unknown";
@@ -469,7 +470,7 @@ export default function AdminActivityPage() {
                         <div className="text-amber-200">{code}</div>
                         {uid ? (
                           <Link
-                            href={`/admin/users/${uid}`}
+                            href={adminUserPath(uid)}
                             className="text-purple-300 underline"
                           >
                             Profile

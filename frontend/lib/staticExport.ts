@@ -25,6 +25,16 @@ export function joinInvitePath(pub: string, com: string, token: string): string 
   return `/join/${STATIC_EXPORT_PLACEHOLDER}/${STATIC_EXPORT_PLACEHOLDER}/?${q.toString()}`;
 }
 
+/** Static-export-safe admin user detail. Pretty `/admin/users/{id}` 404s without Apache rewrite. */
+export function adminUserPath(
+  id: string | number,
+  tab?: "activity" | "earnings" | "payouts" | "profile",
+): string {
+  const q = new URLSearchParams({ id: String(id) });
+  if (tab) q.set("tab", tab);
+  return `/admin/users/${STATIC_EXPORT_PLACEHOLDER}/?${q.toString()}`;
+}
+
 export function resolveDynamicParam(
   param: string | undefined,
   pathname: string,
