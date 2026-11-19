@@ -4,6 +4,7 @@ namespace App\Services\Auth;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -13,11 +14,12 @@ class CaptchaService
 
     public function challenge(bool $preferMath = false): array
     {
-        if ($this->turnstileEnabled() && ! $preferMath) {
+        $siteKey = $this->turnstileSiteKey();
+        if ($this->turnstileEnabled() && $siteKey !== '' && ! $preferMath) {
             return [
                 'captcha_id' => self::TURNSTILE_ID,
                 'provider' => 'turnstile',
-                'site_key' => (string) config('services.turnstile.site_key'),
+                'site_key' => $siteKey,
                 'question' => 'Complete the Cloudflare security check.',
             ];
         }
@@ -80,12 +82,13 @@ class CaptchaService
         }
 
         try {
+            // Do not send remoteip: reverse proxies often report the edge IP and
+            // Cloudflare then rejects an otherwise-valid token.
             $response = Http::asForm()
                 ->timeout(8)
                 ->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                     'secret' => $secret,
                     'response' => $token,
-                    'remoteip' => request()->ip(),
                 ]);
         } catch (\Throwable $e) {
             report($e);
@@ -95,11 +98,26 @@ class CaptchaService
         }
 
         $payload = $response->json();
-        if (! ($payload['success'] ?? false)) {
-            throw ValidationException::withMessages([
-                'captcha' => ['Captcha verification failed. Please try again.'],
-            ]);
+        if ($payload['success'] ?? false) {
+            return;
         }
+
+        $codes = $payload['error-codes'] ?? [];
+        Log::warning('Turnstile siteverify failed', [
+            'error_codes' => $codes,
+        ]);
+
+        $codeList = is_array($codes) ? $codes : [];
+        $message = 'Captcha verification failed. Please try again.';
+        if (in_array('timeout-or-duplicate', $codeList, true)) {
+            $message = 'Security check expired or was already used. Refresh the captcha and submit once.';
+        } elseif ($codeList !== []) {
+            $message .= ' ('.implode(', ', $codeList).')';
+        }
+
+        throw ValidationException::withMessages([
+            'captcha' => [$message],
+        ]);
     }
 
     private function turnstileSiteKey(): string

@@ -87,7 +87,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/syndication/vigyapanam/jobs/{referenceId}', [JobrapidoSyndicationController::class, 'show'])
         ->where('referenceId', '[A-Za-z0-9._:\-]+');
     Route::post('/syndication/vigyapanam/refresh', [JobrapidoSyndicationController::class, 'refresh']);
-    Route::get('/public/creators/{handle}', [CreatorPageController::class, 'show']);
+    Route::get('/public/creators', [CreatorPageController::class, 'index']);
+    Route::get('/public/creators/{handle}', [CreatorPageController::class, 'show'])
+        ->where('handle', '[A-Za-z0-9_\\-]+');
     Route::get('/public/leaderboard', [LeaderboardController::class, 'index']);
 
     Route::post('/webhooks/ppr', [PprWebhookController::class, 'store']);
@@ -177,6 +179,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/programs', [EmployerProgramController::class, 'index']);
             Route::post('/programs', [EmployerProgramController::class, 'store']);
             Route::get('/programs/{program}', [EmployerProgramController::class, 'show']);
+            Route::put('/programs/{program}', [EmployerProgramController::class, 'update']);
             Route::post('/programs/{program}/pause', [EmployerProgramController::class, 'pause']);
             Route::post('/programs/{program}/resume', [EmployerProgramController::class, 'resume']);
             Route::post('/programs/{program}/go-live', [EmployerProgramController::class, 'resume']);
@@ -234,6 +237,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware('role:admin')->prefix('admin')->group(function () {
             Route::get('/overview', [AdminDashboardController::class, 'overview']);
             Route::get('/users', [AdminUserController::class, 'index']);
+            Route::post('/users/bulk-approve', [AdminUserController::class, 'bulkApprove']);
             Route::get('/users/{user}', [AdminUserController::class, 'show']);
             Route::patch('/users/{user}', [AdminUserController::class, 'update']);
             Route::get('/activity', [AdminActivityController::class, 'index']);
@@ -266,12 +270,16 @@ Route::prefix('v1')->group(function () {
             Route::get('/disputes', [AdminDisputeController::class, 'index']);
             Route::post('/disputes/{attributionDispute}/resolve', [AdminDisputeController::class, 'resolve']);
             Route::get('/payouts/transactions', [PayoutController::class, 'transactions']);
+            Route::get('/payouts/export', [PayoutController::class, 'exportReport']);
             Route::get('/payouts/preview', [PayoutController::class, 'previewBatch']);
             Route::get('/payouts/batches', [PayoutController::class, 'indexBatches']);
             Route::post('/payouts/batches', [PayoutController::class, 'createBatch']);
             Route::post('/payouts/batches/{payoutBatch}/complete', [PayoutController::class, 'completeBatch']);
             Route::get('/programs', [AdminProgramController::class, 'index']);
             Route::post('/programs', [AdminProgramController::class, 'store']);
+            Route::get('/programs/{program}', [AdminProgramController::class, 'show']);
+            Route::put('/programs/{program}', [AdminProgramController::class, 'update']);
+            Route::get('/programs/{program}/leads/export', [AdminProgramController::class, 'exportLeads']);
             Route::post('/programs/{program}/activate', [AdminProgramController::class, 'activate']);
             Route::post('/programs/{program}/pause', [AdminProgramController::class, 'pause']);
             Route::get('/campaign-earnings', [CampaignEarningsController::class, 'index']);

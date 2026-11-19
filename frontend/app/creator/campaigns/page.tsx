@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import ShareLinkButton from "@/components/share/ShareLinkButton";
 import { fetchMe } from "@/lib/api/auth";
@@ -184,12 +184,18 @@ export default function CreatorCampaignsPage() {
     }
   };
 
+  const trackedRefs = useRef(new Set<string>());
+
   const trackXml = (job: SyndicatedJob) => {
+    if (trackedRefs.current.has(job.reference_id)) return;
+    trackedRefs.current.add(job.reference_id);
     void recordJobActivity({
       reference_id: job.reference_id,
       action: "view",
       title: job.title,
       company: job.company,
+      category: job.category || job.jobtype || undefined,
+      source: "creator_campaigns",
     }).catch(() => undefined);
   };
 
@@ -253,7 +259,8 @@ export default function CreatorCampaignsPage() {
           <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center">
             <p className="font-semibold text-slate-800">No campaigns in this category</p>
             <p className="mt-2 text-sm text-slate-500">
-              Try another tab, or update job preferences to match more programs.
+              Only active campaigns appear here. Employer campaigns stay hidden until
+              billing/go-live is complete. Admin campaigns should show after refresh.
             </p>
           </div>
         ) : (
@@ -289,15 +296,19 @@ export default function CreatorCampaignsPage() {
                         Open post to engage
                       </a>
                     ) : null}
-                    <div className="mt-auto flex flex-wrap gap-2 pt-4">
+                    <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
                       <Link
                         href={`/creator/campaigns#campaign-${p.id}`}
-                        className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700"
+                        className="inline-flex h-8 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-xs font-bold leading-none text-[#172b63]"
                       >
                         View more
                       </Link>
                       {shareUrl ? (
-                        <ShareLinkButton url={shareUrl} title={p.title} />
+                        <ShareLinkButton
+                          url={shareUrl}
+                          title={p.title}
+                          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-xs font-bold leading-none text-[#172b63]"
+                        />
                       ) : null}
                       <button
                         type="button"
@@ -307,7 +318,7 @@ export default function CreatorCampaignsPage() {
                           setCopiedCampaign(p.id);
                           setTimeout(() => setCopiedCampaign(null), 2000);
                         }}
-                        className="inline-flex items-center gap-1 rounded-full bg-[#172b63] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                        className="inline-flex h-8 items-center justify-center gap-1 rounded-full bg-[#172b63] px-3 text-xs font-bold leading-none text-white disabled:opacity-50"
                       >
                         {copiedCampaign === p.id ? (
                           <>
@@ -441,7 +452,7 @@ export default function CreatorCampaignsPage() {
                       <Link
                         href={syndicatedJobPath(job.reference_id)}
                         onClick={() => trackXml(job)}
-                        className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700"
+                        className="inline-flex h-8 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-xs font-bold leading-none text-[#172b63]"
                       >
                         View more
                       </Link>
@@ -450,6 +461,7 @@ export default function CreatorCampaignsPage() {
                           url={shareUrl}
                           title={job.title}
                           onShare={() => trackXml(job)}
+                          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-xs font-bold leading-none text-[#172b63]"
                         />
                       ) : null}
                       <button

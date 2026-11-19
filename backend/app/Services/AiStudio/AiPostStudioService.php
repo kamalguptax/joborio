@@ -6,6 +6,7 @@ use App\Models\AiPostGeneration;
 use App\Models\Creator;
 use App\Models\Listing;
 use App\Services\Tracking\ClickTrackingService;
+use App\Support\TrackingPublicUrl;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -32,7 +33,7 @@ class AiPostStudioService
         }
 
         $token = $this->tracking->getOrCreateToken($creator, $listing);
-        $trackedUrl = url('/r/'.$token->token);
+        $trackedUrl = TrackingPublicUrl::forToken($token->token);
 
         $content = $this->buildCopy($platform, $listing, $creator, $trackedUrl);
 

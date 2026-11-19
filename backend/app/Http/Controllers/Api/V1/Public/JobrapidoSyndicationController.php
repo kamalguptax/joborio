@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\JobMasters\JobMasterService;
 use App\Services\Syndication\JobrapidoFeedService;
+use App\Services\Platform\PlatformSettingsService;
 use App\Support\ApiResponse;
 use App\Support\CreatorRelevance;
 use App\Support\JobSubid;
@@ -20,6 +21,7 @@ class JobrapidoSyndicationController extends Controller
     public function __construct(
         private readonly JobrapidoFeedService $feed,
         private readonly JobMasterService $masters,
+        private readonly PlatformSettingsService $settings,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -122,7 +124,7 @@ class JobrapidoSyndicationController extends Controller
         $page = min($page, $lastPage);
         $offset = ($page - 1) * $perPage;
         $pageItems = array_slice($filtered, $offset, $perPage);
-        $pageItems = $this->stampSubid($pageItems);
+        $pageItems = $this->stampRates($this->stampSubid($pageItems));
 
         return $this->success([
             'jobs' => $pageItems,
@@ -144,7 +146,7 @@ class JobrapidoSyndicationController extends Controller
         $payload = $this->feed->loadFeed();
         foreach ($payload['jobs'] as $job) {
             if ($this->referenceMatches($job, $referenceId)) {
-                $job = $this->stampSubid([$job])[0];
+                $job = $this->stampRates($this->stampSubid([$job]))[0];
 
                 return $this->success($job, 200, [
                     'source' => $payload['source'],
@@ -198,6 +200,23 @@ class JobrapidoSyndicationController extends Controller
             }
             $job['url'] = JobSubid::append($job['url'], $code);
             $job['subid'] = $code;
+        }
+        unset($job);
+
+        return $jobs;
+    }
+
+    /**
+     * Stamp the admin PPC rate so every XML job shows the same payout.
+     *
+     * @param  list<array<string, mixed>>  $jobs
+     * @return list<array<string, mixed>>
+     */
+    private function stampRates(array $jobs): array
+    {
+        $rate = (float) ($this->settings->payoutStructure()['ppc_rate_usd'] ?? 0.01);
+        foreach ($jobs as &$job) {
+            $job['ppc_rate_usd'] = $rate;
         }
         unset($job);
 

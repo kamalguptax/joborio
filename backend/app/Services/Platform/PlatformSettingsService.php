@@ -169,7 +169,7 @@ class PlatformSettingsService
             ),
             'ppc_rate_usd' => (float) $this->get(
                 'payout_ppc_rate_usd',
-                (string) config('joborio.default_ppc_rate_usd', 0.03),
+                (string) config('joborio.default_ppc_rate_usd', 0.01),
             ),
             'ppr_rate_usd' => (float) $this->get(
                 'payout_ppr_rate_usd',
@@ -218,6 +218,10 @@ class PlatformSettingsService
         $browser = $this->googleMapsBrowserKey();
         if ($browser === '') {
             $browser = (string) (env('NEXT_PUBLIC_GOOGLE_MAPS_API_KEY') ?? '');
+        }
+        // If admin only saved the server key, reuse it for Maps JS when present.
+        if ($browser === '') {
+            $browser = $this->googleMapsServerKey();
         }
 
         return [

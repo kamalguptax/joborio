@@ -69,6 +69,8 @@ class ProgramController extends Controller
             'engagement_actions' => ['nullable', 'array'],
             'engagement_actions.*' => ['string', Rule::in(CampaignTypes::ENGAGEMENT_ACTIONS)],
             'engage_brief' => ['nullable', 'string', 'max:5000'],
+            'starts_at' => ['nullable', 'date'],
+            'ends_at' => ['nullable', 'date', 'after:starts_at'],
         ]);
 
         if (($data['promotion_type'] ?? null) === 'post_promote' || ($data['pricing_model'] ?? null) === 'ppe') {
@@ -77,6 +79,10 @@ class ProgramController extends Controller
             }
             $data['promotion_type'] = 'post_promote';
             $data['pricing_model'] = 'ppe';
+        }
+
+        if ($scheduleError = $this->scheduleValidationError($data['pricing_model'] ?? null, $data)) {
+            return $this->error('VALIDATION', $scheduleError, 422);
         }
 
         $isTrial = (bool) ($data['trial_without_ip'] ?? false);
@@ -95,11 +101,12 @@ class ProgramController extends Controller
             'went_live' => $live,
             'can_go_live' => $employer->canGoLive(),
             'billing_missing' => $employer->billingMissing(),
+            'billing_missing_labels' => $employer->billingMissingLabels(),
             'message' => $live
                 ? 'Campaign is live.'
                 : ($isTrial
                     ? 'Trial campaign created.'
-                    : 'Campaign saved as pending. Complete company GST, business email, and payment to go live.'),
+                    : 'Campaign saved as pending. Complete company details, GST, business email, and first payment before going live.'),
         ], 201);
     }
 
@@ -108,6 +115,91 @@ class ProgramController extends Controller
         $this->authorizeEmployerProgram($request, $program);
 
         return $this->success($this->programs->stats($program));
+    }
+
+    public function update(Request $request, Program $program): JsonResponse
+    {
+        $this->authorizeEmployerProgram($request, $program);
+
+        $data = $request->validate([
+            'title' => ['sometimes', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'destination_url' => ['sometimes', 'url', 'max:2000'],
+            'pricing_model' => ['sometimes', 'in:ppc,ppr,ppa,ppe'],
+            'promotion_type' => ['sometimes', Rule::in(CampaignTypes::IDS)],
+            'rate_usd' => ['sometimes', 'numeric', 'min:0'],
+            'budget_total_usd' => ['sometimes', 'numeric', 'min:0'],
+            'trial_without_ip' => ['sometimes', 'boolean'],
+            'target_niche_ids' => ['nullable', 'array'],
+            'target_niche_ids.*' => ['integer', 'exists:niches,id'],
+            'target_countries' => ['nullable', 'array'],
+            'target_countries.*' => ['string', 'size:2'],
+            'min_trust_tier' => ['nullable', 'in:nano,micro,mid,macro'],
+            'country_code' => ['nullable', 'string', 'size:2'],
+            'is_remote' => ['nullable', 'boolean'],
+            'category' => ['nullable', 'string', 'max:120'],
+            'auto_ads_platforms' => ['nullable', 'array'],
+            'auto_ads_platforms.*' => ['string', Rule::in(PlatformAdsSyncService::PLATFORMS)],
+            'post_url' => ['nullable', 'url', 'max:2000'],
+            'engagement_actions' => ['nullable', 'array'],
+            'engagement_actions.*' => ['string', Rule::in(CampaignTypes::ENGAGEMENT_ACTIONS)],
+            'engage_brief' => ['nullable', 'string', 'max:5000'],
+            'starts_at' => ['nullable', 'date'],
+            'ends_at' => ['nullable', 'date', 'after:starts_at'],
+        ]);
+
+        $promo = $data['promotion_type'] ?? $program->promotion_type;
+        $pricing = $data['pricing_model'] ?? $program->pricing_model;
+        if ($promo === 'post_promote' || $pricing === 'ppe') {
+            $postUrl = $data['post_url'] ?? $program->post_url;
+            if (empty($postUrl)) {
+                return $this->error('VALIDATION', 'Post URL is required for post promote campaigns.', 422);
+            }
+            $data['promotion_type'] = 'post_promote';
+            $data['pricing_model'] = 'ppe';
+            $data['post_url'] = $postUrl;
+        }
+
+        $schedulePayload = [
+            'starts_at' => array_key_exists('starts_at', $data) ? $data['starts_at'] : $program->starts_at,
+            'ends_at' => array_key_exists('ends_at', $data) ? $data['ends_at'] : $program->ends_at,
+        ];
+        if ($scheduleError = $this->scheduleValidationError($pricing, $schedulePayload)) {
+            return $this->error('VALIDATION', $scheduleError, 422);
+        }
+
+        $isTrial = array_key_exists('trial_without_ip', $data)
+            ? (bool) $data['trial_without_ip']
+            : $program->isTrialWithoutIp();
+        $budget = (float) ($data['budget_total_usd'] ?? $program->budget_total_usd);
+        $rate = (float) ($data['rate_usd'] ?? $program->rate_usd);
+        if (! $isTrial && $budget < 10) {
+            return $this->error('VALIDATION', 'Budget must be at least 10 for paid programs.', 422);
+        }
+        if (! $isTrial && $rate < 0.01) {
+            return $this->error('VALIDATION', 'Rate must be at least 0.01 for paid programs.', 422);
+        }
+
+        return $this->success([
+            'program' => $this->programs->update($program, $data),
+        ]);
+    }
+
+    private function scheduleValidationError(?string $pricingModel, array $data): ?string
+    {
+        if (! in_array((string) $pricingModel, ['ppc', 'ppr', 'ppa', 'ppe'], true)) {
+            return null;
+        }
+
+        if (empty($data['starts_at']) || empty($data['ends_at'])) {
+            return 'Campaigns need a start date and end date.';
+        }
+
+        if (strtotime((string) $data['ends_at']) <= strtotime((string) $data['starts_at'])) {
+            return 'End date must be after the start date.';
+        }
+
+        return null;
     }
 
     public function pause(Request $request, Program $program): JsonResponse
@@ -137,9 +229,12 @@ class ProgramController extends Controller
         } catch (ValidationException $e) {
             return $this->error(
                 'BILLING_REQUIRED',
-                'Complete company details, GST, business email, and payment before going live.',
+                'Complete company details, GST, business email, and first payment before going live.',
                 422,
-                ['missing' => $employer?->billingMissing() ?? []],
+                [
+                    'missing' => $employer?->billingMissing() ?? [],
+                    'missing_labels' => $employer?->billingMissingLabels() ?? [],
+                ],
             );
         }
 

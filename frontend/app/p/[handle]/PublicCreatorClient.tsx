@@ -57,8 +57,13 @@ export default function PublicCreatorClient() {
 
   if (missing) {
     return (
-      <main className="flex min-h-screen items-center justify-center text-slate-500">
-        Creator not found.
+      <main className="flex min-h-screen items-center justify-center px-5 text-center text-slate-500">
+        <div>
+          <p className="text-lg font-semibold text-[#172b63]">Profile not public</p>
+          <p className="mt-2 max-w-md text-sm leading-6">
+            Only approved creators are shown on the website with their profile and payout status.
+          </p>
+        </div>
       </main>
     );
   }

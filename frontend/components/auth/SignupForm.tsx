@@ -250,6 +250,14 @@ export default function SignupForm() {
           <Link href="/terms" className={authLink}>
             Terms & Conditions
           </Link>
+          ,{" "}
+          <Link href="/privacy" className={authLink}>
+            Privacy Policy
+          </Link>
+          , and{" "}
+          <Link href="/payout-policy" className={authLink}>
+            Payout Policy
+          </Link>
         </span>
       </label>
 

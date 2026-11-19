@@ -121,9 +121,10 @@ export default function CreatorPayoutPage() {
             Money starts as pending, becomes approved after the hold, then payable. At {formatMoney(minUsd, currency, 0)} payable it is paid to this account.
           </li>
         </ol>
-        <Link href="/creator/earnings" className="mt-4 inline-block text-sm font-semibold text-indigo-700">
-          Open the full transaction history →
-        </Link>
+        <div className="mt-4 flex flex-wrap gap-4 text-sm font-semibold text-indigo-700">
+          <Link href="/creator/earnings">Open the full transaction history →</Link>
+          <Link href="/payout-policy">Read the Payout Policy →</Link>
+        </div>
       </section>
 
       {saved ? (

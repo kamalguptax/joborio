@@ -118,15 +118,16 @@ export function createPublisherCommunity(body: {
   campaign_access?: string;
   status?: string;
   manager_user_id?: number | null;
+  program_ids?: number[];
 }) {
-  return apiFetch<{ community: PublisherCommunity }>(
-    "/api/v1/publisher/communities",
-    {
-      method: "POST",
-      auth: true,
-      body: JSON.stringify(body),
-    },
-  ).then((d) => d.community);
+  return apiFetch<{
+    community: PublisherCommunity;
+    assigned_program_ids?: number[];
+  }>("/api/v1/publisher/communities", {
+    method: "POST",
+    auth: true,
+    body: JSON.stringify(body),
+  }).then((d) => d.community);
 }
 
 export function updatePublisherCommunity(
@@ -249,6 +250,8 @@ export type MarketplaceCampaign = {
   status: string;
   employer?: string | null;
   already_assigned: boolean;
+  assigned_community_ids?: number[];
+  assigned_community_count?: number;
 };
 
 export type PublisherAssignment = {

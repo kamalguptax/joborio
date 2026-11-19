@@ -135,6 +135,8 @@ class JobrapidoFeedService
             }
         }
 
+        $allJobs = $this->uniqueJobs($allJobs);
+
         return [
             'jobs' => $allJobs,
             'source' => [
@@ -144,6 +146,49 @@ class JobrapidoFeedService
                 'storage' => 'live_feed_cache_only',
             ],
         ];
+    }
+
+    /**
+     * Keep one card per job across merged feeds (same reference, or same title+company+location).
+     *
+     * @param  list<array<string, mixed>>  $jobs
+     * @return list<array<string, mixed>>
+     */
+    private function uniqueJobs(array $jobs): array
+    {
+        $seenRef = [];
+        $seenFingerprint = [];
+        $out = [];
+
+        foreach ($jobs as $job) {
+            $ref = strtolower(trim((string) ($job['reference_id'] ?? '')));
+            if ($ref !== '') {
+                $raw = str_contains($ref, ':') ? substr($ref, (int) strrpos($ref, ':') + 1) : $ref;
+                if (isset($seenRef[$ref]) || ($raw !== '' && isset($seenRef[$raw]))) {
+                    continue;
+                }
+                $seenRef[$ref] = true;
+                if ($raw !== '') {
+                    $seenRef[$raw] = true;
+                }
+            }
+
+            $fingerprint = strtolower(trim(implode('|', [
+                (string) ($job['title'] ?? ''),
+                (string) ($job['company'] ?? ''),
+                (string) ($job['location_label'] ?? $job['location'] ?? ''),
+            ])));
+            if ($fingerprint !== '||' && isset($seenFingerprint[$fingerprint])) {
+                continue;
+            }
+            if ($fingerprint !== '||') {
+                $seenFingerprint[$fingerprint] = true;
+            }
+
+            $out[] = $job;
+        }
+
+        return $out;
     }
 
     /**
@@ -523,7 +568,12 @@ class JobrapidoFeedService
 
     private function plainText(string $html): string
     {
-        $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $cleaned = preg_replace('/<style\b[^>]*>.*?<\/style>/is', ' ', $html) ?? $html;
+        $cleaned = preg_replace('/<script\b[^>]*>.*?<\/script>/is', ' ', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/<!--.*?-->/s', ' ', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/<\s*br\s*\/?>/i', "\n", $cleaned) ?? $cleaned;
+        $text = html_entity_decode(strip_tags($cleaned), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = preg_replace('/\{[^{}]{0,500}\}/u', ' ', $text) ?? $text;
         $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
 
         return trim($text);

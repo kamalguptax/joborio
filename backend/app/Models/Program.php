@@ -21,6 +21,10 @@ class Program extends Model
         'rate_usd',
         'budget_total_usd',
         'budget_spent_usd',
+        'auto_pause_on_budget',
+        'lead_type',
+        'required_fields',
+        'qualification_rules',
         'status',
         'trial_without_ip',
         'target_niche_ids',
@@ -37,11 +41,13 @@ class Program extends Model
             'rate_usd' => 'decimal:4',
             'budget_total_usd' => 'decimal:2',
             'budget_spent_usd' => 'decimal:2',
+            'auto_pause_on_budget' => 'boolean',
             'trial_without_ip' => 'boolean',
             'target_niche_ids' => 'array',
             'target_countries' => 'array',
             'auto_ads_platforms' => 'array',
             'engagement_actions' => 'array',
+            'required_fields' => 'array',
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
         ];
@@ -91,5 +97,44 @@ class Program extends Model
     public function budgetRemaining(): float
     {
         return max(0, (float) $this->budget_total_usd - (float) $this->budget_spent_usd);
+    }
+
+    public function budgetProgressPercent(): float
+    {
+        $total = (float) $this->budget_total_usd;
+        if ($total <= 0) {
+            return 0.0;
+        }
+
+        return min(100, round(((float) $this->budget_spent_usd / $total) * 100, 1));
+    }
+
+    public function autoPauseOnBudget(): bool
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('programs', 'auto_pause_on_budget')) {
+            return true;
+        }
+
+        return (bool) ($this->auto_pause_on_budget ?? true);
+    }
+
+    public function requiresSchedule(): bool
+    {
+        return in_array((string) $this->pricing_model, ['ppc', 'ppr', 'ppa', 'ppe'], true);
+    }
+
+    public function isWithinSchedule(?\DateTimeInterface $at = null): bool
+    {
+        $at = \Illuminate\Support\Carbon::parse($at ?? now());
+
+        if ($this->starts_at && $at->lt($this->starts_at)) {
+            return false;
+        }
+
+        if ($this->ends_at && $at->gt($this->ends_at)) {
+            return false;
+        }
+
+        return true;
     }
 }

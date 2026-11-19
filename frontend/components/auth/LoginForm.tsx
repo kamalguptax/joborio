@@ -8,7 +8,7 @@ import { login, fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
 import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
 import { homePathForUser } from "@/lib/auth/redirect";
-import MathCaptcha from "@/components/auth/MathCaptcha";
+import MathCaptcha, { isCaptchaFailureMessage } from "@/components/auth/MathCaptcha";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import AuthDivider from "@/components/auth/AuthDivider";
 import {
@@ -26,6 +26,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState({ captcha_id: "", captcha_answer: "" });
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -35,6 +36,7 @@ export default function LoginForm() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setError(null);
     if (!captcha.captcha_id || !captcha.captcha_answer) {
       setError("Complete the captcha.");
@@ -60,11 +62,15 @@ export default function LoginForm() {
       rememberPublicCode(me);
       router.push(homePathForUser(me));
     } catch (err) {
-      setError(
+      const message =
         err instanceof ApiClientError
           ? err.message
-          : "Unable to sign in. Check the API is running.",
-      );
+          : "Unable to sign in. Check the API is running.";
+      setError(message);
+      if (isCaptchaFailureMessage(message)) {
+        setCaptcha({ captcha_id: "", captcha_answer: "" });
+        setCaptchaResetKey((k) => k + 1);
+      }
     } finally {
       setLoading(false);
     }
@@ -116,7 +122,7 @@ export default function LoginForm() {
           />
         </div>
 
-        <MathCaptcha onChange={onCaptcha} />
+        <MathCaptcha onChange={onCaptcha} resetKey={captchaResetKey} />
 
         <button type="submit" disabled={loading} className={authPrimaryButton}>
           {loading ? "Signing in…" : "Log in to JobOrio"}

@@ -45,26 +45,7 @@ class XmlClickController extends Controller
         $duplicateOf = ClickDedup::original($creatorId, $ip, $jobKey, $windowStart);
 
         if ($duplicateOf) {
-            AttributionEvent::create([
-                'creator_id' => $creatorId,
-                'event_type' => 'click',
-                'ip_address' => $ip,
-                'referrer' => $request->headers->get('referer'),
-                'is_counted' => false,
-                'fraud_status' => 'dedup',
-                'meta' => [
-                    'destination' => $outbound,
-                    'reference_id' => $referenceId !== '' ? $referenceId : null,
-                    'job_key' => $jobKey,
-                    'subid' => $code,
-                    'title' => $request->query('title'),
-                    'source' => 'xml_share',
-                    'duplicate_of_event_id' => $duplicateOf->id,
-                    'clicked_at' => $clickedAt,
-                    'user_agent' => $request->userAgent(),
-                ],
-            ]);
-
+            // Same job + IP inside the dedup window: do not log another click row.
             return;
         }
 
@@ -89,7 +70,11 @@ class XmlClickController extends Controller
 
         $creator = Creator::query()->find($creatorId);
         if ($creator) {
-            $this->earnings->createSyndicatedApplyEarning($creator, $event);
+            try {
+                $this->earnings->createSyndicatedApplyEarning($creator, $event);
+            } catch (\Throwable) {
+                // Click is already stored; earning can be backfilled later.
+            }
         }
     }
 

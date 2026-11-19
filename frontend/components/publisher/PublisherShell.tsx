@@ -11,6 +11,7 @@ import {
   Plug,
   History,
   Settings,
+  Zap,
 } from "lucide-react";
 import DashboardShell, { type DashboardNavItem } from "@/components/layout/DashboardShell";
 import { clearAuthToken } from "@/lib/auth/session";
@@ -23,6 +24,7 @@ const allNav: PublisherNavItem[] = [
   { href: "/publisher/network", label: "My Network", icon: Network },
   { href: "/publisher/communities", label: "Communities", icon: Users },
   { href: "/publisher/marketplace", label: "Campaign Marketplace", icon: Store },
+  { href: "/publisher/post-studio", label: "Post Studio", icon: Zap },
   { href: "/publisher/reports", label: "Performance Reports", icon: BarChart3 },
   { href: "/publisher/earnings", label: "Publisher Earnings", icon: Wallet, ownerOnly: true },
   { href: "/publisher/integrations", label: "API & Integration", icon: Plug, ownerOnly: true },

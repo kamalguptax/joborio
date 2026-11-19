@@ -53,6 +53,7 @@ export function fetchEmployerBilling() {
     employer: Record<string, unknown>;
     can_go_live: boolean;
     missing: string[];
+    missing_labels?: string[];
     prepaid_balance_usd: number;
     razorpay: RazorpayConfig;
   }>("/api/v1/employer/billing", { auth: true });
@@ -121,6 +122,7 @@ export function saveEmployerBilling(body: EmployerBillingPayload) {
     employer: Record<string, unknown>;
     can_go_live: boolean;
     missing: string[];
+    missing_labels?: string[];
   }>("/api/v1/employer/billing", {
     method: "PUT",
     auth: true,
@@ -220,18 +222,53 @@ export function createEmployerProgram(body: {
   post_url?: string;
   engagement_actions?: Array<"like" | "comment" | "repost">;
   engage_brief?: string;
+  starts_at?: string;
+  ends_at?: string;
 }) {
   return apiFetch<{
     program: Record<string, unknown>;
     went_live?: boolean;
     can_go_live?: boolean;
     billing_missing?: string[];
+    billing_missing_labels?: string[];
     message?: string;
   }>("/api/v1/employer/programs", {
     method: "POST",
     auth: true,
     body: JSON.stringify(body),
   });
+}
+
+export function updateEmployerProgram(
+  programId: number,
+  body: Partial<{
+    title: string;
+    description: string;
+    destination_url: string;
+    pricing_model: "ppc" | "ppr" | "ppa" | "ppe";
+    promotion_type: "job" | "course" | "tool" | "branding" | "post_promote" | "other";
+    rate_usd: number;
+    budget_total_usd: number;
+    trial_without_ip: boolean;
+    target_niche_ids: number[];
+    target_countries: string[];
+    min_trust_tier: string;
+    auto_ads_platforms: Array<"meta" | "linkedin">;
+    post_url: string;
+    engagement_actions: Array<"like" | "comment" | "repost">;
+    engage_brief: string;
+    starts_at: string;
+    ends_at: string;
+  }>,
+) {
+  return apiFetch<{ program: Record<string, unknown> }>(
+    `/api/v1/employer/programs/${programId}`,
+    {
+      method: "PUT",
+      auth: true,
+      body: JSON.stringify(body),
+    },
+  );
 }
 
 export function fetchProgramApplications(programId: number, page = 1) {

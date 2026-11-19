@@ -43,6 +43,7 @@ const jobPrefs = [
   { value: "part_time", label: "Part-time" },
   { value: "remote", label: "Remote" },
   { value: "internship", label: "Internship" },
+  { value: "fresher", label: "Fresher" },
 ] as const;
 
 const integrations = [
@@ -617,6 +618,14 @@ export default function PublisherRegisterForm() {
             I agree to the{" "}
             <Link href="/terms" className={authLink}>
               Terms & Conditions
+            </Link>
+            ,{" "}
+            <Link href="/privacy" className={authLink}>
+              Privacy Policy
+            </Link>
+            , and{" "}
+            <Link href="/payout-policy" className={authLink}>
+              Payout Policy
             </Link>
             <RequiredMark />
           </span>

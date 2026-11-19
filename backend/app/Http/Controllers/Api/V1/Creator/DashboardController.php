@@ -35,11 +35,19 @@ class DashboardController extends Controller
         }
 
         $sinceToday = now()->startOfDay();
+        $yesterdayStart = now()->subDay()->startOfDay();
         $since3 = now()->subDays(3);
         $since7 = now()->subDays(7);
         $since30 = now()->subDays(30);
 
-        $byCampaign = $this->metricsByCampaign($creator->id, $sinceToday, $since3, $since7, $since30);
+        $byCampaign = $this->metricsByCampaign(
+            $creator->id,
+            $sinceToday,
+            $yesterdayStart,
+            $since3,
+            $since7,
+            $since30,
+        );
         $metrics = $byCampaign['all']['metrics'];
         $earningsByType = $this->earningsByType($creator->id);
         $earnings = [
@@ -93,6 +101,8 @@ class DashboardController extends Controller
             'earnings_usd' => $earnings,
             'earnings_by_type' => $earningsByType,
             'earnings_by_campaign' => app(CampaignEarningsService::class)->forCreator($creator->id),
+            'earnings_by_job' => app(\App\Services\Payouts\TransactionHistoryService::class)
+                ->forCreatorByJob($creator->id),
             'ppr' => [
                 'can_earn' => $trustTiers->canEarnPpr($creator),
                 'hold_days' => $trustTiers->holdDaysFor($creator, 'ppr'),
@@ -157,19 +167,145 @@ class DashboardController extends Controller
             return $this->error('NOT_A_CREATOR', 'Creator profile not found.', 404);
         }
 
-        $rows = AttributionEvent::query()
+        $events = AttributionEvent::query()
             ->where('creator_id', $creator->id)
             ->whereIn('event_type', ['click', 'job_view', 'job_apply'])
-            ->with('listing:id,title')
+            ->with([
+                'listing:id,title,program_id,type,ppc_rate_usd,ppr_rate_usd,ppa_rate_usd',
+                'listing.program:id,pricing_model,promotion_type',
+                'earning:id,attribution_event_id,earning_type',
+            ])
             ->orderByDesc('created_at')
-            ->paginate(min((int) $request->input('per_page', 40), 100));
+            ->get([
+                'id',
+                'event_type',
+                'listing_id',
+                'ip_address',
+                'is_counted',
+                'fraud_status',
+                'meta',
+                'created_at',
+            ]);
 
-        return $this->success($rows->items(), 200, [
-            'current_page' => $rows->currentPage(),
-            'last_page' => $rows->lastPage(),
-            'total' => $rows->total(),
-            'counted' => ClickDedup::tally($creator->id)['verified'],
-            'duplicates' => ClickDedup::tally($creator->id)['duplicates'],
+        $groups = [];
+        foreach ($events as $event) {
+            $meta = is_array($event->meta) ? $event->meta : [];
+            $listingId = (int) ($event->listing_id ?? 0);
+            $referenceId = strtolower(trim((string) ($meta['reference_id'] ?? $meta['job_key'] ?? '')));
+            $title = trim((string) ($event->listing?->title ?? $meta['title'] ?? 'Job'));
+            $titleKey = strtolower($title);
+            $models = $this->pricingModelsForClickEvent($event, $meta);
+
+            if ($listingId > 0) {
+                $key = 'listing:'.$listingId;
+            } elseif ($referenceId !== '') {
+                $raw = str_contains($referenceId, ':')
+                    ? substr($referenceId, (int) strrpos($referenceId, ':') + 1)
+                    : $referenceId;
+                $key = 'ref:'.($raw !== '' ? $raw : $referenceId);
+            } else {
+                $key = 'title:'.$titleKey;
+            }
+
+            if (! isset($groups[$key])) {
+                $groups[$key] = [
+                    'id' => (int) $event->id,
+                    'event_type' => (string) $event->event_type,
+                    'is_counted' => (bool) $event->is_counted,
+                    'fraud_status' => $event->fraud_status,
+                    'ip_address' => $event->ip_address,
+                    'created_at' => $event->created_at?->toIso8601String(),
+                    'meta' => array_merge($meta, [
+                        'title' => $title,
+                        'reference_id' => $meta['reference_id'] ?? null,
+                        'clicked_at' => $meta['clicked_at'] ?? $event->created_at?->toIso8601String(),
+                    ]),
+                    'listing' => $event->listing
+                        ? ['id' => (int) $event->listing->id, 'title' => $event->listing->title]
+                        : ['id' => null, 'title' => $title],
+                    'pricing_models' => [],
+                    'click_count' => 0,
+                    'counted_count' => 0,
+                    'duplicate_count' => 0,
+                    'unique_ips' => [],
+                ];
+            }
+
+            foreach (array_keys($models) as $model) {
+                $groups[$key]['pricing_models'][$model] = true;
+            }
+
+            $group = &$groups[$key];
+            $group['click_count']++;
+            if ($event->fraud_status === 'dedup' || ! $event->is_counted) {
+                if ($event->fraud_status === 'dedup') {
+                    $group['duplicate_count']++;
+                }
+            }
+            if ($event->is_counted || $event->event_type === 'job_view') {
+                $group['counted_count']++;
+                $group['is_counted'] = true;
+            }
+            if ($event->ip_address) {
+                $group['unique_ips'][$event->ip_address] = true;
+            }
+
+            $existingTs = strtotime((string) ($group['meta']['clicked_at'] ?? $group['created_at'] ?? '')) ?: 0;
+            $rowTs = strtotime((string) ($meta['clicked_at'] ?? $event->created_at)) ?: 0;
+            if ($rowTs >= $existingTs) {
+                $group['id'] = (int) $event->id;
+                $group['event_type'] = (string) $event->event_type;
+                $group['fraud_status'] = $event->is_counted
+                    ? $event->fraud_status
+                    : ($group['fraud_status'] ?? $event->fraud_status);
+                $group['ip_address'] = $event->ip_address ?? $group['ip_address'];
+                $group['created_at'] = $event->created_at?->toIso8601String() ?? $group['created_at'];
+                $group['meta']['clicked_at'] = $meta['clicked_at'] ?? $group['meta']['clicked_at'];
+                $group['meta']['title'] = $title;
+                if ($event->listing) {
+                    $group['listing'] = [
+                        'id' => (int) $event->listing->id,
+                        'title' => $event->listing->title,
+                    ];
+                }
+            }
+            unset($group);
+        }
+
+        $merged = array_values(array_map(function (array $group): array {
+            $group['unique_ip_count'] = count($group['unique_ips']);
+            unset($group['unique_ips']);
+            $models = array_keys($group['pricing_models'] ?? []);
+            $models = $this->orderPricingModels($models);
+            $group['pricing_models'] = $models;
+            $group['pricing_model'] = $models[0] ?? 'ppc';
+
+            return $group;
+        }, $groups));
+
+        usort($merged, function (array $a, array $b): int {
+            return ($b['click_count'] <=> $a['click_count'])
+                ?: (strtotime((string) ($b['meta']['clicked_at'] ?? $b['created_at'] ?? ''))
+                    <=> strtotime((string) ($a['meta']['clicked_at'] ?? $a['created_at'] ?? '')));
+        });
+
+        $perPage = min(max((int) $request->input('per_page', 40), 1), 100);
+        $page = max((int) $request->input('page', 1), 1);
+        $totalJobs = count($merged);
+        $lastPage = max((int) ceil($totalJobs / $perPage), 1);
+        $page = min($page, $lastPage);
+        $slice = array_slice($merged, ($page - 1) * $perPage, $perPage);
+
+        $tally = ClickDedup::tally($creator->id);
+
+        return $this->success($slice, 200, [
+            'current_page' => $page,
+            'last_page' => $lastPage,
+            'total' => $tally['verified'] + $tally['duplicates'],
+            'total_jobs' => $totalJobs,
+            'counted' => $tally['verified'],
+            'duplicates' => $tally['duplicates'],
+            'grouped' => true,
         ]);
     }
 
@@ -179,6 +315,7 @@ class DashboardController extends Controller
     private function metricsByCampaign(
         int $creatorId,
         Carbon $sinceToday,
+        Carbon $yesterdayStart,
         Carbon $since3,
         Carbon $since7,
         Carbon $since30,
@@ -186,12 +323,14 @@ class DashboardController extends Controller
         $emptyMetrics = [
             'clicks' => 0,
             'clicks_1d' => 0,
+            'clicks_yesterday' => 0,
             'clicks_3d' => 0,
             'clicks_7d' => 0,
             'clicks_30d' => 0,
             'clicks_duplicate' => 0,
             'registrations' => 0,
             'registrations_1d' => 0,
+            'registrations_yesterday' => 0,
             'registrations_3d' => 0,
             'registrations_7d' => 0,
             'registrations_30d' => 0,
@@ -247,6 +386,9 @@ class DashboardController extends Controller
                 if ($created && $created->gte($sinceToday)) {
                     $out[$channel]['metrics']['clicks_1d']++;
                 }
+                if ($created && $created->gte($yesterdayStart) && $created->lt($sinceToday)) {
+                    $out[$channel]['metrics']['clicks_yesterday']++;
+                }
                 if ($created && $created->gte($since3)) {
                     $out[$channel]['metrics']['clicks_3d']++;
                 }
@@ -272,6 +414,9 @@ class DashboardController extends Controller
                 $out[$channel]['metrics']['registrations']++;
                 if ($created && $created->gte($sinceToday)) {
                     $out[$channel]['metrics']['registrations_1d']++;
+                }
+                if ($created && $created->gte($yesterdayStart) && $created->lt($sinceToday)) {
+                    $out[$channel]['metrics']['registrations_yesterday']++;
                 }
                 if ($created && $created->gte($since3)) {
                     $out[$channel]['metrics']['registrations_3d']++;
@@ -430,6 +575,79 @@ class DashboardController extends Controller
         }
 
         return array_values(array_unique($channels));
+    }
+
+    /**
+     * Resolve PPC/PPR/PPA/PPE for a click card.
+     * Prefer the campaign program model, then listing rates — never force PPC on a PPR campaign.
+     *
+     * @param  array<string, mixed>  $meta
+     * @return array<string, true>
+     */
+    private function pricingModelsForClickEvent(AttributionEvent $event, array $meta): array
+    {
+        $models = [];
+        $listing = $event->listing;
+        $programModel = strtolower(trim((string) (
+            $listing?->program?->pricing_model
+            ?? $meta['pricing_model']
+            ?? ''
+        )));
+        if (in_array($programModel, ['ppc', 'ppr', 'ppa', 'ppe'], true)) {
+            $models[$programModel] = true;
+
+            return $models;
+        }
+
+        $promo = strtolower(trim((string) ($listing?->program?->promotion_type ?? $meta['promotion_type'] ?? '')));
+        if ($promo === 'post_promote') {
+            $models['ppe'] = true;
+
+            return $models;
+        }
+
+        if ($listing) {
+            if ((float) ($listing->ppr_rate_usd ?? 0) > 0) {
+                $models['ppr'] = true;
+            }
+            if ((float) ($listing->ppa_rate_usd ?? 0) > 0) {
+                $models['ppa'] = true;
+            }
+            if ((float) ($listing->ppc_rate_usd ?? 0) > 0) {
+                $models['ppc'] = true;
+            }
+            if ($models !== []) {
+                return $models;
+            }
+        }
+
+        $earningType = strtolower(trim((string) ($event->earning?->earning_type ?? '')));
+        if (in_array($earningType, ['ppc', 'ppr', 'ppa', 'ppe'], true)) {
+            $models[$earningType] = true;
+
+            return $models;
+        }
+
+        // Syndicated / XML jobs with no campaign → PPC.
+        if (in_array((string) $event->event_type, ['click', 'job_view', 'job_apply'], true)) {
+            $models['ppc'] = true;
+        }
+
+        return $models;
+    }
+
+    /**
+     * @param  list<string>  $models
+     * @return list<string>
+     */
+    private function orderPricingModels(array $models): array
+    {
+        $rank = ['ppr' => 0, 'ppa' => 1, 'ppe' => 2, 'ppc' => 3];
+        usort($models, function (string $a, string $b) use ($rank): int {
+            return ($rank[$a] ?? 99) <=> ($rank[$b] ?? 99);
+        });
+
+        return array_values($models);
     }
 
     /**

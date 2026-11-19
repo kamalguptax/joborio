@@ -209,15 +209,19 @@ export default function LiveCampaignsPanel({
                     {model} {formatMoney(Number(p.rate_usd), currency)} /{" "}
                     {rateUnit(String(p.pricing_model))}
                   </p>
-                  <div className="mt-auto flex flex-wrap gap-2 pt-4">
+                  <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
                     <Link
                       href="/creator/campaigns"
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700"
+                      className="inline-flex h-8 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-xs font-bold leading-none text-[#172b63]"
                     >
                       View more
                     </Link>
                     {shareUrl ? (
-                      <ShareLinkButton url={shareUrl} title={p.title} />
+                      <ShareLinkButton
+                        url={shareUrl}
+                        title={p.title}
+                        className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-xs font-bold leading-none text-[#172b63]"
+                      />
                     ) : null}
                     <button
                       type="button"
@@ -227,7 +231,7 @@ export default function LiveCampaignsPanel({
                         setCopiedId(p.id);
                         setTimeout(() => setCopiedId(null), 2000);
                       }}
-                      className="inline-flex items-center gap-1 rounded-full bg-[#172b63] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                      className="inline-flex h-8 items-center justify-center gap-1 rounded-full bg-[#172b63] px-3 text-xs font-bold leading-none text-white disabled:opacity-50"
                     >
                       {copiedId === p.id ? (
                         <>

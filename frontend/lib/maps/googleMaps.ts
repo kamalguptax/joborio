@@ -7,6 +7,19 @@ export namespace GoogleMapsStub {
   export type InfoWindow = object;
 }
 
+export type GooglePlaceResult = {
+  formatted_address?: string;
+  name?: string;
+  address_components?: Array<{
+    long_name?: string;
+    short_name?: string;
+    types?: string[];
+  }>;
+  geometry?: {
+    location?: { lat: () => number; lng: () => number };
+  };
+};
+
 declare global {
   interface Window {
     google?: {
@@ -45,10 +58,24 @@ declare global {
             ) => void,
           ) => void;
         };
+        places?: {
+          Autocomplete: new (
+            input: HTMLInputElement,
+            opts?: {
+              types?: string[];
+              fields?: string[];
+              componentRestrictions?: { country?: string | string[] };
+            },
+          ) => {
+            addListener: (event: string, fn: () => void) => void;
+            getPlace: () => GooglePlaceResult;
+          };
+        };
       };
     };
     __joborioMapsLoading?: Promise<void>;
     __joborioMapsKey?: string;
+    gm_authFailure?: () => void;
   }
 }
 
@@ -95,12 +122,22 @@ export async function mapsEnabledAsync(): Promise<boolean> {
   }
 }
 
-export async function loadGoogleMaps(): Promise<void> {
+export async function loadGoogleMaps(opts?: {
+  libraries?: Array<"places">;
+}): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("Maps only load in the browser"));
   }
 
+  const wantPlaces = Boolean(opts?.libraries?.includes("places"));
   if (window.google?.maps) {
+    if (wantPlaces && !window.google.maps.places) {
+      return Promise.reject(
+        new Error(
+          "Google Maps loaded without Places. Refresh the page so Places can load.",
+        ),
+      );
+    }
     return Promise.resolve();
   }
 
@@ -117,9 +154,12 @@ export async function loadGoogleMaps(): Promise<void> {
     return window.__joborioMapsLoading;
   }
 
+  // Always include places so autocomplete and maps share one script load.
+  const libraries = "places";
+
   window.__joborioMapsLoading = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=${libraries}`;
     script.async = true;
     script.onload = () => resolve();
     script.onerror = () => reject(new Error("Failed to load Google Maps"));
@@ -127,6 +167,22 @@ export async function loadGoogleMaps(): Promise<void> {
   });
 
   return window.__joborioMapsLoading;
+}
+
+export function countryCodeFromPlace(place: GooglePlaceResult): string | undefined {
+  const comp = place.address_components?.find((c) =>
+    (c.types ?? []).includes("country"),
+  );
+  const code = comp?.short_name?.trim().toUpperCase();
+  return code && code.length === 2 ? code : undefined;
+}
+
+export function labelFromPlace(place: GooglePlaceResult): string {
+  return (
+    place.formatted_address?.trim() ||
+    place.name?.trim() ||
+    ""
+  );
 }
 
 export type MapMarker = {

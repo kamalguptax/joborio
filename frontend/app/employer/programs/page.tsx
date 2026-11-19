@@ -59,6 +59,13 @@ export default function EmployerProgramsPage() {
                 </p>
                 <p className="text-sm text-slate-500">
                   {String(p.pricing_model).toUpperCase()} · {String(p.status)}
+                  {p.starts_at
+                    ? ` · ${new Date(String(p.starts_at)).toLocaleDateString()} → ${
+                        p.ends_at
+                          ? new Date(String(p.ends_at)).toLocaleDateString()
+                          : "—"
+                      }`
+                    : ""}
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -96,6 +103,12 @@ export default function EmployerProgramsPage() {
                   className="text-sm font-semibold text-purple-600"
                 >
                   Dashboard
+                </Link>
+                <Link
+                  href={`/employer/programs/${p.id}?edit=1`}
+                  className="text-sm font-semibold text-purple-600"
+                >
+                  Edit
                 </Link>
                 {p.pricing_model === "ppa" ? (
                   <Link

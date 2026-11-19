@@ -288,8 +288,15 @@ export default function BrandRegisterForm() {
             I agree to JobOrio&apos;s{" "}
             <Link href="/terms" className={authLink}>
               Terms & Conditions
-            </Link>{" "}
-            & Brand Privacy Policy
+            </Link>
+            ,{" "}
+            <Link href="/privacy" className={authLink}>
+              Privacy Policy
+            </Link>
+            , and{" "}
+            <Link href="/payout-policy" className={authLink}>
+              Payout Policy
+            </Link>
           </span>
         </label>
 

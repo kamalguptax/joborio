@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useState } from "react";
-import MathCaptcha from "@/components/auth/MathCaptcha";
+import MathCaptcha, { isCaptchaFailureMessage } from "@/components/auth/MathCaptcha";
 import {
   authAlertError,
   authField,

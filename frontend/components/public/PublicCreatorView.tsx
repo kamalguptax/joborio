@@ -11,7 +11,10 @@ import {
   Sparkles,
   Search,
   Send,
+  Wallet,
+  BadgeCheck,
 } from "lucide-react";
+import { formatMoney } from "@/lib/money";
 
 export type PublicListing = {
   id: number;
@@ -30,9 +33,29 @@ export type PublicListing = {
 
 export type PublicCreator = {
   handle: string;
+  name?: string | null;
   bio?: string | null;
   accent_color?: string;
   niches?: Array<{ name: string }>;
+  social_links?: {
+    linkedin?: string;
+    instagram?: string;
+    community?: string;
+    website?: string;
+  } | null;
+  public_code?: string | null;
+  audience_countries?: string[];
+  payout?: {
+    ready?: boolean;
+    method_label?: string | null;
+    currency?: string;
+    paid_usd?: number;
+    policy_path?: string;
+  };
+  stats?: {
+    verified_clicks?: number;
+    paid_usd?: number;
+  };
 };
 
 export default function PublicCreatorView({
@@ -48,6 +71,9 @@ export default function PublicCreatorView({
   const [query, setQuery] = useState("");
   const [remoteOnly, setRemoteOnly] = useState(false);
   const accent = creator.accent_color ?? "#633BFF";
+  const payoutReady = Boolean(creator.payout?.ready);
+  const paidUsd = Number(creator.payout?.paid_usd ?? creator.stats?.paid_usd ?? 0);
+  const clicks = Number(creator.stats?.verified_clicks ?? 0);
 
   const copyLink = async () => {
     await navigator.clipboard.writeText(pageUrl);
@@ -58,6 +84,16 @@ export default function PublicCreatorView({
   const shareText = `Check out opportunities from @${creator.handle} on JobOrio: ${pageUrl}`;
   const whatsappShare = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
   const telegramShare = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(shareText)}`;
+
+  const socialEntries = useMemo(() => {
+    const links = creator.social_links ?? {};
+    return [
+      { label: "Website", href: links.website },
+      { label: "LinkedIn", href: links.linkedin },
+      { label: "Instagram", href: links.instagram },
+      { label: "Community", href: links.community },
+    ].filter((item): item is { label: string; href: string } => Boolean(item.href));
+  }, [creator.social_links]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -94,14 +130,19 @@ export default function PublicCreatorView({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 text-2xl font-bold text-white">
-                  {creator.handle.slice(0, 2).toUpperCase()}
+                  {(creator.name || creator.handle).slice(0, 2).toUpperCase()}
                 </div>
-                <p className="text-sm font-semibold text-purple-600">
-                  JobOrio creator
+                <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-purple-600">
+                  <BadgeCheck size={16} />
+                  Verified JobOrio creator
                 </p>
                 <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                  @{creator.handle}
+                  {creator.name ? creator.name : `@${creator.handle}`}
                 </h1>
+                <p className="mt-1 text-sm font-semibold text-slate-500">
+                  @{creator.handle}
+                  {creator.public_code ? ` · ${creator.public_code}` : ""}
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -155,6 +196,62 @@ export default function PublicCreatorView({
                 ))}
               </div>
             ) : null}
+
+            {socialEntries.length ? (
+              <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold text-violet-700">
+                {socialEntries.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Verified clicks
+                </p>
+                <p className="mt-1 text-2xl font-bold">{clicks}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Paid out
+                </p>
+                <p className="mt-1 text-2xl font-bold">
+                  {formatMoney(paidUsd, creator.payout?.currency || "USD")}
+                </p>
+              </div>
+              <div
+                className={`rounded-2xl border p-4 ${
+                  payoutReady
+                    ? "border-emerald-200 bg-emerald-50"
+                    : "border-amber-200 bg-amber-50"
+                }`}
+              >
+                <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <Wallet size={14} />
+                  Payout
+                </p>
+                <p className="mt-1 text-lg font-bold text-[#172b63]">
+                  {payoutReady
+                    ? `Ready · ${creator.payout?.method_label ?? "Saved"}`
+                    : "Setup pending"}
+                </p>
+                <Link
+                  href={creator.payout?.policy_path || "/payout-policy"}
+                  className="mt-1 inline-block text-xs font-semibold text-violet-700 hover:underline"
+                >
+                  Payout policy
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -193,7 +290,7 @@ export default function PublicCreatorView({
           {filtered.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
               {listings.length === 0
-                ? "New listings appear as your profile and feed refresh."
+                ? "New listings appear as this creator adds opportunities."
                 : "No listings match your search. Try clearing filters."}
             </div>
           ) : (
@@ -241,9 +338,9 @@ export default function PublicCreatorView({
         </div>
 
         <p className="mt-12 text-center text-sm text-slate-500">
-          Want your own link?{" "}
-          <Link href="/signup" className="font-bold text-purple-600">
-            Join JobOrio
+          Want your own profile with payout?{" "}
+          <Link href="/creator/register" className="font-bold text-purple-600">
+            Join as a creator
           </Link>
         </p>
       </div>

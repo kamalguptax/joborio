@@ -7,10 +7,15 @@ import { createEmployerProgram, fetchEmployerBilling } from "@/lib/api/employer"
 import { fetchNiches } from "@/lib/api/creator";
 import { ApiClientError } from "@/lib/api/client";
 import {
+  LAUNCH_CATEGORIES,
   LAUNCH_OPTIONS,
+  defaultCampaignSchedule,
   launchOptionById,
+  pricingNeedsSchedule,
+  resolveLegacyLaunchId,
   type LaunchOptionId,
 } from "@/lib/campaigns/launchOptions";
+import CampaignScheduleFields from "@/components/campaigns/CampaignScheduleFields";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
 
@@ -21,14 +26,14 @@ const ENGAGE_OPTIONS = [
 ];
 
 function isLaunchOptionId(value: string | null): value is LaunchOptionId {
-  return LAUNCH_OPTIONS.some((o) => o.id === value);
+  return !!value && LAUNCH_OPTIONS.some((o) => o.id === value);
 }
 
 function NewEmployerProgramForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<"pick" | "form">("pick");
-  const [launchId, setLaunchId] = useState<LaunchOptionId>("ppc");
+  const [launchId, setLaunchId] = useState<LaunchOptionId>("job_ppc");
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("https://");
   const [postUrl, setPostUrl] = useState("https://");
@@ -40,24 +45,34 @@ function NewEmployerProgramForm() {
   ]);
   const [rate, setRate] = useState(LAUNCH_OPTIONS[0].defaultRate);
   const [budget, setBudget] = useState(LAUNCH_OPTIONS[0].defaultBudget);
+  const [startsAt, setStartsAt] = useState(defaultCampaignSchedule().starts_at);
+  const [endsAt, setEndsAt] = useState(defaultCampaignSchedule().ends_at);
   const [nicheId, setNicheId] = useState<number | null>(null);
   const [trialWithoutIp, setTrialWithoutIp] = useState(false);
   const [autoMeta, setAutoMeta] = useState(true);
   const [autoLinkedIn, setAutoLinkedIn] = useState(true);
   const [canGoLive, setCanGoLive] = useState(false);
+  const [billingMissing, setBillingMissing] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
   const selected = launchOptionById(launchId);
   const isPostPromote = selected.id === "post_promote";
+  const needsSchedule = pricingNeedsSchedule(selected.pricing_model);
 
   useEffect(() => {
     fetchNiches()
       .then((n) => setNicheId(n[0]?.id ?? null))
       .catch(() => null);
     fetchEmployerBilling()
-      .then((d) => setCanGoLive(Boolean(d.can_go_live)))
-      .catch(() => setCanGoLive(false));
+      .then((d) => {
+        setCanGoLive(Boolean(d.can_go_live));
+        setBillingMissing(d.missing_labels ?? []);
+      })
+      .catch(() => {
+        setCanGoLive(false);
+        setBillingMissing([]);
+      });
   }, []);
 
   const chooseOption = (id: LaunchOptionId) => {
@@ -71,8 +86,9 @@ function NewEmployerProgramForm() {
   };
 
   useEffect(() => {
-    const launch = searchParams.get("launch");
-    if (!isLaunchOptionId(launch)) return;
+    const raw = searchParams.get("launch");
+    if (!raw) return;
+    const launch = isLaunchOptionId(raw) ? raw : resolveLegacyLaunchId(raw);
     const option = launchOptionById(launch);
     setLaunchId(launch);
     setRate(option.defaultRate);
@@ -94,6 +110,10 @@ function NewEmployerProgramForm() {
       setError("Select at least one engagement action.");
       return;
     }
+    if (needsSchedule && (!startsAt || !endsAt)) {
+      setError("PPC, PPR, and PPE need a start date and expiry date.");
+      return;
+    }
     try {
       const platforms: Array<"meta" | "linkedin"> = [];
       if (!isPostPromote) {
@@ -112,6 +132,9 @@ function NewEmployerProgramForm() {
         target_niche_ids: nicheId ? [nicheId] : [],
         target_countries: ["IN"],
         auto_ads_platforms: platforms,
+        ...(needsSchedule
+          ? { starts_at: startsAt, ends_at: endsAt }
+          : {}),
         ...(isPostPromote
           ? {
               post_url: postUrl,
@@ -125,10 +148,18 @@ function NewEmployerProgramForm() {
         router.push("/employer/programs");
         return;
       }
+      const missing =
+        result.billing_missing_labels?.length
+          ? ` Still needed: ${result.billing_missing_labels.join(", ")}.`
+          : "";
       setMsg(
-        result.message ??
-          "Campaign saved as pending. Complete company GST and payment to go live.",
+        (result.message ??
+          "Campaign saved as pending. Complete company details, GST, business email, and first payment to go live.") +
+          missing,
       );
+      if (result.billing_missing_labels?.length) {
+        setBillingMissing(result.billing_missing_labels);
+      }
       toast.success("Campaign saved as pending.");
     } catch (err) {
       toast.error(
@@ -147,13 +178,23 @@ function NewEmployerProgramForm() {
       </p>
 
       {!canGoLive && !trialWithoutIp ? (
-        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Billing is incomplete for live campaigns.{" "}
-          <Link href="/employer/billing" className="font-semibold underline">
-            Add company, GST, and Razorpay funds
-          </Link>
-          .
-        </p>
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p>
+            To take a campaign <strong>live</strong>, first complete{" "}
+            <Link href="/employer/billing" className="font-semibold underline">
+              Company &amp; payment
+            </Link>
+            : company name, GST, business email, and a first Razorpay top-up.
+            Or choose <strong>Trial post (no IP)</strong> to test without billing.
+          </p>
+          {billingMissing.length > 0 ? (
+            <ul className="mt-2 list-disc space-y-0.5 pl-5">
+              {billingMissing.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
       ) : (
         <p className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
           After launch, top up PPC budget anytime with Razorpay on the campaign
@@ -165,33 +206,43 @@ function NewEmployerProgramForm() {
         </p>
       )}
 
-      <section className="mt-8">
+      <section className="mt-8 space-y-6">
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">
-          Campaign options
+          Required · campaign type
         </h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {LAUNCH_OPTIONS.map((option) => {
-            const active = launchId === option.id && step === "form";
-            return (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => chooseOption(option.id)}
-                className={`rounded-2xl border p-4 text-left transition ${
-                  active
-                    ? "border-purple-500 bg-purple-50 shadow-sm"
-                    : "border-slate-200 bg-white hover:border-purple-300"
-                }`}
-              >
-                <p className="font-bold text-[#172b63]">{option.label}</p>
-                <p className="mt-1 text-sm text-slate-500">{option.description}</p>
-                <p className="mt-2 text-xs font-semibold uppercase text-purple-600">
-                  {option.pricing_model} · {option.promotion_type}
-                </p>
-              </button>
-            );
-          })}
-        </div>
+        {LAUNCH_CATEGORIES.map((cat) => (
+          <div key={cat.id}>
+            <p className="text-xs font-bold uppercase tracking-wider text-purple-600">
+              {cat.step}. {cat.label}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500">{cat.description}</p>
+            <div className="mt-2 grid gap-3 sm:grid-cols-2">
+              {cat.options.map((option) => {
+                const active = launchId === option.id && step === "form";
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => chooseOption(option.id)}
+                    className={`rounded-2xl border p-4 text-left transition ${
+                      active
+                        ? "border-purple-500 bg-purple-50 shadow-sm"
+                        : "border-slate-200 bg-white hover:border-purple-300"
+                    }`}
+                  >
+                    <p className="font-bold text-[#172b63]">{option.label}</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {option.description}
+                    </p>
+                    <p className="mt-2 text-xs font-semibold uppercase text-purple-600">
+                      {option.pricing_model} · {option.promotion_type}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </section>
 
       {step === "form" ? (
@@ -302,6 +353,16 @@ function NewEmployerProgramForm() {
               />
             </label>
           </div>
+          {needsSchedule ? (
+            <CampaignScheduleFields
+              tone="employer"
+              required
+              startsAt={startsAt}
+              endsAt={endsAt}
+              onStartsAtChange={setStartsAt}
+              onEndsAtChange={setEndsAt}
+            />
+          ) : null}
           <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <input
               type="checkbox"

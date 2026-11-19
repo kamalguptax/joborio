@@ -104,7 +104,7 @@ class CreatorRelevance
             return false;
         }
 
-        if ($preferRemote && ! PromoteJobTypes::matches($hay, ['remote', 'work_from_home'])) {
+        if ($preferRemote && ! PromoteJobTypes::matches($hay, ['remote'])) {
             return false;
         }
 

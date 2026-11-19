@@ -14,7 +14,7 @@ import { fetchMe } from "@/lib/api/auth";
 import { withSubid } from "@/lib/tracking/subid";
 import { loginUrlWithNext } from "@/lib/auth/safeRedirect";
 import { STATIC_EXPORT_PLACEHOLDER, syndicatedJobPath } from "@/lib/staticExport";
-import { sanitizeHtml } from "@/lib/security/sanitizeHtml";
+import JobDescription from "@/components/jobs/JobDescription";
 
 function referenceFromLocation(): string {
   const query = new URLSearchParams(window.location.search).get("ref");
@@ -67,6 +67,8 @@ export default function SyndicatedJobClient() {
           action: "view",
           title: fromApi.title,
           company: fromApi.company,
+          category: fromApi.category || fromApi.jobtype || undefined,
+          source: "syndicated_job_page",
         }).catch(() => undefined);
       } catch {
         if (!cancelled) setMissing(true);
@@ -162,14 +164,10 @@ export default function SyndicatedJobClient() {
             </>
           ) : null}
         </dl>
-        {job.description_html ? (
-          <div
-            className="prose prose-slate mt-8 max-w-none text-slate-600"
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(job.description_html) }}
-          />
-        ) : job.description_text ? (
-          <p className="mt-8 leading-7 text-slate-600">{job.description_text}</p>
-        ) : null}
+        <JobDescription
+          html={job.description_html}
+          text={job.description_text}
+        />
         <SyndicatedJobApplyBar
           applyUrl={publicCode ? withSubid(job.url, publicCode) : job.url}
           returnPath={syndicatedJobPath(job.reference_id)}

@@ -6,11 +6,16 @@ return [
     'ppc_hold_days_micro' => (int) env('JOBORIO_PPC_HOLD_DAYS_MICRO', 3),
     'click_dedup_minutes' => (int) env('JOBORIO_CLICK_DEDUP_MINUTES', 10),
     'min_payout_usd' => (float) env('JOBORIO_MIN_PAYOUT_USD', 10),
-    'default_ppc_rate_usd' => (float) env('JOBORIO_DEFAULT_PPC_RATE_USD', 0.03),
-    'creator_link_base' => env('JOBORIO_CREATOR_LINK_BASE', 'https://brand.link'),
+    'default_ppc_rate_usd' => (float) env('JOBORIO_DEFAULT_PPC_RATE_USD', 0.01),
+    'creator_link_base' => env('JOBORIO_CREATOR_LINK_BASE', 'https://joborio.com'),
     'velocity_multiplier' => (float) env('JOBORIO_VELOCITY_MULTIPLIER', 5),
 
     'frontend_url' => env('FRONTEND_URL', 'https://joborio.com'),
+    /** Public host for copied /r/{token} links (not APP_URL / api.*). */
+    'tracking_public_url' => env(
+        'JOBORIO_TRACKING_PUBLIC_URL',
+        env('FRONTEND_URL', 'https://joborio.com'),
+    ),
     'oauth_callback_path' => env('JOBORIO_OAUTH_CALLBACK_PATH', '/auth/callback'),
 
     'listings_ingest_enabled' => (bool) env('JOBORIO_LISTINGS_INGEST_ENABLED', true),

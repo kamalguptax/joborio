@@ -10,6 +10,7 @@ import { recordJobActivity } from "@/lib/api/creator";
 import { getAuthToken } from "@/lib/auth/session";
 import { loginUrlWithNext } from "@/lib/auth/safeRedirect";
 import { STATIC_EXPORT_PLACEHOLDER, listingJobPath } from "@/lib/staticExport";
+import JobDescription from "@/components/jobs/JobDescription";
 
 function listingIdFromLocation(): string {
   const query = new URLSearchParams(window.location.search).get("id");
@@ -71,6 +72,8 @@ export default function JobDetailClient() {
       action: "view",
       title: listing.title,
       company: listing.company_name ?? undefined,
+      category: listing.type || listing.category || undefined,
+      source: "listing_detail",
     }).catch(() => undefined);
   }, [signedIn, listing]);
 
@@ -111,9 +114,7 @@ export default function JobDetailClient() {
           {listing.location_label ??
             (listing.is_remote ? "Remote" : listing.country_code)}
         </p>
-        {listing.description ? (
-          <p className="mt-6 leading-7 text-slate-600">{listing.description}</p>
-        ) : null}
+        <JobDescription text={listing.description} />
         {"latitude" in listing &&
         "longitude" in listing &&
         listing.latitude != null &&

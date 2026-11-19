@@ -59,7 +59,7 @@ class PublisherAuthController extends Controller
             'niche_ids' => ['required', 'array', 'min:1'],
             'niche_ids.*' => ['integer', 'exists:niches,id'],
             'job_preferences' => ['required', 'array', 'min:1'],
-            'job_preferences.*' => ['string', 'in:full_time,part_time,remote,internship'],
+            'job_preferences.*' => ['string', 'in:full_time,part_time,remote,internship,fresher'],
             'network_type' => ['required', 'string', 'in:agency,publisher,affiliate,community'],
             'social_url' => ['required', 'url', 'max:500'],
             'website_url' => ['required', 'url', 'max:500'],
@@ -67,6 +67,8 @@ class PublisherAuthController extends Controller
             'accepted_terms' => ['accepted'],
             'captcha_id' => ['required', 'string'],
             'captcha_answer' => ['required', 'string'],
+        ], [
+            'email.unique' => 'This email is already registered. Sign in or use a different email.',
         ]);
 
         $captcha->assertValid($data['captcha_id'], $data['captcha_answer']);

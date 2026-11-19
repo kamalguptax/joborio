@@ -43,9 +43,15 @@ class TopPerformersService
 
         $creatorIds = $earnRows->keys()->values();
 
-        $creators = Creator::query()
+        $creatorsQuery = Creator::query()
             ->whereIn('id', $creatorIds)
-            ->whereNotNull('onboarding_completed_at')
+            ->whereNotNull('onboarding_completed_at');
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('creators', 'approval_status')) {
+            $creatorsQuery->where('approval_status', 'approved');
+        }
+
+        $creators = $creatorsQuery
             ->get(['id', 'handle', 'trust_tier'])
             ->keyBy('id');
 

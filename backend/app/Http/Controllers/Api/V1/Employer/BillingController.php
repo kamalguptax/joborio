@@ -25,6 +25,7 @@ class BillingController extends Controller
             'employer' => $employer,
             'can_go_live' => $employer->canGoLive(),
             'missing' => $employer->billingMissing(),
+            'missing_labels' => $employer->billingMissingLabels(),
             'prepaid_balance_usd' => (float) ($employer->prepaid_balance_usd ?? 0),
             'razorpay' => [
                 'enabled' => $razorpay->enabled(),
@@ -79,6 +80,7 @@ class BillingController extends Controller
             'employer' => $fresh,
             'can_go_live' => $fresh->canGoLive(),
             'missing' => $fresh->billingMissing(),
+            'missing_labels' => $fresh->billingMissingLabels(),
         ]);
     }
 }

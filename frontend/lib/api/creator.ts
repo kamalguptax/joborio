@@ -70,8 +70,19 @@ export type CreatorClickRow = {
   fraud_status?: string | null;
   ip_address?: string | null;
   created_at?: string;
-  meta?: { title?: string; clicked_at?: string; duplicate_of_event_id?: number };
-  listing?: { title?: string } | null;
+  meta?: {
+    title?: string;
+    clicked_at?: string;
+    duplicate_of_event_id?: number;
+    reference_id?: string;
+  };
+  listing?: { id?: number | null; title?: string } | null;
+  click_count?: number;
+  counted_count?: number;
+  duplicate_count?: number;
+  unique_ip_count?: number;
+  pricing_model?: string;
+  pricing_models?: string[];
 };
 
 export function fetchCreatorClicks(page = 1) {
@@ -250,6 +261,8 @@ export function recordJobActivity(body: {
   action: "view" | "apply";
   title?: string;
   company?: string;
+  category?: string;
+  source?: string;
 }) {
   return apiFetch<{ tracked: boolean; event_id: number; earning_id?: number | null }>(
     "/api/v1/creator/job-activity",

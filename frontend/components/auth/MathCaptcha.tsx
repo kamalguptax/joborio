@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/Skeleton";
 type Props = {
   onChange: (value: { captcha_id: string; captcha_answer: string }) => void;
   className?: string;
+  /** Bump after a failed submit so Turnstile issues a fresh token (timeout-or-duplicate). */
+  resetKey?: number;
 };
 
 declare global {
@@ -63,7 +65,11 @@ function loadTurnstileScript(): Promise<void> {
   });
 }
 
-export default function MathCaptcha({ onChange, className = "" }: Props) {
+export default function MathCaptcha({
+  onChange,
+  className = "",
+  resetKey = 0,
+}: Props) {
   const [provider, setProvider] = useState<"turnstile" | "math" | "loading">(
     "loading",
   );
@@ -75,6 +81,7 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
   const widgetRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onChangeRef = useRef(onChange);
+  const lastResetKey = useRef(0);
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
@@ -85,6 +92,7 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
       setSiteKey("");
       setCaptchaId(data.captcha_id);
       setQuestion(data.question);
+      setAnswer("");
       onChangeRef.current({ captcha_id: data.captcha_id, captcha_answer: "" });
     },
     [],
@@ -101,6 +109,18 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
       setError(reason);
     }
   }, [applyMathChallenge]);
+
+  const resetTurnstileWidget = useCallback(() => {
+    if (!widgetIdRef.current || !window.turnstile) return false;
+    try {
+      window.turnstile.reset(widgetIdRef.current);
+      onChangeRef.current({ captcha_id: "turnstile", captcha_answer: "" });
+      setError("Complete the security check again.");
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
 
   const renderTurnstile = useCallback(async (key: string) => {
     setError(null);
@@ -129,12 +149,14 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
             captcha_id: "turnstile",
             captcha_answer: token,
           });
+          setError(null);
         },
         "expired-callback": () => {
           onChangeRef.current({
             captcha_id: "turnstile",
             captcha_answer: "",
           });
+          setError("Security check expired — tick it again.");
         },
         "error-callback": () => {
           void fallbackToMath("Cloudflare captcha error — using math check.");
@@ -193,6 +215,18 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
     void renderTurnstile(siteKey);
   }, [provider, siteKey, renderTurnstile]);
 
+  useEffect(() => {
+    if (!resetKey || resetKey === lastResetKey.current) return;
+    lastResetKey.current = resetKey;
+    if (provider === "turnstile" && siteKey) {
+      if (!resetTurnstileWidget()) {
+        void renderTurnstile(siteKey);
+      }
+      return;
+    }
+    void loadChallenge();
+  }, [resetKey, provider, siteKey, resetTurnstileWidget, renderTurnstile, loadChallenge]);
+
   if (provider === "loading") {
     return (
       <div className={className}>
@@ -205,9 +239,20 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
   if (provider === "turnstile") {
     return (
       <div className={className}>
-        <p className="mb-2 text-[13px] font-semibold text-[#26385D]">
-          Security check
-        </p>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-[13px] font-semibold text-[#26385D]">
+            Security check
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              if (!resetTurnstileWidget()) void renderTurnstile(siteKey);
+            }}
+            className="text-xs font-semibold text-violet-700 hover:underline"
+          >
+            Refresh
+          </button>
+        </div>
         <div ref={widgetRef} className="cf-turnstile" />
         {error ? (
           <p className="mt-2 text-xs font-medium text-red-600">{error}</p>
@@ -259,5 +304,15 @@ export default function MathCaptcha({ onChange, className = "" }: Props) {
         <p className="mt-2 text-xs font-medium text-red-600">{error}</p>
       ) : null}
     </div>
+  );
+}
+
+export function isCaptchaFailureMessage(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("captcha") ||
+    m.includes("turnstile") ||
+    m.includes("timeout-or-duplicate") ||
+    m.includes("security check")
   );
 }

@@ -16,23 +16,7 @@ class EmployerBilling
             return true;
         }
 
-        if (! filled($employer->company_name)) {
-            return false;
-        }
-        if (! filled($employer->business_email) || ! filter_var($employer->business_email, FILTER_VALIDATE_EMAIL)) {
-            return false;
-        }
-        if (! filled($employer->gst_number) || ! self::validGst((string) $employer->gst_number)) {
-            return false;
-        }
-        if (! filled($employer->billing_address)) {
-            return false;
-        }
-        if (! in_array((string) $employer->payment_method, self::PAYMENT_METHODS, true)) {
-            return false;
-        }
-
-        return self::hasPaymentDetails($employer);
+        return self::missingFields($employer) === [];
     }
 
     public static function missingFields(Employer $employer): array
@@ -41,19 +25,25 @@ class EmployerBilling
         if (! filled($employer->company_name)) {
             $missing[] = 'company_name';
         }
-        if (! filled($employer->business_email)) {
+        if (! filled($employer->business_email) || ! filter_var((string) $employer->business_email, FILTER_VALIDATE_EMAIL)) {
             $missing[] = 'business_email';
         }
-        if (! filled($employer->gst_number)) {
+        if (! filled($employer->gst_number) || ! self::validGst((string) $employer->gst_number)) {
             $missing[] = 'gst_number';
         }
         if (! filled($employer->billing_address)) {
             $missing[] = 'billing_address';
         }
-        if (! filled($employer->payment_method)) {
+        if (! filled($employer->payment_method) || ! in_array((string) $employer->payment_method, self::PAYMENT_METHODS, true)) {
             $missing[] = 'payment_method';
         } elseif (! self::hasPaymentDetails($employer)) {
             $missing[] = 'payment_details';
+        }
+
+        // First payment: prepaid wallet must be funded before a paid campaign goes live.
+        if (Schema::hasColumn('employers', 'prepaid_balance_usd')
+            && (float) ($employer->prepaid_balance_usd ?? 0) <= 0) {
+            $missing[] = 'first_payment';
         }
 
         return $missing;
@@ -67,10 +57,30 @@ class EmployerBilling
 
         throw ValidationException::withMessages([
             'billing' => [
-                'Complete company details, GST, business email, and payment before going live.',
+                'Before going live, complete company details, GST, business email, and make a first payment (wallet top-up).',
             ],
             'missing' => self::missingFields($employer),
         ]);
+    }
+
+    /** Human labels for API / UI checklists. */
+    public static function missingLabels(Employer $employer): array
+    {
+        $map = [
+            'company_name' => 'Company name',
+            'business_email' => 'Business email',
+            'gst_number' => 'GST number',
+            'billing_address' => 'Billing address',
+            'payment_method' => 'Payment method',
+            'payment_details' => 'Payment details (UPI / bank)',
+            'first_payment' => 'First payment (Razorpay wallet top-up)',
+        ];
+        $out = [];
+        foreach (self::missingFields($employer) as $key) {
+            $out[] = $map[$key] ?? $key;
+        }
+
+        return $out;
     }
 
     public static function validGst(string $gst): bool

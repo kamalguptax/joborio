@@ -23,6 +23,25 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Google Places Autocomplete dropdown (must sit above onboarding / cards). */
+.pac-container {
+  z-index: 100000 !important;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 32px rgba(15, 27, 61, 0.14);
+  margin-top: 4px;
+  font-family: var(--font-body);
+}
+.pac-item {
+  cursor: pointer;
+  padding: 0.55rem 0.85rem;
+  line-height: 1.35;
+}
+.pac-item:hover,
+.pac-item-selected {
+  background-color: #f5f3ff;
+}
+
 
 body {
   background-color: var(--background);
@@ -546,6 +565,19 @@ body {
 }
 
 
+/* Hide native scrollbars that Windows draws as a gray “line” across dashboards */
+.dash-scroll,
+.dash-scroll-x {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Legacy Edge/IE */
+}
+.dash-scroll::-webkit-scrollbar,
+.dash-scroll-x::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 /* ——— Dashboard content polish (scoped to DashboardShell's <main>) ——— */
 .dash-content {
   font-size: 0.9375rem;
@@ -719,4 +751,135 @@ body {
   box-shadow:
     0 1px 2px rgba(15, 27, 61, 0.04),
     0 18px 36px -28px rgba(15, 27, 61, 0.28);
+}
+
+/* ——— Job description (syndicated + listing detail) ——— */
+.job-desc {
+  margin-top: 2rem;
+  border-radius: 1.25rem;
+  border: 1px solid #e8edf5;
+  background: #fff;
+  padding: 1.25rem 1.35rem 1.5rem;
+  box-shadow: 0 10px 28px -24px rgba(15, 27, 61, 0.35);
+}
+
+.job-desc__label {
+  margin: 0 0 1rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.job-desc__body {
+  color: #475569;
+  font-size: 0.975rem;
+  line-height: 1.75;
+}
+
+.job-desc__body > *:first-child {
+  margin-top: 0;
+}
+
+.job-desc__body > *:last-child {
+  margin-bottom: 0;
+}
+
+.job-desc__heading,
+.job-desc__body h1,
+.job-desc__body h2,
+.job-desc__body h3,
+.job-desc__body h4 {
+  margin: 1.35rem 0 0.55rem;
+  color: #172b63;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.job-desc__body h1 {
+  font-size: 1.2rem;
+}
+
+.job-desc__p,
+.job-desc__body p {
+  margin: 0 0 0.95rem;
+}
+
+.job-desc__list,
+.job-desc__body ul,
+.job-desc__body ol {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+}
+
+.job-desc__list li,
+.job-desc__body li {
+  margin: 0.35rem 0;
+  padding-left: 0.15rem;
+}
+
+.job-desc__body ul {
+  list-style: disc;
+}
+
+.job-desc__body ol {
+  list-style: decimal;
+}
+
+.job-desc__body a {
+  color: #7c3aed;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.job-desc__body strong,
+.job-desc__body b {
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.job-desc__body blockquote {
+  margin: 0.85rem 0;
+  border-left: 3px solid #ddd6fe;
+  padding-left: 0.9rem;
+  color: #64748b;
+}
+
+.job-desc__body hr {
+  margin: 1.25rem 0;
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.job-desc__body table {
+  width: 100%;
+  margin: 0.85rem 0 1.1rem;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+
+.job-desc__body th,
+.job-desc__body td {
+  border: 1px solid #e6e6e6;
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.job-desc__body th {
+  background: #f5f5f5;
+  color: #172b63;
+  font-weight: 700;
+}
+
+@media (min-width: 640px) {
+  .job-desc {
+    padding: 1.5rem 1.65rem 1.75rem;
+  }
 }

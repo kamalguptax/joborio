@@ -45,7 +45,6 @@ export const WORK_MODES = [
   { id: "onsite", label: "On-site" },
   { id: "hybrid", label: "Hybrid" },
   { id: "remote", label: "Remote" },
-  { id: "work_from_home", label: "Work from home" },
 ] as const;
 
 export const CURRENCIES = ["USD", "INR", "AED", "GBP", "EUR"] as const;

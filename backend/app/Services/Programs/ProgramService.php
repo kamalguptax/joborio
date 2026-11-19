@@ -95,6 +95,27 @@ class ProgramService
             if (Schema::hasColumn('programs', 'engage_brief') && isset($data['engage_brief'])) {
                 $programPayload['engage_brief'] = $data['engage_brief'];
             }
+            if (array_key_exists('starts_at', $data)) {
+                $programPayload['starts_at'] = $data['starts_at'] ?: null;
+            }
+            if (array_key_exists('ends_at', $data)) {
+                $programPayload['ends_at'] = $data['ends_at'] ?: null;
+            }
+            if (Schema::hasColumn('programs', 'lead_type') && array_key_exists('lead_type', $data)) {
+                $programPayload['lead_type'] = $data['lead_type'] ?: null;
+            }
+            if (Schema::hasColumn('programs', 'required_fields') && array_key_exists('required_fields', $data)) {
+                $programPayload['required_fields'] = array_values(array_intersect(
+                    CampaignTypes::REQUIRED_FIELD_OPTIONS,
+                    array_map('strtolower', $data['required_fields'] ?? []),
+                ));
+            }
+            if (Schema::hasColumn('programs', 'qualification_rules') && array_key_exists('qualification_rules', $data)) {
+                $programPayload['qualification_rules'] = $data['qualification_rules'] ?: null;
+            }
+            if (Schema::hasColumn('programs', 'auto_pause_on_budget') && array_key_exists('auto_pause_on_budget', $data)) {
+                $programPayload['auto_pause_on_budget'] = (bool) $data['auto_pause_on_budget'];
+            }
 
             $program = Program::create($programPayload);
 
@@ -107,6 +128,139 @@ class ProgramService
             }
 
             return $program;
+        });
+    }
+
+    public function update(Program $program, array $data): Program
+    {
+        return DB::transaction(function () use ($program, $data) {
+            $program->loadMissing('listing');
+
+            if (isset($data['promotion_type']) && CampaignTypes::isValid($data['promotion_type'])) {
+                $promotionType = $data['promotion_type'];
+            } else {
+                $promotionType = $program->promotion_type ?: 'job';
+            }
+
+            $pricingModel = $data['pricing_model'] ?? $program->pricing_model;
+            if (($promotionType === 'post_promote' || $pricingModel === 'ppe')) {
+                $pricingModel = 'ppe';
+                $promotionType = 'post_promote';
+            }
+
+            $rate = array_key_exists('rate_usd', $data)
+                ? (float) $data['rate_usd']
+                : (float) $program->rate_usd;
+            $budget = array_key_exists('budget_total_usd', $data)
+                ? (float) $data['budget_total_usd']
+                : (float) $program->budget_total_usd;
+            $isTrial = array_key_exists('trial_without_ip', $data)
+                ? (bool) $data['trial_without_ip']
+                : $program->isTrialWithoutIp();
+
+            if (! $isTrial && $budget < max(10, (float) $program->budget_spent_usd)) {
+                $budget = max(10, (float) $program->budget_spent_usd);
+            }
+
+            $payload = [
+                'title' => $data['title'] ?? $program->title,
+                'description' => array_key_exists('description', $data)
+                    ? $data['description']
+                    : $program->description,
+                'pricing_model' => $pricingModel,
+                'rate_usd' => $rate,
+                'budget_total_usd' => $isTrial ? max(0, $budget) : $budget,
+            ];
+
+            if (Schema::hasColumn('programs', 'promotion_type')) {
+                $payload['promotion_type'] = $promotionType;
+            }
+            if (Schema::hasColumn('programs', 'trial_without_ip') && array_key_exists('trial_without_ip', $data)) {
+                $payload['trial_without_ip'] = $isTrial;
+            }
+            if (array_key_exists('target_niche_ids', $data)) {
+                $payload['target_niche_ids'] = $data['target_niche_ids'] ?? [];
+            }
+            if (array_key_exists('target_countries', $data)) {
+                $payload['target_countries'] = $data['target_countries'] ?? [];
+            }
+            if (array_key_exists('min_trust_tier', $data)) {
+                $payload['min_trust_tier'] = $data['min_trust_tier'];
+            }
+            if (Schema::hasColumn('programs', 'post_url') && array_key_exists('post_url', $data)) {
+                $payload['post_url'] = $data['post_url'];
+            }
+            if (Schema::hasColumn('programs', 'engage_brief') && array_key_exists('engage_brief', $data)) {
+                $payload['engage_brief'] = $data['engage_brief'];
+            }
+            if (Schema::hasColumn('programs', 'engagement_actions') && array_key_exists('engagement_actions', $data)) {
+                $actions = array_values(array_intersect(
+                    CampaignTypes::ENGAGEMENT_ACTIONS,
+                    array_map('strtolower', $data['engagement_actions'] ?? []),
+                ));
+                if (($promotionType === 'post_promote' || $pricingModel === 'ppe') && $actions === []) {
+                    $actions = CampaignTypes::ENGAGEMENT_ACTIONS;
+                }
+                $payload['engagement_actions'] = $actions;
+            }
+            if (Schema::hasColumn('programs', 'auto_ads_platforms') && array_key_exists('auto_ads_platforms', $data)) {
+                $payload['auto_ads_platforms'] = array_values(array_intersect(
+                    PlatformAdsSyncService::PLATFORMS,
+                    array_map('strtolower', $data['auto_ads_platforms'] ?? []),
+                ));
+            }
+            if (array_key_exists('starts_at', $data)) {
+                $payload['starts_at'] = $data['starts_at'] ?: null;
+            }
+            if (array_key_exists('ends_at', $data)) {
+                $payload['ends_at'] = $data['ends_at'] ?: null;
+            }
+            if (Schema::hasColumn('programs', 'lead_type') && array_key_exists('lead_type', $data)) {
+                $payload['lead_type'] = $data['lead_type'] ?: null;
+            }
+            if (Schema::hasColumn('programs', 'required_fields') && array_key_exists('required_fields', $data)) {
+                $payload['required_fields'] = array_values(array_intersect(
+                    CampaignTypes::REQUIRED_FIELD_OPTIONS,
+                    array_map('strtolower', $data['required_fields'] ?? []),
+                ));
+            }
+            if (Schema::hasColumn('programs', 'qualification_rules') && array_key_exists('qualification_rules', $data)) {
+                $payload['qualification_rules'] = $data['qualification_rules'] ?: null;
+            }
+            if (Schema::hasColumn('programs', 'auto_pause_on_budget') && array_key_exists('auto_pause_on_budget', $data)) {
+                $payload['auto_pause_on_budget'] = (bool) $data['auto_pause_on_budget'];
+            }
+
+            $program->update($payload);
+
+            if ($program->listing) {
+                $listingPayload = [
+                    'title' => $payload['title'],
+                    'description' => $payload['description'],
+                    'ppc_rate_usd' => $pricingModel === 'ppc' ? $rate : null,
+                    'ppr_rate_usd' => $pricingModel === 'ppr' ? $rate : null,
+                    'ppa_rate_usd' => in_array($pricingModel, ['ppa', 'ppe'], true) ? $rate : null,
+                ];
+                if (isset($data['destination_url'])) {
+                    $listingPayload['destination_url'] = $data['destination_url'];
+                }
+                if (array_key_exists('company_name', $data)) {
+                    $listingPayload['company_name'] = $data['company_name'];
+                }
+                if (isset($data['country_code'])) {
+                    $listingPayload['country_code'] = $data['country_code'];
+                }
+                if (array_key_exists('is_remote', $data)) {
+                    $listingPayload['is_remote'] = (bool) $data['is_remote'];
+                }
+                if (isset($data['category']) || isset($data['promotion_type'])) {
+                    $listingPayload['category'] = $data['category'] ?? $promotionType;
+                    $listingPayload['type'] = $promotionType;
+                }
+                $program->listing->update($listingPayload);
+            }
+
+            return $program->fresh(['listing', 'employer']);
         });
     }
 
@@ -142,7 +296,7 @@ class ProgramService
             : [];
 
         return [
-            'program' => $program,
+            'program' => $program->loadMissing('listing'),
             'budget_remaining_usd' => $program->budgetRemaining(),
             'match_preview' => $match,
             'creators_opted_in' => $optedIn,
