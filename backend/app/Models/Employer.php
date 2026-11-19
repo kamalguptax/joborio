@@ -62,4 +62,9 @@ class Employer extends Model
     {
         return EmployerBilling::missingFields($this);
     }
+
+    public function billingMissingLabels(): array
+    {
+        return EmployerBilling::missingLabels($this);
+    }
 }

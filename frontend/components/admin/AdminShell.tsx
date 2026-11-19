@@ -27,46 +27,36 @@ import { useState } from "react";
 import { logoutApi } from "@/lib/api/auth";
 import { clearAuthToken } from "@/lib/auth/session";
 import { Toaster } from "@/components/ui/Toast";
+import { adminPath, adminSidebarGroups } from "@/lib/adminNav";
 
-const navGroups = [
-  {
-    label: "Overview",
-    items: [
-      { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/admin/settings", label: "Platform settings", icon: Settings },
-    ],
-  },
-  {
-    label: "Jobs & feeds",
-    items: [
-      { href: "/admin/syndication-feeds", label: "XML feeds", icon: Rss },
-      { href: "/admin/jobs", label: "Jobs catalog", icon: Briefcase },
-      { href: "/admin/job-masters", label: "Filter masters", icon: SlidersHorizontal },
-      { href: "/admin/listings", label: "Listings", icon: List },
-    ],
-  },
-  {
-    label: "People",
-    items: [
-      { href: "/admin/users", label: "Users", icon: Users },
-      { href: "/admin/publishers", label: "Publishers", icon: Users },
-      { href: "/admin/activity", label: "Activity", icon: Activity },
-      { href: "/admin/geo", label: "Geo map", icon: MapPin },
-      { href: "/admin/website-tracking", label: "Website tracking", icon: Globe },
-    ],
-  },
-  {
-    label: "Money & trust",
-    items: [
-      { href: "/admin/campaigns", label: "Manual campaigns", icon: Megaphone },
-      { href: "/admin/programs", label: "Programs", icon: Megaphone },
-      { href: "/admin/campaign-earnings", label: "Campaign earnings", icon: TrendingUp },
-      { href: "/admin/payouts", label: "Payouts", icon: Wallet },
-      { href: "/admin/fraud", label: "Fraud queue", icon: ShieldAlert },
-      { href: "/admin/disputes", label: "Disputes", icon: Scale },
-    ],
-  },
-];
+const iconByHref: Record<string, typeof LayoutDashboard> = {
+  "/admin/dashboard": LayoutDashboard,
+  "/admin/settings": Settings,
+  "/admin/syndication-feeds": Rss,
+  "/admin/jobs": Briefcase,
+  "/admin/job-masters": SlidersHorizontal,
+  "/admin/listings": List,
+  "/admin/users": Users,
+  "/admin/publishers": Users,
+  "/admin/activity": Activity,
+  "/admin/geo": MapPin,
+  "/admin/website-tracking": Globe,
+  "/admin/campaigns": Megaphone,
+  "/admin/programs": Megaphone,
+  "/admin/campaign-earnings": TrendingUp,
+  "/admin/payouts": Wallet,
+  "/admin/fraud": ShieldAlert,
+  "/admin/disputes": Scale,
+};
+
+const navGroups = adminSidebarGroups.map((group) => ({
+  label: group.label,
+  items: group.items.map((item) => ({
+    ...item,
+    href: adminPath(item.href),
+    icon: iconByHref[item.href.split("?")[0]] ?? LayoutDashboard,
+  })),
+}));
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -124,8 +114,11 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                 </p>
                 <ul className="space-y-0.5">
                   {group.items.map(({ href, label, icon: Icon }) => {
+                    const strip = (p: string) => p.replace(/\/+$/, "") || "/";
+                    const here = strip(pathname ?? "");
+                    const target = strip(href.split("?")[0] ?? href);
                     const active =
-                      pathname === href || pathname.startsWith(`${href}/`);
+                      here === target || here.startsWith(`${target}/`);
                     return (
                       <li key={href}>
                         <Link

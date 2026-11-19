@@ -192,7 +192,9 @@ export default function SyndicationFeedDashboard({
         {loading ? (
           <StatCardsSkeleton count={4} />
         ) : !selectedFeed ? (
-          <p className="mt-6 text-sm text-slate-500">Choose a feed from the table below.</p>
+          <p className="mt-6 text-sm text-slate-500">
+            Choose WhatsJobs, JobRapido, or another feed above to see its XML jobs.
+          </p>
         ) : (
           <>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">

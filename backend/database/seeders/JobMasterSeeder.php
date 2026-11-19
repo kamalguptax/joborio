@@ -65,7 +65,7 @@ class JobMasterSeeder extends Seeder
             );
         }
 
-        foreach (['fulltime', 'parttime', 'contract', 'internship', 'remote'] as $i => $name) {
+        foreach (['fulltime', 'parttime', 'contract', 'internship', 'fresher', 'remote'] as $i => $name) {
             JobMaster::firstOrCreate(
                 ['type' => JobMaster::TYPE_JOB_TYPE, 'slug' => Str::slug($name)],
                 ['name' => $name, 'sort_order' => $i + 1]

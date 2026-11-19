@@ -38,7 +38,6 @@ class OpportunityCategories
         'onsite',
         'hybrid',
         'remote',
-        'work_from_home',
     ];
 
     public const CURRENCIES = ['USD', 'INR', 'AED', 'GBP', 'EUR'];
@@ -93,7 +92,12 @@ class OpportunityCategories
         $audience = self::stringList($targeting['audience_type'] ?? []);
         $audience = array_values(array_intersect($audience, self::EXPERIENCE_LEVELS));
         $workMode = self::stringList($targeting['work_mode'] ?? []);
-        $workMode = array_values(array_intersect($workMode, self::WORK_MODES));
+        // Legacy "work_from_home" is the same as remote.
+        $workMode = array_map(
+            static fn (string $mode): string => $mode === 'work_from_home' ? 'remote' : $mode,
+            $workMode,
+        );
+        $workMode = array_values(array_unique(array_intersect($workMode, self::WORK_MODES)));
         $currency = strtoupper(trim((string) ($targeting['currency'] ?? 'USD')));
         if (! in_array($currency, self::CURRENCIES, true)) {
             $currency = 'USD';

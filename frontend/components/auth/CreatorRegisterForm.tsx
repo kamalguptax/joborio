@@ -53,6 +53,8 @@ export default function CreatorRegisterForm() {
   const [confirm, setConfirm] = useState("");
   const [linkedin, setLinkedin] = useState("");
   const [instagram, setInstagram] = useState("");
+  const [community, setCommunity] = useState("");
+  const [website, setWebsite] = useState("");
   const [accepted, setAccepted] = useState(false);
   const [captcha, setCaptcha] = useState({ captcha_id: "", captcha_answer: "" });
   const [error, setError] = useState<string | null>(null);
@@ -90,8 +92,12 @@ export default function CreatorRegisterForm() {
 
     const linkedinUrl = normalizeUrl(linkedin);
     const instagramUrl = normalizeUrl(instagram);
-    if (!linkedinUrl && !instagramUrl) {
-      setError("Add at least one LinkedIn or Instagram link.");
+    const communityUrl = normalizeUrl(community);
+    const websiteUrl = normalizeUrl(website);
+    if (!linkedinUrl && !instagramUrl && !communityUrl && !websiteUrl) {
+      setError(
+        "Add at least one LinkedIn, Instagram, community, or website link. We approve creator accounts manually.",
+      );
       return;
     }
 
@@ -117,6 +123,8 @@ export default function CreatorRegisterForm() {
       const social_links = {
         ...(linkedinUrl ? { linkedin: linkedinUrl } : {}),
         ...(instagramUrl ? { instagram: instagramUrl } : {}),
+        ...(communityUrl ? { community: communityUrl } : {}),
+        ...(websiteUrl ? { website: websiteUrl } : {}),
       };
 
       let onboarded = false;
@@ -253,9 +261,11 @@ export default function CreatorRegisterForm() {
         </section>
 
         <section>
-          <h2 className={authSectionHeading}>3. Social Media Links</h2>
+          <h2 className={authSectionHeading}>3. Profile links (required)</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Add LinkedIn and/or Instagram so we can verify your creator profile.
+            Add at least one LinkedIn, Instagram, community, or website link.
+            Accounts stay <span className="font-semibold text-amber-700">pending</span> until
+            an admin approves them manually.
           </p>
           <div className="mt-3 space-y-4">
             <label className={authLabel}>
@@ -278,6 +288,26 @@ export default function CreatorRegisterForm() {
                 className={field}
               />
             </label>
+            <label className={authLabel}>
+              Community link
+              <input
+                type="url"
+                value={community}
+                onChange={(e) => setCommunity(e.target.value)}
+                placeholder="https://t.me/yourgroup or Discord invite"
+                className={field}
+              />
+            </label>
+            <label className={authLabel}>
+              Website / portfolio
+              <input
+                type="url"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="https://yourwebsite.com"
+                className={field}
+              />
+            </label>
           </div>
         </section>
 
@@ -294,8 +324,15 @@ export default function CreatorRegisterForm() {
             I agree to JobOrio&apos;s{" "}
             <Link href="/terms" className={authLink}>
               Terms & Conditions
-            </Link>{" "}
-            & Creator Privacy Policy
+            </Link>
+            ,{" "}
+            <Link href="/privacy" className={authLink}>
+              Privacy Policy
+            </Link>
+            , and{" "}
+            <Link href="/payout-policy" className={authLink}>
+              Payout Policy
+            </Link>
           </span>
         </label>
 

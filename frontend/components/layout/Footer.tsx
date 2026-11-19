@@ -157,9 +157,10 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="relative z-10 mx-auto flex max-w-[1600px] flex-col gap-3 px-4 py-6 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
           <p>All rights reserved.</p>
-          <div className="flex gap-5">
+          <div className="flex flex-wrap gap-5">
             <Link href="/privacy" className="hover:text-white">Privacy</Link>
             <Link href="/terms" className="hover:text-white">Terms</Link>
+            <Link href="/payout-policy" className="hover:text-white">Payout Policy</Link>
           </div>
         </div>
       </div>

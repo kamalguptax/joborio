@@ -75,6 +75,7 @@ export default function Footer() {
                   ["Blog", "/blog"],
                   ["Contact", "/contact"],
                   ["Privacy", "/privacy"],
+                  ["Payout Policy", "/payout-policy"],
                 ].map(([label, href]) => (
                   <Link
                     key={label}
@@ -120,7 +121,7 @@ export default function Footer() {
               © {new Date().getFullYear()} JobOrio. All rights reserved.
             </p>
 
-            <div className="flex items-center gap-5">
+            <div className="flex flex-wrap items-center gap-5">
               <Link
                 href="/terms"
                 className="text-xs text-white/35 transition hover:text-white"
@@ -133,6 +134,13 @@ export default function Footer() {
                 className="text-xs text-white/35 transition hover:text-white"
               >
                 Privacy
+              </Link>
+
+              <Link
+                href="/payout-policy"
+                className="text-xs text-white/35 transition hover:text-white"
+              >
+                Payout Policy
               </Link>
 
               <Link

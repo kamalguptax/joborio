@@ -240,7 +240,7 @@ class CreatorOnboardingService
 
             // Keep legacy prefer_remote in sync with work mode.
             $modes = $targeting['work_mode'] ?? [];
-            if (in_array('remote', $modes, true) || in_array('work_from_home', $modes, true)) {
+            if (in_array('remote', $modes, true)) {
                 $creator->prefer_remote = true;
             }
         }

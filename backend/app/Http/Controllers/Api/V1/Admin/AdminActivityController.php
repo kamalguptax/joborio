@@ -36,11 +36,13 @@ class AdminActivityController extends Controller
             ->with([
                 'creator:id,handle,user_id',
                 'creator.user:id,name,email,public_code',
+                'creator.programs' => fn ($q) => $q
+                    ->wherePivot('status', 'active')
+                    ->select('programs.id', 'programs.title', 'programs.status', 'programs.promotion_type', 'programs.pricing_model'),
                 'listing:id,title,company_name,type,category,program_id',
                 'listing.program:id,title,promotion_type,status,pricing_model',
                 'earning:id,attribution_event_id,net_usd,gross_usd,state,earning_type',
-            ])
-            ->orderByDesc('created_at');
+            ]);
 
         if ($request->filled('event_type')) {
             $query->where('event_type', $request->string('event_type')->toString());
@@ -92,12 +94,26 @@ class AdminActivityController extends Controller
                             $program->where('promotion_type', $category)
                                 ->orWhere('title', 'like', '%'.$category.'%');
                         });
-                })->orWhere('meta->category', 'like', '%'.$category.'%');
+                })
+                    ->orWhere('meta->category', 'like', '%'.$category.'%')
+                    ->orWhere('meta->source', 'like', '%'.$category.'%');
             });
         }
 
         if ($search = trim($request->string('search')->toString())) {
             $this->applySearch($query, $search);
+        }
+
+        $sort = $request->string('sort')->toString() ?: 'date_desc';
+        if ($sort === 'earning_desc' || $sort === 'earning_asc') {
+            $query->leftJoin('earning_ledgers', 'earning_ledgers.attribution_event_id', '=', 'attribution_events.id')
+                ->select('attribution_events.*')
+                ->orderBy('earning_ledgers.net_usd', $sort === 'earning_asc' ? 'asc' : 'desc')
+                ->orderByDesc('attribution_events.created_at');
+        } elseif ($sort === 'date_asc') {
+            $query->orderBy('created_at');
+        } else {
+            $query->orderByDesc('created_at');
         }
 
         $rows = $query->paginate(min((int) $request->input('per_page', 40), 100));
@@ -263,6 +279,22 @@ class AdminActivityController extends Controller
         $earning = $event->earning;
         $meta = is_array($event->meta) ? $event->meta : [];
 
+        $creatorCampaigns = $event->creator?->programs?->map(fn ($p) => [
+            'id' => $p->id,
+            'title' => $p->title,
+            'status' => $p->status,
+            'promotion_type' => $p->promotion_type,
+            'pricing_model' => $p->pricing_model,
+        ])->values()->all() ?? [];
+
+        $runningCampaign = $program ? [
+            'id' => $program->id,
+            'title' => $program->title,
+            'status' => $program->status,
+            'promotion_type' => $program->promotion_type,
+            'pricing_model' => $program->pricing_model,
+        ] : ($creatorCampaigns[0] ?? null);
+
         return [
             'id' => $event->id,
             'event_type' => $event->event_type,
@@ -273,6 +305,7 @@ class AdminActivityController extends Controller
             'created_at' => optional($event->created_at)?->toIso8601String(),
             'geo_country' => $event->geo_country,
             'meta' => $meta,
+            'source' => $meta['source'] ?? null,
             'creator_id' => $event->creator_id,
             'user_id' => $user?->id,
             'creator_name' => $user?->name,
@@ -285,13 +318,8 @@ class AdminActivityController extends Controller
                 ?: $listing?->type
                 ?: $listing?->category
                 ?: ($meta['category'] ?? null),
-            'running_campaign' => $program ? [
-                'id' => $program->id,
-                'title' => $program->title,
-                'status' => $program->status,
-                'promotion_type' => $program->promotion_type,
-                'pricing_model' => $program->pricing_model,
-            ] : null,
+            'running_campaign' => $runningCampaign,
+            'running_campaigns' => $creatorCampaigns,
             'earning' => $earning ? [
                 'id' => $earning->id,
                 'net_usd' => (float) $earning->net_usd,

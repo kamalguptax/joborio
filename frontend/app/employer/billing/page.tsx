@@ -28,6 +28,7 @@ export default function EmployerBillingPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [ifsc, setIfsc] = useState("");
   const [canGoLive, setCanGoLive] = useState(false);
+  const [missingLabels, setMissingLabels] = useState<string[]>([]);
   const [prepaidBalance, setPrepaidBalance] = useState(0);
   const [razorpay, setRazorpay] = useState<RazorpayConfig | null>(null);
   const [orders, setOrders] = useState<Array<Record<string, unknown>>>([]);
@@ -63,6 +64,7 @@ export default function EmployerBillingPage() {
         setAccountNumber(String(e.payment_account_number ?? ""));
         setIfsc(String(e.payment_ifsc ?? ""));
         setCanGoLive(Boolean(data.can_go_live));
+        setMissingLabels(data.missing_labels ?? []);
         setPrepaidBalance(Number(data.prepaid_balance_usd ?? 0));
         setRazorpay(data.razorpay ?? null);
       })
@@ -94,10 +96,15 @@ export default function EmployerBillingPage() {
         payment_ifsc: ifsc.trim().toUpperCase() || undefined,
       });
       setCanGoLive(Boolean(result.can_go_live));
+      setMissingLabels(result.missing_labels ?? []);
       if (result.can_go_live) {
         toast.success("Billing saved. You can take campaigns live now.");
       } else {
-        toast.info("Billing saved, but some required details are still missing.");
+        toast.info(
+          result.missing_labels?.length
+            ? `Still needed: ${result.missing_labels.join(", ")}`
+            : "Billing saved, but some required details are still missing.",
+        );
       }
     } catch (err) {
       toast.error(
@@ -115,9 +122,9 @@ export default function EmployerBillingPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Company & payment</h1>
         <p className="mt-2 text-sm text-slate-500">
-          Required before any campaign goes live: company details, GST, business
-          email, and payment method. Add Razorpay funds for PPC and campaign
-          budgets.
+          Before any paid campaign goes live you must complete: company name,
+          GST, business email, payment method, and a first Razorpay wallet top-up.
+          Trial posts (no IP) can launch without this.
         </p>
         <p
           className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
@@ -128,6 +135,13 @@ export default function EmployerBillingPage() {
         >
           {canGoLive ? "Ready to go live" : "Billing incomplete"}
         </p>
+        {!canGoLive && missingLabels.length > 0 ? (
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-amber-900">
+            {missingLabels.map((label) => (
+              <li key={label}>{label}</li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2">
@@ -159,6 +173,7 @@ export default function EmployerBillingPage() {
           onSuccess={(result) => {
             setPrepaidBalance(Number(result.prepaid_balance_usd ?? 0));
             loadHistory();
+            loadBilling();
           }}
         />
       </div>

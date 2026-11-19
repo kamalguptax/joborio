@@ -2,9 +2,8 @@ export const PROMOTE_JOB_TYPES = [
   { id: "full_time", label: "Full time" },
   { id: "part_time", label: "Part time" },
   { id: "internship", label: "Internship" },
-  { id: "remote", label: "Remote" },
+  { id: "fresher", label: "Fresher" },
   { id: "contract", label: "Contract" },
-  { id: "work_from_home", label: "Work from home" },
 ] as const;
 
 export type PromoteJobTypeId = (typeof PROMOTE_JOB_TYPES)[number]["id"];
@@ -13,9 +12,8 @@ const NEEDLES: Record<PromoteJobTypeId, string[]> = {
   full_time: ["full-time", "full time", "fulltime"],
   part_time: ["part-time", "part time", "parttime"],
   internship: ["internship", "intern"],
-  remote: ["remote"],
+  fresher: ["fresher", "freshers", "entry level", "entry-level", "0-1 year", "0 year", "graduate", "campus"],
   contract: ["contract"],
-  work_from_home: ["work from home", "work-from-home", "wfh"],
 };
 
 const STORAGE_KEY = "joborio_promote_job_types";

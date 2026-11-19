@@ -45,6 +45,8 @@ class BrandAuthController extends Controller
             'accepted_terms' => ['accepted'],
             'captcha_id' => ['required', 'string'],
             'captcha_answer' => ['required', 'string'],
+        ], [
+            'email.unique' => 'This email is already registered. Sign in or use a different email.',
         ]);
 
         $captcha->assertValid($data['captcha_id'], $data['captcha_answer']);

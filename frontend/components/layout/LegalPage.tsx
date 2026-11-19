@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import PageHero from "./PageHero";
 
-/** Shared layout for Terms / Privacy: compact banner + readable article card. */
+/** Shared layout for Terms / Privacy / Payout Policy: compact banner + readable article card. */
 export default function LegalPage({
   eyebrow,
   title,

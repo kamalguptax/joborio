@@ -28,12 +28,14 @@ type ClickRow = {
   ip_address?: string | null;
   created_at?: string;
   geo_country?: string | null;
+  source?: string | null;
   meta?: {
     title?: string;
     clicked_at?: string;
     duplicate_of_event_id?: number;
     reference_id?: string;
     source?: string;
+    category?: string;
   };
   creator_id?: number;
   user_id?: number;
@@ -51,6 +53,7 @@ type ClickRow = {
     promotion_type?: string;
     pricing_model?: string;
   } | null;
+  running_campaigns?: Array<{ id: number; title: string }>;
   earning?: {
     id: number;
     net_usd: number;
@@ -87,22 +90,28 @@ type UserClickRow = {
 };
 
 type Panel = "clicks" | "users" | "signups";
+type SortKey = "date_desc" | "date_asc" | "earning_desc" | "earning_asc";
 
 export default function AdminActivityPage() {
   const [panel, setPanel] = useState<Panel>("clicks");
   const [fraudFilter, setFraudFilter] = useState("");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+  const [creatorIdFilter, setCreatorIdFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [earning, setEarning] = useState("");
   const [category, setCategory] = useState("");
+  const [sort, setSort] = useState<SortKey>("date_desc");
   const [userId, setUserId] = useState<number | null>(null);
   const [userName, setUserName] = useState("");
   const [rows, setRows] = useState<Array<ClickRow | UserClickRow>>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -111,33 +120,75 @@ export default function AdminActivityPage() {
     if (panelParam === "clicks" || panelParam === "users" || panelParam === "signups") {
       setPanel(panelParam);
     }
-    if (fraud === "dedup" || fraud === "clean" || fraud === "self_click") {
+    if (fraud === "dedup" || fraud === "clean" || fraud === "self_click" || fraud === "trial") {
       setFraudFilter(fraud);
       setPanel("clicks");
     }
   }, []);
 
   useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setQuery(search.trim());
+      setPage(1);
+    }, 350);
+    return () => window.clearTimeout(handle);
+  }, [search]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError("");
     const type = panel === "signups" ? "signups" : "clicks";
+    const creatorIdNum = Number(creatorIdFilter);
     adminActivity({
       type,
       view: panel === "users" ? "users" : undefined,
       page,
       fraud_status: panel === "clicks" ? fraudFilter || undefined : undefined,
       user_id: panel === "clicks" && userId ? userId : undefined,
+      creator_id:
+        panel === "clicks" && Number.isFinite(creatorIdNum) && creatorIdNum > 0
+          ? creatorIdNum
+          : undefined,
       search: query || undefined,
       date_from: dateFrom || undefined,
       date_to: dateTo || undefined,
       earning: panel === "clicks" ? earning || undefined : undefined,
       category: panel === "clicks" ? category || undefined : undefined,
+      sort: panel === "clicks" ? sort : undefined,
     })
       .then(({ data, meta }) => {
+        if (cancelled) return;
         setRows(data as Array<ClickRow | UserClickRow>);
         setLastPage(Number(meta.last_page ?? 1));
         setTotal(Number(meta.total ?? 0));
       })
-      .catch(() => setRows([]));
-  }, [panel, page, fraudFilter, userId, query, dateFrom, dateTo, earning, category]);
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setRows([]);
+        setTotal(0);
+        setError(err instanceof Error ? err.message : "Could not load activity.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    panel,
+    page,
+    fraudFilter,
+    userId,
+    query,
+    creatorIdFilter,
+    dateFrom,
+    dateTo,
+    earning,
+    category,
+    sort,
+    reloadKey,
+  ]);
 
   const openUser = (id: number, name: string) => {
     setUserId(id);
@@ -150,14 +201,27 @@ export default function AdminActivityPage() {
     event.preventDefault();
     setQuery(search.trim());
     setPage(1);
+    setReloadKey((k) => k + 1);
   };
 
   return (
     <>
-      <h1 className="text-2xl font-bold">User activity</h1>
-      <p className="mt-1 text-sm text-slate-400">
-        Full click log with creator name, id, running campaign, duplicates, and earnings.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">User activity</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Creator name, IDs, click, running campaign, duplicate status, and earnings — filter by
+            name/id, date, earning, or work category.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setReloadKey((k) => k + 1)}
+          className="rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold"
+        >
+          Refresh
+        </button>
+      </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
         {(
@@ -188,11 +252,24 @@ export default function AdminActivityPage() {
         className="mt-4 grid gap-3 rounded-xl border border-white/10 bg-white/5 p-4 sm:grid-cols-2 lg:grid-cols-4"
       >
         <label className="block text-xs text-slate-400 sm:col-span-2">
-          Search name / id / VIG code / job / IP
+          Search name / VIG code / job / IP
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="kamal, VIG003, 12, job title…"
+            placeholder="kamal, VIG003, job title…"
+            className="mt-1 w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm"
+          />
+        </label>
+        <label className="block text-xs text-slate-400">
+          Creator ID
+          <input
+            value={creatorIdFilter}
+            onChange={(e) => {
+              setCreatorIdFilter(e.target.value.replace(/[^\d]/g, ""));
+              setPage(1);
+            }}
+            placeholder="e.g. 12"
+            inputMode="numeric"
             className="mt-1 w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm"
           />
         </label>
@@ -259,7 +336,23 @@ export default function AdminActivityPage() {
                 ))}
               </select>
             </label>
-            <div className="flex flex-wrap items-end gap-2 sm:col-span-2">
+            <label className="block text-xs text-slate-400">
+              Sort
+              <select
+                value={sort}
+                onChange={(e) => {
+                  setSort(e.target.value as SortKey);
+                  setPage(1);
+                }}
+                className="mt-1 w-full rounded-lg border border-white/15 bg-black/20 px-3 py-2 text-sm"
+              >
+                <option value="date_desc">Newest first</option>
+                <option value="date_asc">Oldest first</option>
+                <option value="earning_desc">Highest earning</option>
+                <option value="earning_asc">Lowest earning</option>
+              </select>
+            </label>
+            <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:col-span-4">
               {[
                 { id: "", label: "All clicks" },
                 { id: "dedup", label: "Duplicates" },
@@ -299,10 +392,12 @@ export default function AdminActivityPage() {
             onClick={() => {
               setSearch("");
               setQuery("");
+              setCreatorIdFilter("");
               setDateFrom("");
               setDateTo("");
               setEarning("");
               setCategory("");
+              setSort("date_desc");
               setFraudFilter("");
               setUserId(null);
               setUserName("");
@@ -332,8 +427,9 @@ export default function AdminActivityPage() {
       ) : null}
 
       <p className="mt-4 text-sm text-slate-400">
-        {total} {panel === "users" ? "users with clicks" : "records"}
+        {loading ? "Loading…" : `${total} ${panel === "users" ? "users with clicks" : "records"}`}
       </p>
+      {error ? <p className="mt-2 text-sm text-rose-300">{error}</p> : null}
 
       {panel === "users" ? (
         <div className="mt-4 overflow-x-auto rounded-xl border border-white/10">
@@ -354,7 +450,8 @@ export default function AdminActivityPage() {
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-6 text-slate-500">
-                    No clicks yet. Open a share link or view a job while logged in as a creator.
+                    No clicks yet. Open a share link (`/go/?code=…&ref=…`) or view/apply a job while
+                    logged in as a creator.
                   </td>
                 </tr>
               ) : (
@@ -433,8 +530,9 @@ export default function AdminActivityPage() {
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-6 text-slate-500">
-                    No activity yet. Creator clicks are stored when a share link
-                    (`/go/?code=…&ref=…`) opens, or when a logged-in creator views/applies a job.
+                    No activity yet. Clicks are stored when someone opens a creator share link, or
+                    when a logged-in creator uses View / Apply / Copy link on Opportunities or
+                    Campaigns.
                   </td>
                 </tr>
               ) : (
@@ -446,6 +544,9 @@ export default function AdminActivityPage() {
                     (row.creator_handle ? `@${row.creator_handle}` : "Unknown");
                   const code = row.public_code || row.creator?.user?.public_code || "—";
                   const uid = row.user_id || row.creator?.user?.id;
+                  const extraCampaigns = (row.running_campaigns ?? []).filter(
+                    (c) => c.id !== row.running_campaign?.id,
+                  );
                   return (
                     <tr key={row.id} className="border-t border-white/10 align-top">
                       <td className="px-4 py-3">
@@ -485,6 +586,11 @@ export default function AdminActivityPage() {
                           {row.company_name || "—"} · {row.event_type}
                           {row.meta?.reference_id ? ` · ${row.meta.reference_id}` : ""}
                         </div>
+                        {(row.source || row.meta?.source) ? (
+                          <div className="text-[11px] text-slate-500">
+                            via {row.source || row.meta?.source}
+                          </div>
+                        ) : null}
                       </td>
                       <td className="px-4 py-3 text-xs">
                         {row.running_campaign ? (
@@ -496,13 +602,19 @@ export default function AdminActivityPage() {
                               #{row.running_campaign.id} · {row.running_campaign.status} ·{" "}
                               {row.running_campaign.pricing_model}
                             </div>
+                            {extraCampaigns.length ? (
+                              <div className="mt-1 text-slate-500">
+                                +{extraCampaigns.length} more:{" "}
+                                {extraCampaigns.map((c) => c.title).join(", ")}
+                              </div>
+                            ) : null}
                           </>
                         ) : (
                           <span className="text-slate-500">Organic / XML</span>
                         )}
                       </td>
                       <td className="px-4 py-3 uppercase text-xs text-slate-300">
-                        {row.work_category || "—"}
+                        {row.work_category || row.meta?.category || "—"}
                       </td>
                       <td className="px-4 py-3 text-xs">
                         <div>

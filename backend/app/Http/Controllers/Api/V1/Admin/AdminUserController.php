@@ -193,6 +193,47 @@ class AdminUserController extends Controller
         return $this->success($user->fresh()->load('roles:id,name', 'creator', 'employer'));
     }
 
+    public function bulkApprove(Request $request): JsonResponse
+    {
+        if (! Schema::hasColumn('creators', 'approval_status')) {
+            return $this->error('UNSUPPORTED', 'Creator approval is not available.', 422);
+        }
+
+        $data = $request->validate([
+            'user_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
+        ]);
+
+        $adminId = (int) $request->user()->id;
+        $users = User::query()
+            ->with('creator')
+            ->whereIn('id', $data['user_ids'])
+            ->whereHas('creator')
+            ->get();
+
+        $approved = 0;
+        $skipped = 0;
+        foreach ($users as $user) {
+            if (! $user->creator) {
+                $skipped++;
+                continue;
+            }
+            if (($user->creator->approval_status ?? '') === 'approved') {
+                $skipped++;
+                continue;
+            }
+            $this->applyCreatorApproval($user->creator, 'approved', $adminId);
+            $approved++;
+        }
+
+        return $this->success([
+            'approved' => $approved,
+            'skipped' => $skipped,
+            'requested' => count($data['user_ids']),
+            'message' => "Approved {$approved} creator(s).",
+        ]);
+    }
+
     private function applyCreatorApproval(Creator $creator, string $status, int $adminId): void
     {
         $payload = ['approval_status' => $status];

@@ -6,6 +6,7 @@ import { TransactionHistory, type TransactionRow } from "@/components/payouts/Tr
 import {
   adminCompletePayoutBatch,
   adminCreatePayoutBatch,
+  adminExportPayoutReport,
   adminListPayoutBatches,
   adminPayoutPreview,
   adminPayoutTransactions,
@@ -40,6 +41,23 @@ export default function AdminPayoutsPage() {
   const [userName, setUserName] = useState("");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+  const [downloadBusy, setDownloadBusy] = useState(false);
+
+  const downloadReport = async () => {
+    setDownloadBusy(true);
+    try {
+      await adminExportPayoutReport({
+        view: tab === "users" ? "users" : "transactions",
+        user_id: tab === "history" && userId ? userId : undefined,
+        search: tab === "history" ? query || undefined : undefined,
+      });
+      toast.success("Payout report downloaded.");
+    } catch {
+      toast.error("Could not download payout report.");
+    } finally {
+      setDownloadBusy(false);
+    }
+  };
 
   const loadHistory = () => {
     adminListPayoutBatches()
@@ -131,6 +149,16 @@ export default function AdminPayoutsPage() {
             {label}
           </button>
         ))}
+        {tab !== "batches" ? (
+          <button
+            type="button"
+            disabled={downloadBusy}
+            onClick={downloadReport}
+            className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300 disabled:opacity-60"
+          >
+            {downloadBusy ? "Downloading…" : "Download report (CSV)"}
+          </button>
+        ) : null}
       </div>
 
       {tab === "history" ? (

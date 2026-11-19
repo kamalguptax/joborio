@@ -7,6 +7,7 @@ import { getReferralCode, clearReferralCode } from "@/lib/auth/referralStorage";
 import { ApiClientError } from "@/lib/api/client";
 import { getAuthToken } from "@/lib/auth/session";
 import { detectCurrentPlace } from "@/lib/maps/detectPlace";
+import GooglePlacesLocationInput from "@/components/maps/GooglePlacesLocationInput";
 import NicheSearch from "@/components/jobs/NicheSearch";
 import PromoteJobTypes from "@/components/jobs/PromoteJobTypes";
 import { readPromoteJobTypes, savePromoteJobTypes } from "@/lib/jobs/promoteTypes";
@@ -301,17 +302,30 @@ export default function OnboardingPage() {
           </div>
           <div>
             <label htmlFor="ob-location" className={authLabel}>Location</label>
-            <input
+            <GooglePlacesLocationInput
               id="ob-location"
-              type="text"
               value={location}
-              onChange={(event) => setLocation(event.target.value)}
-              placeholder={locating ? "Finding your location…" : "e.g. Lucknow, India"}
+              onChange={(next) => {
+                setLocation(next);
+                setLocationFromGoogle(false);
+              }}
+              onPlaceSelect={(place) => {
+                setLocation(place.label);
+                setLocationFromGoogle(true);
+                if (place.countryCode) setCountryCode(place.countryCode);
+              }}
+              placeholder={
+                locating ? "Finding your location…" : "Start typing a city…"
+              }
               className={authField}
             />
-            {locating || locationFromGoogle ? (
+            {locating ? (
               <p className="mt-1.5 text-xs text-slate-500">
-                {locating ? "Checking Google for your city…" : "Filled from Google. You can edit it."}
+                Checking Google for your city…
+              </p>
+            ) : locationFromGoogle ? (
+              <p className="mt-1.5 text-xs text-slate-500">
+                Filled from Google. You can search again or edit it.
               </p>
             ) : null}
           </div>
@@ -360,7 +374,12 @@ export default function OnboardingPage() {
 
       {currentStep === 3 && (
         <div className="space-y-7">
-          <NicheSearch niches={niches} selectedIds={selectedNicheIds} onToggle={toggleNiche} />
+          <NicheSearch
+            niches={niches}
+            selectedIds={selectedNicheIds}
+            onToggle={toggleNiche}
+            onChange={setSelectedNicheIds}
+          />
           <PromoteJobTypes
             selected={jobTypes}
             onToggle={(id) =>
@@ -437,7 +456,8 @@ export default function OnboardingPage() {
           </div>
 
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-[13px] text-amber-900">
-            Add at least one link below. New creator accounts stay pending until an admin approves them.
+            <strong>Required:</strong> add at least one LinkedIn, Instagram, community, or
+            website link. We review and approve creator accounts manually.
           </p>
 
           <div>

@@ -28,26 +28,49 @@ class CampaignAssignmentController extends Controller
             ->limit(100)
             ->get();
 
-        $assignedIds = PublisherCampaignAssignment::query()
+        $filterCommunityId = $request->filled('community_id')
+            ? (int) $request->integer('community_id')
+            : null;
+
+        $assignmentRows = PublisherCampaignAssignment::query()
             ->where('publisher_id', $publisher->id)
             ->where('status', 'active')
-            ->pluck('program_id')
-            ->all();
+            ->get(['program_id', 'community_id']);
+
+        $assignedByProgram = $assignmentRows->groupBy('program_id');
 
         return $this->success([
-            'campaigns' => $programs->map(fn (Program $p) => [
-                'id' => $p->id,
-                'title' => $p->title,
-                'pricing_model' => $showRates ? $p->pricing_model : null,
-                'promotion_type' => $p->promotion_type,
-                'rate_usd' => $showRates ? $p->rate_usd : null,
-                'budget_total_usd' => $showRates ? $p->budget_total_usd : null,
-                'status' => $p->status,
-                'employer' => $p->employer?->company_name,
-                'already_assigned' => in_array($p->id, $assignedIds, true),
-            ]),
+            'campaigns' => $programs->map(function (Program $p) use ($showRates, $assignedByProgram, $filterCommunityId) {
+                $rows = $assignedByProgram->get($p->id) ?? collect();
+                $communityIds = $rows
+                    ->pluck('community_id')
+                    ->filter()
+                    ->map(fn ($id) => (int) $id)
+                    ->unique()
+                    ->values()
+                    ->all();
+                $alreadyForCommunity = $filterCommunityId
+                    ? $rows->contains(fn ($row) => (int) $row->community_id === $filterCommunityId)
+                    : $rows->isNotEmpty();
+
+                return [
+                    'id' => $p->id,
+                    'title' => $p->title,
+                    'pricing_model' => $showRates ? $p->pricing_model : null,
+                    'promotion_type' => $p->promotion_type,
+                    'rate_usd' => $showRates ? $p->rate_usd : null,
+                    'budget_total_usd' => $showRates ? $p->budget_total_usd : null,
+                    'status' => $p->status,
+                    'employer' => $p->employer?->company_name,
+                    // Same campaign may be used on multiple communities.
+                    'already_assigned' => $alreadyForCommunity,
+                    'assigned_community_ids' => $communityIds,
+                    'assigned_community_count' => count($communityIds),
+                ];
+            }),
             'rates_visible' => $showRates,
             'membership_role' => $membership->role,
+            'shares_allowed' => true,
         ]);
     }
 

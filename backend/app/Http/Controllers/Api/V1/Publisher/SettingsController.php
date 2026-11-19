@@ -53,7 +53,7 @@ class SettingsController extends Controller
             'niche_ids' => ['sometimes', 'array', 'min:1'],
             'niche_ids.*' => ['integer', 'exists:niches,id'],
             'job_preferences' => ['sometimes', 'array', 'min:1'],
-            'job_preferences.*' => ['string', 'in:full_time,part_time,remote,internship'],
+            'job_preferences.*' => ['string', 'in:full_time,part_time,remote,internship,fresher'],
             'notification_preferences' => ['sometimes', 'array'],
             'notification_preferences.email_invites' => ['sometimes', 'boolean'],
             'notification_preferences.email_campaigns' => ['sometimes', 'boolean'],

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Listing;
 use App\Services\Tracking\ClickTrackingService;
 use App\Support\ApiResponse;
+use App\Support\TrackingPublicUrl;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -34,7 +35,7 @@ class CreatorListingController extends Controller
                     'listing' => $listing,
                     'is_pinned' => (bool) $listing->pivot->is_pinned,
                     'is_hidden' => (bool) $listing->pivot->is_hidden,
-                    'tracked_url' => url('/r/'.$token->token),
+                    'tracked_url' => TrackingPublicUrl::forToken($token->token),
                 ];
             });
 
@@ -76,7 +77,7 @@ class CreatorListingController extends Controller
             'listing' => $fresh,
             'is_pinned' => (bool) $fresh->pivot->is_pinned,
             'is_hidden' => (bool) $fresh->pivot->is_hidden,
-            'tracked_url' => url('/r/'.$token->token),
+            'tracked_url' => TrackingPublicUrl::forToken($token->token),
         ]);
     }
 }

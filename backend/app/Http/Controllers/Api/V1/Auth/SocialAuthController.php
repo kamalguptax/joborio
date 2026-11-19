@@ -86,8 +86,15 @@ class SocialAuthController extends Controller
     private function redirectToFrontend(?string $token = null, ?string $provider = null, ?string $error = null, ?string $message = null): RedirectResponse
     {
         $base = rtrim((string) config('joborio.frontend_url', 'https://joborio.com'), '/');
-        // Production must never send users to a local Next.js origin after OAuth.
-        if (app()->environment('production') && preg_match('/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i', $base)) {
+        $localFrontend = (bool) preg_match('/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/i', $base);
+        $appUrl = (string) config('app.url', '');
+        // Public API hosts must never bounce OAuth to a developer machine, even if
+        // FRONTEND_URL was left as localhost or APP_ENV is not "production".
+        $publicApi = (bool) preg_match(
+            '/(?:^https?:\/\/(?!(?:localhost|127\.0\.0\.1)\b)|joborio\.com|api\.joborio\.com|sevenapps\.in)/i',
+            $appUrl,
+        );
+        if ($localFrontend && ($publicApi || app()->environment('production'))) {
             $base = 'https://joborio.com';
         }
         $path = config('joborio.oauth_callback_path', '/auth/callback');

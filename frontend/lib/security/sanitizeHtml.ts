@@ -69,10 +69,14 @@ function cleanNode(node: Node, doc: Document): Node | null {
 
 export function sanitizeHtml(dirty: string): string {
   if (!dirty) return "";
+  const pre = dirty
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ");
   if (typeof window === "undefined" || typeof DOMParser === "undefined") {
-    return escapeHtml(dirty);
+    return escapeHtml(pre);
   }
-  const parsed = new DOMParser().parseFromString(dirty, "text/html");
+  const parsed = new DOMParser().parseFromString(pre, "text/html");
   const out = document.implementation.createHTMLDocument("");
   const container = out.createElement("div");
   parsed.body.childNodes.forEach((child) => {

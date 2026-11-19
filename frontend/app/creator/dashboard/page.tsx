@@ -20,7 +20,7 @@ import { creatorProfilePath } from "@/lib/staticExport";
 import { formatMoney } from "@/lib/money";
 import { StatCardsSkeleton } from "@/components/ui/Skeleton";
 
-type RangeKey = "1d" | "3d" | "7d" | "30d" | "all";
+type RangeKey = "1d" | "yesterday" | "3d" | "7d" | "30d" | "all";
 type CampaignKey =
   | "all"
   | "ppc"
@@ -32,6 +32,7 @@ type CampaignKey =
 
 const RANGE_LABEL: Record<Exclude<RangeKey, "all">, string> = {
   "1d": "Today",
+  yesterday: "Yesterday",
   "3d": "3 days",
   "7d": "7 days",
   "30d": "30 days",
@@ -245,6 +246,7 @@ export default function CreatorDashboardPage() {
 
   const rangeClicks = useMemo(() => {
     if (range === "1d") return metrics.clicks_1d ?? 0;
+    if (range === "yesterday") return metrics.clicks_yesterday ?? 0;
     if (range === "3d") return metrics.clicks_3d ?? 0;
     if (range === "7d") return metrics.clicks_7d ?? 0;
     if (range === "30d") return metrics.clicks_30d ?? metrics.clicks_7d ?? 0;
@@ -253,6 +255,7 @@ export default function CreatorDashboardPage() {
 
   const rangeRegs = useMemo(() => {
     if (range === "1d") return metrics.registrations_1d ?? 0;
+    if (range === "yesterday") return metrics.registrations_yesterday ?? 0;
     if (range === "3d") return metrics.registrations_3d ?? 0;
     if (range === "7d") return metrics.registrations_7d ?? 0;
     if (range === "30d") return metrics.registrations_30d ?? metrics.registrations ?? 0;
@@ -343,7 +346,7 @@ export default function CreatorDashboardPage() {
       value: rangeClicks,
       icon: MousePointerClick,
       tone: "from-blue-500 to-blue-600",
-      href: "/creator/clicks",
+      href: "/creator/earnings#clicks",
       cta: "View clicks →",
     },
     {
@@ -359,7 +362,7 @@ export default function CreatorDashboardPage() {
       value: metrics.clicks_duplicate ?? 0,
       icon: MousePointerClick,
       tone: "from-amber-500 to-orange-600",
-      href: "/creator/clicks",
+      href: "/creator/earnings#clicks",
       cta: "View clicks →",
     },
     {
@@ -425,7 +428,7 @@ export default function CreatorDashboardPage() {
               {" · "}live clicks, registrations and earnings.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:min-w-[22rem]">
+          <div className="grid min-w-0 grid-cols-2 gap-3 sm:w-full sm:max-w-md">
             <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur">
               <p className="text-xs font-medium text-indigo-200">Total earning</p>
               <p className="mt-1 text-2xl font-bold tracking-tight">
@@ -470,6 +473,7 @@ export default function CreatorDashboardPage() {
             className="min-h-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-[#172b63] outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10"
           >
             <option value="1d">Today</option>
+            <option value="yesterday">Yesterday</option>
             <option value="3d">Last 3 days</option>
             <option value="7d">Last 7 days</option>
             <option value="30d">Last 30 days</option>
@@ -635,7 +639,7 @@ export default function CreatorDashboardPage() {
             <div className="mt-8 dash-card p-6">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-lg font-bold">Recent traffic</h2>
-                <Link href="/creator/clicks" className="text-sm font-semibold text-purple-700">
+                <Link href="/creator/earnings#clicks" className="text-sm font-semibold text-purple-700">
                   All clicks
                 </Link>
               </div>

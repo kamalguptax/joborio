@@ -24,6 +24,7 @@ const JOB_OPTS = [
   { value: "part_time", label: "Part-time" },
   { value: "remote", label: "Remote" },
   { value: "internship", label: "Internship" },
+  { value: "fresher", label: "Fresher" },
 ];
 
 const NETWORK_OPTS = ["agency", "publisher", "affiliate", "community"];

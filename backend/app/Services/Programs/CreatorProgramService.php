@@ -18,6 +18,7 @@ class CreatorProgramService
         return Program::query()
             ->where('status', 'active')
             ->with(['listing', 'employer'])
+            ->latest('id')
             ->get()
             ->filter(fn (Program $p) => $this->matching->creatorEligible($p, $creator))
             ->values();
@@ -27,6 +28,12 @@ class CreatorProgramService
     {
         if ($program->status !== 'active') {
             throw ValidationException::withMessages(['program' => ['Program is not active.']]);
+        }
+
+        if (! $program->isWithinSchedule()) {
+            throw ValidationException::withMessages([
+                'program' => ['This campaign is outside its start/expiry window.'],
+            ]);
         }
 
         if (! $this->matching->creatorEligible($program, $creator)) {

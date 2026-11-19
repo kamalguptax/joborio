@@ -165,7 +165,10 @@ export default function DashboardShell({
         <p className="px-6 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
           Menu
         </p>
-        <nav aria-label="Main" className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
+        <nav
+          aria-label="Main"
+          className="dash-scroll flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-3 pb-4"
+        >
           {nav.map((item) => {
             const active = isActive(path, item);
             const Icon = item.icon;
@@ -201,13 +204,13 @@ export default function DashboardShell({
           })}
         </nav>
 
-        <div className="p-4">
+        <div className="shrink-0 space-y-3 border-t border-slate-100 p-4">
           <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-blue-50/70 p-4">
             <p className="text-sm font-bold text-[#0F1B3D]">Need a hand?</p>
             <p className="mt-1 text-xs leading-relaxed text-slate-500">
               Read the FAQ or get in touch and we will help you out.
             </p>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               <Link
                 href="/faq"
                 className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-violet-700 shadow-sm ring-1 ring-violet-100 transition hover:bg-violet-50"
@@ -222,10 +225,18 @@ export default function DashboardShell({
               </Link>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => void onSignOut()}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+          >
+            <LogOut size={16} aria-hidden="true" />
+            Sign out
+          </button>
         </div>
       </aside>
 
-      <div className="min-w-0 bg-[radial-gradient(55%_38%_at_100%_0%,rgba(124,58,237,0.07),transparent_65%)]">
+      <div className="min-w-0 overflow-x-hidden bg-[radial-gradient(55%_38%_at_100%_0%,rgba(124,58,237,0.07),transparent_65%)]">
         {/* Mobile top bar */}
         <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between gap-3 px-4 py-3">
@@ -240,7 +251,10 @@ export default function DashboardShell({
             </div>
             <div className="flex shrink-0 items-center gap-2">{topRight}</div>
           </div>
-          <nav aria-label="Main" className="flex gap-1 overflow-x-auto px-3 pb-3">
+          <nav
+            aria-label="Main"
+            className="dash-scroll-x flex gap-1 overflow-x-auto overflow-y-hidden px-3 pb-3"
+          >
             {nav.map((item) => {
               const active = isActive(path, item);
               const Icon = item.icon;
@@ -263,7 +277,7 @@ export default function DashboardShell({
           </nav>
         </div>
 
-        <main className="dash-content w-full px-5 pb-16 pt-6 lg:px-8 lg:pt-7 xl:px-10 2xl:px-12">
+        <main className="dash-content w-full max-w-full px-5 pb-16 pt-6 lg:px-8 lg:pt-7 xl:px-10 2xl:px-12">
           {topRight ? (
             <div className="mb-4 hidden items-center justify-between gap-4 lg:flex">
               <div id="dash-header-slot" className="flex min-w-0 items-center gap-3" />

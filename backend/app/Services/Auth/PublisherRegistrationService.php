@@ -56,7 +56,7 @@ class PublisherRegistrationService
         }
 
         $jobPrefs = array_values(array_unique(array_map('strval', $data['job_preferences'] ?? [])));
-        $allowedJobs = ['full_time', 'part_time', 'remote', 'internship'];
+        $allowedJobs = ['full_time', 'part_time', 'remote', 'internship', 'fresher'];
         $jobPrefs = array_values(array_intersect($jobPrefs, $allowedJobs));
         if (count($jobPrefs) < 1) {
             throw ValidationException::withMessages([

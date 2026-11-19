@@ -4,7 +4,6 @@ namespace App\Services\Programs;
 
 use App\Models\Creator;
 use App\Models\Program;
-use App\Support\CreatorRelevance;
 use Illuminate\Support\Collection;
 
 class ProgramMatchingService
@@ -35,19 +34,22 @@ class ProgramMatchingService
 
         $nicheIds = collect($program->target_niche_ids ?? [])->filter();
         if ($nicheIds->isNotEmpty()) {
+            // Strict: only creators who opted into one of the campaign categories.
             $query->whereHas('niches', fn ($q) => $q->whereIn('niches.id', $nicheIds));
         }
 
-        $countries = collect($program->target_countries ?? [])->filter()->map(fn ($c) => strtoupper($c));
+        $countries = collect($program->target_countries ?? [])->filter()->map(fn ($c) => strtoupper((string) $c));
         if ($countries->isNotEmpty()) {
             $query->where(function ($q) use ($countries) {
-                foreach ($countries as $code) {
-                    $q->orWhereJsonContains('audience_countries', $code);
+                foreach ($countries as $i => $code) {
+                    if ($i === 0) {
+                        $q->whereJsonContains('audience_countries', $code);
+                    } else {
+                        $q->orWhereJsonContains('audience_countries', $code);
+                    }
                 }
             });
         }
-
-        // min_trust_tier ignored — features are by account type (creator/employer).
 
         return $query->limit(500)->get();
     }
@@ -58,43 +60,40 @@ class ProgramMatchingService
             return false;
         }
 
-        $creator->loadMissing('niches');
-        if ($creator->niches->isEmpty() || ! $this->matchesCreatorFocus($program, $creator)) {
+        if (! $program->isWithinSchedule()) {
             return false;
         }
 
-        $countries = collect($program->target_countries ?? [])->filter()->map(fn ($c) => strtoupper($c));
+        // Country targeting is strict when set: creator audience must overlap.
+        $countries = collect($program->target_countries ?? [])
+            ->filter()
+            ->map(fn ($c) => strtoupper((string) $c));
         if ($countries->isNotEmpty()) {
-            $audience = collect($creator->audience_countries ?? [])->map(fn ($c) => strtoupper($c));
-            if ($audience->intersect($countries)->isEmpty()) {
+            $audience = collect($creator->audience_countries ?? [])
+                ->filter()
+                ->map(fn ($c) => strtoupper((string) $c));
+            if ($audience->isEmpty() || $audience->intersect($countries)->isEmpty()) {
                 return false;
             }
         }
 
-        // min_trust_tier ignored — any creator can match active programs by niche/geo.
+        $creator->loadMissing('niches');
+        $target = collect($program->target_niche_ids ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->values();
 
-        return true;
-    }
-
-    private function matchesCreatorFocus(Program $program, Creator $creator): bool
-    {
-        $creatorIds = $creator->niches->pluck('id')->map(fn ($id) => (int) $id);
-        $target = collect($program->target_niche_ids ?? [])->map(fn ($id) => (int) $id)->filter()->values();
-        if ($target->isNotEmpty()) {
-            return $creatorIds->intersect($target)->isNotEmpty();
+        // No category targeting → visible to every active creator (country rules still apply).
+        if ($target->isEmpty()) {
+            return true;
         }
 
-        $listing = $program->relationLoaded('listing') ? $program->listing : $program->listing()->first();
-        $hay = implode(' ', array_filter([
-            $program->title,
-            $program->description,
-            $listing?->title,
-            $listing?->category,
-            $listing?->description,
-            $listing?->location_label,
-        ]));
-
-        return CreatorRelevance::textMatchesNames($hay, $creator->niches->pluck('name')->all());
+        // Strict category match: only creators in the selected niche(s).
+        return $creator->niches
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->intersect($target)
+            ->isNotEmpty();
     }
 
     public function fitScore(Program $program, Creator $creator): float
@@ -106,8 +105,8 @@ class ProgramMatchingService
             $score += min(30, $overlap * 15);
         }
 
-        $countries = collect($program->target_countries ?? [])->map(fn ($c) => strtoupper($c));
-        $audience = collect($creator->audience_countries ?? [])->map(fn ($c) => strtoupper($c));
+        $countries = collect($program->target_countries ?? [])->map(fn ($c) => strtoupper((string) $c));
+        $audience = collect($creator->audience_countries ?? [])->map(fn ($c) => strtoupper((string) $c));
         if ($countries->isNotEmpty() && $audience->intersect($countries)->isNotEmpty()) {
             $score += 20;
         }

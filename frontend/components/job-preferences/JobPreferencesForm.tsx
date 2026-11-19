@@ -171,15 +171,25 @@ export default function JobPreferencesForm({
   );
 
   useEffect(() => {
-    const stored = initial.job_types.length
+    const stored = (initial.job_types.length
       ? initial.job_types
-      : readPromoteJobTypes();
+      : readPromoteJobTypes()
+    ).filter((id) => id !== "remote" && id !== "work_from_home");
+    const baseTargeting = initial.opportunity_targeting ?? defaultTargeting();
+    const modes = baseTargeting.work_mode
+      .map((m) => (m === "work_from_home" ? "remote" : m))
+      .filter((m, i, arr) => arr.indexOf(m) === i);
+    const hadRemoteEmployment =
+      initial.job_types.includes("remote") ||
+      initial.job_types.includes("work_from_home");
     setNicheIds(initial.niche_ids);
     setCountries(initial.countries);
-    setRemoteOnly(initial.remoteOnly);
+    setRemoteOnly(
+      initial.remoteOnly || hadRemoteEmployment || modes.includes("remote"),
+    );
     setJobTypes(stored);
     setCategories(initial.opportunity_categories ?? []);
-    setTargeting(initial.opportunity_targeting ?? defaultTargeting());
+    setTargeting({ ...baseTargeting, work_mode: modes });
     setPrefs(initial.opportunity_preferences ?? defaultPrefs());
     onJobTypesChange?.(stored);
   }, [initial]);
@@ -220,20 +230,23 @@ export default function JobPreferencesForm({
     }
     setSaving(true);
     try {
-      const nextRemote =
-        remoteOnly ||
-        targeting.work_mode.includes("remote") ||
-        targeting.work_mode.includes("work_from_home");
+      const cleanedModes = targeting.work_mode
+        .map((m) => (m === "work_from_home" ? "remote" : m))
+        .filter((m, i, arr) => arr.indexOf(m) === i);
+      const nextRemote = remoteOnly || cleanedModes.includes("remote");
+      const cleanedJobTypes = jobTypes.filter(
+        (id) => id !== "remote" && id !== "work_from_home",
+      );
       await onSave({
         niche_ids: nicheIds,
         countries,
         remoteOnly: nextRemote,
-        job_types: jobTypes,
+        job_types: cleanedJobTypes,
         opportunity_categories: categories,
-        opportunity_targeting: targeting,
+        opportunity_targeting: { ...targeting, work_mode: cleanedModes },
         opportunity_preferences: prefs,
       });
-      savePromoteJobTypes(jobTypes);
+      savePromoteJobTypes(cleanedJobTypes);
       toast.success("Opportunity preferences saved.");
     } catch {
       toast.error("Could not save preferences. Please try again.");

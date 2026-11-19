@@ -114,4 +114,88 @@ class PayoutController extends Controller
 
         return $this->success($batches);
     }
+
+    public function exportReport(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $view = $request->string('view', 'transactions')->toString();
+        $userId = $request->integer('user_id') ?: null;
+        $search = Str::lower(trim($request->string('search')->toString()));
+
+        if ($view === 'users') {
+            $rows = $this->history->byUser();
+            $filename = 'payouts-by-user-'.now()->format('Ymd-His').'.csv';
+            $header = [
+                'creator_id', 'user_id', 'name', 'email', 'handle', 'public_code',
+                'credits_usd', 'pending_usd', 'payable_usd', 'paid_out_usd', 'last_at',
+            ];
+            $body = $rows->map(function (array $row) {
+                $user = $row['user'] ?? [];
+
+                return [
+                    $row['creator_id'] ?? '',
+                    $user['id'] ?? '',
+                    $user['name'] ?? '',
+                    $user['email'] ?? '',
+                    $user['handle'] ?? '',
+                    $user['public_code'] ?? '',
+                    $row['credits_usd'] ?? 0,
+                    $row['pending_usd'] ?? 0,
+                    $row['payable_usd'] ?? 0,
+                    $row['paid_out_usd'] ?? 0,
+                    $row['last_at'] ?? '',
+                ];
+            })->all();
+        } else {
+            $rows = $this->history->all($userId);
+            if ($search !== '') {
+                $rows = $rows->filter(function (array $row) use ($search) {
+                    $user = $row['user'] ?? [];
+                    $hay = Str::lower(implode(' ', array_filter([
+                        $row['title'] ?? '',
+                        $row['description'] ?? '',
+                        $row['status'] ?? '',
+                        $user['name'] ?? '',
+                        $user['email'] ?? '',
+                        $user['public_code'] ?? '',
+                        $user['handle'] ?? '',
+                    ])));
+
+                    return str_contains($hay, $search);
+                })->values();
+            }
+            $filename = 'payouts-transactions-'.now()->format('Ymd-His').'.csv';
+            $header = [
+                'id', 'type', 'title', 'description', 'status', 'amount_usd',
+                'user_id', 'user_name', 'user_email', 'handle', 'created_at',
+            ];
+            $body = $rows->map(function (array $row) {
+                $user = $row['user'] ?? [];
+
+                return [
+                    $row['id'] ?? '',
+                    $row['type'] ?? '',
+                    $row['title'] ?? '',
+                    $row['description'] ?? '',
+                    $row['status'] ?? '',
+                    $row['amount_usd'] ?? ($row['net_usd'] ?? 0),
+                    $user['id'] ?? '',
+                    $user['name'] ?? '',
+                    $user['email'] ?? '',
+                    $user['handle'] ?? '',
+                    $row['created_at'] ?? ($row['at'] ?? ''),
+                ];
+            })->all();
+        }
+
+        return response()->streamDownload(function () use ($header, $body) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, $header);
+            foreach ($body as $row) {
+                fputcsv($out, $row);
+            }
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
 }

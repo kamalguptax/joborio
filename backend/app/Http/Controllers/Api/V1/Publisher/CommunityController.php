@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Publisher;
 
 use App\Http\Controllers\Controller;
+use App\Models\Program;
+use App\Models\PublisherCampaignAssignment;
 use App\Models\PublisherCommunity;
 use App\Models\PublisherInvitation;
 use App\Models\PublisherUser;
@@ -48,9 +50,12 @@ class CommunityController extends Controller
             'campaign_access' => ['nullable', 'string', 'in:all_eligible,selected'],
             'status' => ['nullable', 'string', 'in:active,paused'],
             'manager_user_id' => ['nullable', 'integer'],
+            'program_ids' => ['nullable', 'array'],
+            'program_ids.*' => ['integer', 'exists:programs,id'],
         ]);
 
         $managerId = $this->resolveManagerId($publisher->id, $data['manager_user_id'] ?? null);
+        $programIds = array_values(array_unique(array_map('intval', $data['program_ids'] ?? [])));
 
         $community = $publisher->communities()->create([
             'code' => $this->uniqueCode($publisher->id),
@@ -58,15 +63,24 @@ class CommunityController extends Controller
             'category' => $data['category'] ?? null,
             'description' => $data['description'] ?? null,
             'country_code' => $data['country_code'] ?? $publisher->country_code,
-            'campaign_access' => $data['campaign_access'] ?? 'all_eligible',
+            'campaign_access' => $data['campaign_access'] ?? 'selected',
             'status' => $data['status'] ?? 'active',
             'manager_user_id' => $managerId,
         ]);
 
         $this->ensureCommunityJoinInvite($community, $request->user()->id);
 
+        // Same campaign can be linked to many communities for this publisher.
+        $assigned = $this->assignProgramsToCommunity(
+            $publisher->id,
+            $community->id,
+            $programIds,
+            (int) $request->user()->id,
+        );
+
         return $this->success([
             'community' => $this->serialize($community->load('manager:id,name,email')),
+            'assigned_program_ids' => $assigned,
         ], 201);
     }
 
@@ -112,6 +126,54 @@ class CommunityController extends Controller
         return $this->success([
             'community' => $this->serialize($community->fresh()->load('manager:id,name,email')),
         ]);
+    }
+
+    /**
+     * @param  list<int>  $programIds
+     * @return list<int>
+     */
+    private function assignProgramsToCommunity(
+        int $publisherId,
+        int $communityId,
+        array $programIds,
+        int $assignedByUserId,
+    ): array {
+        if ($programIds === []) {
+            return [];
+        }
+
+        $programs = Program::query()
+            ->whereIn('id', $programIds)
+            ->where('status', 'active')
+            ->get()
+            ->keyBy('id');
+
+        $assigned = [];
+        foreach ($programIds as $programId) {
+            $program = $programs->get($programId);
+            if (! $program) {
+                continue;
+            }
+
+            $row = PublisherCampaignAssignment::query()->firstOrNew([
+                'publisher_id' => $publisherId,
+                'community_id' => $communityId,
+                'program_id' => $program->id,
+            ]);
+
+            $row->fill([
+                'status' => 'active',
+                'pricing_model' => $program->pricing_model,
+                'accepted_rate_usd' => $row->accepted_rate_usd ?? $program->rate_usd,
+                'rate_version' => $row->exists ? ($row->rate_version ?: 1) : 1,
+                'accepted_at' => $row->accepted_at ?? now(),
+                'assigned_by_user_id' => $row->assigned_by_user_id ?? $assignedByUserId,
+            ]);
+            $row->save();
+            $assigned[] = (int) $program->id;
+        }
+
+        return $assigned;
     }
 
     private function resolveManagerId(int $publisherId, mixed $managerUserId): ?int

@@ -96,8 +96,8 @@ export default function PublisherMarketplacePage() {
         </p>
         <h1 className="mt-1 text-3xl font-bold">Assign campaigns</h1>
         <p className="mt-2 text-slate-500">
-          Publisher commercial rates are visible here. Assigned rates are locked for
-          that assignment version.
+          Assign live campaigns to one or more communities. The same campaign can be
+          shared across communities; rates stay locked per assignment.
         </p>
       </div>
 
@@ -143,18 +143,25 @@ export default function PublisherMarketplacePage() {
                   {String(c.pricing_model).toUpperCase()}{" "}
                   {formatMoney(Number(c.rate_usd), "USD")}
                   {c.employer ? ` · ${c.employer}` : ""}
+                  {c.assigned_community_count
+                    ? ` · on ${c.assigned_community_count} community${c.assigned_community_count === 1 ? "" : "ies"}`
+                    : ""}
                 </p>
                 <button
                   type="button"
-                  disabled={busyId === c.id}
+                  disabled={busyId === c.id || (Boolean(communityId) && c.already_assigned)}
                   onClick={() => void assign(c.id)}
                   className="mt-auto pt-4 text-left text-sm font-bold text-violet-700 disabled:opacity-60"
                 >
                   {busyId === c.id
                     ? "Assigning…"
-                    : c.already_assigned
-                      ? "Assign again / refresh"
-                      : "Assign to network"}
+                    : communityId
+                      ? c.already_assigned
+                        ? "Already on this community"
+                        : "Assign to community"
+                      : c.already_assigned
+                        ? "Add to another community / network"
+                        : "Assign to network"}
                 </button>
               </li>
             ))}

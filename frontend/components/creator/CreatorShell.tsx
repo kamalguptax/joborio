@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  MousePointerClick,
   Briefcase,
   Megaphone,
   Wallet,
   Settings,
   Gift,
   BarChart3,
+  Zap,
 } from "lucide-react";
 import CreatorNotificationBell from "@/components/creator/CreatorNotificationBell";
 import DashboardShell, { type DashboardNavItem } from "@/components/layout/DashboardShell";
@@ -26,15 +26,15 @@ const nav: DashboardNavItem[] = [
     icon: BarChart3,
     alsoActive: ["/creator/registrations"],
   },
-  { href: "/creator/clicks", label: "Clicks", icon: MousePointerClick },
   { href: "/creator/opportunities", label: "Opportunities", icon: Briefcase },
   { href: "/creator/campaigns", label: "Campaigns", icon: Megaphone },
+  { href: "/creator/post-studio", label: "Post Studio", icon: Zap },
   { href: "/creator/referrals", label: "Refer & Earn", icon: Gift },
   {
     href: "/creator/earnings",
-    label: "Earnings",
+    label: "Earnings / Clicks",
     icon: Wallet,
-    alsoActive: ["/creator/payout", "/creator/trust-tier"],
+    alsoActive: ["/creator/clicks", "/creator/payout", "/creator/trust-tier"],
   },
 ];
 

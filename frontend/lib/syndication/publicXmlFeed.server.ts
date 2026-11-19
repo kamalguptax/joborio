@@ -32,7 +32,17 @@ function cdata(block: string, tag: string): string {
 }
 
 function plainText(html: string): string {
-  const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const withoutBlocks = html
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/\s*(?:p|div|h[1-6]|li|tr)\s*>/gi, "\n");
+  const text = withoutBlocks
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\{[^{}]{0,500}\}/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   return text;
 }
 

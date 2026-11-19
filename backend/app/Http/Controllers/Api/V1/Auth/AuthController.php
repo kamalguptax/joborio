@@ -25,6 +25,8 @@ class AuthController extends Controller
             'captcha_id' => ['required', 'string'],
             'captcha_answer' => ['required', 'string'],
             'referral_code' => ['nullable', 'string', 'max:32'],
+        ], [
+            'email.unique' => 'This email is already registered. Sign in or use a different email.',
         ]);
 
         $captcha->assertValid((string) $data['captcha_id'], (string) $data['captcha_answer']);

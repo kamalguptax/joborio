@@ -6,7 +6,7 @@ import { getAuthToken } from "@/lib/auth/session";
 import { loginUrlWithNext } from "@/lib/auth/safeRedirect";
 import { recordJobActivity } from "@/lib/api/creator";
 import { getPublicCode, rememberPublicCode } from "@/lib/auth/session";
-import { withSubid } from "@/lib/tracking/subid";
+import { trackedClickUrl, withSubid } from "@/lib/tracking/subid";
 
 let cachedSubid: string | null = null;
 
@@ -58,11 +58,17 @@ export default function ApplySyndicatedJobButton({
         action: "apply",
         title,
         company,
+        source: "creator_apply",
       }).catch(() => undefined);
     }
 
     const code = getPublicCode() ?? (await currentSubid());
-    const outbound = code ? withSubid(applyUrl, code) : applyUrl;
+    const outbound =
+      code && applyUrl.startsWith("https://")
+        ? trackedClickUrl(code, applyUrl, title, referenceId)
+        : code
+          ? withSubid(applyUrl, code)
+          : applyUrl;
     window.open(outbound, "_blank", "noopener,noreferrer");
   };
 

@@ -46,7 +46,15 @@ export default function AdminSyndicationFeedsPage() {
   const liveRef = useRef<HTMLDivElement | null>(null);
 
   const selectFeed = useCallback((slug: string, scroll = true) => {
-    setSelectedSlug(slug);
+    setSelectedSlug((prev) => {
+      if (prev !== slug) {
+        setLiveLoading(true);
+        setLiveJobs([]);
+        setAnalyticsJobs([]);
+        setLiveError(null);
+      }
+      return slug;
+    });
     const url = new URL(window.location.href);
     url.searchParams.set("feed", slug);
     window.history.replaceState({}, "", `${url.pathname}?${url.searchParams.toString()}`);
@@ -65,7 +73,11 @@ export default function AdminSyndicationFeedsPage() {
         setSelectedSlug((current) => {
           if (current && rows.some((row) => row.slug === current)) return current;
           if (requested && rows.some((row) => row.slug === requested)) return requested;
-          return rows.find((row) => row.is_active)?.slug ?? rows[0]?.slug ?? null;
+          // Prefer the active/running feed with the most jobs.
+          const running = rows
+            .filter((row) => row.is_active)
+            .sort((a, b) => (b.last_job_count ?? 0) - (a.last_job_count ?? 0));
+          return running[0]?.slug ?? rows[0]?.slug ?? null;
         });
       })
       .catch(() => setMsg("Could not load XML feeds."));
@@ -89,10 +101,16 @@ export default function AdminSyndicationFeedsPage() {
     adminSyndicationJobs({ feed: selectedSlug, group_by_category: true })
       .then(({ data, meta }) => {
         if (cancelled) return;
-        const all = data.jobs ?? [];
+        const raw = data.jobs ?? [];
+        // Keep only jobs stamped with this feed (WhatsJobs, JobRapido, …).
+        const all = raw.filter(
+          (job) =>
+            String(job.syndication_feed_slug ?? "").toLowerCase() ===
+            selectedSlug.toLowerCase(),
+        );
         setAnalyticsJobs(all);
         setLiveJobs(all.slice(0, 24));
-        setLiveTotal(Number(meta.total ?? all.length));
+        setLiveTotal(all.length);
         if (window.location.hash === "#live-feed") {
           requestAnimationFrame(() => {
             liveRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -124,6 +142,12 @@ export default function AdminSyndicationFeedsPage() {
     setForm(emptyForm);
     setEditingId(null);
     setShowForm(true);
+    requestAnimationFrame(() => {
+      document.getElementById("onboard-feed")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -181,9 +205,9 @@ export default function AdminSyndicationFeedsPage() {
         <div>
           <h1 className="text-2xl font-bold">XML job feeds</h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-400">
-            Live jobs from the active feed open first. Use{" "}
-            <span className="text-emerald-400">Add new feed</span> to onboard
-            another XML source.
+            Live running feed opens first. Use{" "}
+            <span className="text-emerald-400">New Onboard</span> (top right) to
+            add another XML source.
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -192,7 +216,7 @@ export default function AdminSyndicationFeedsPage() {
             onClick={openAdd}
             className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold shadow-lg shadow-emerald-900/40"
           >
-            + Add new feed
+            + New Onboard
           </button>
           <button
             type="button"
@@ -218,13 +242,144 @@ export default function AdminSyndicationFeedsPage() {
 
       {msg ? <p className="mt-4 text-sm text-amber-300">{msg}</p> : null}
 
+      {/* Live running feed first — click a source (WhatsJobs, JobRapido, …) to filter */}
+      <div id="live-feed" ref={liveRef} className="mt-6 scroll-mt-24 space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-bold text-zinc-50">Live XML feeds</h2>
+            <p className="mt-0.5 text-sm text-slate-400">
+              Click a feed below to see only jobs from that XML source.
+            </p>
+          </div>
+          {selectedFeed?.is_active ? (
+            <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300">
+              {selectedFeed.name} · Running
+            </span>
+          ) : selectedFeed ? (
+            <span className="rounded-full bg-slate-500/20 px-3 py-1 text-xs font-semibold text-slate-400">
+              {selectedFeed.name} · Paused
+            </span>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {feeds.length === 0 ? (
+            <p className="text-sm text-slate-500">No feeds yet — use New Onboard.</p>
+          ) : (
+            feeds.map((row) => (
+              <button
+                key={row.id}
+                type="button"
+                onClick={() => selectFeed(row.slug, true)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  selectedSlug === row.slug
+                    ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-900/40"
+                    : "border border-white/15 bg-white/5 text-slate-300 hover:border-emerald-400/50 hover:bg-white/10"
+                }`}
+              >
+                {row.name}
+                {row.is_active ? (
+                  <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wide opacity-80">
+                    live
+                  </span>
+                ) : (
+                  <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wide opacity-60">
+                    off
+                  </span>
+                )}
+                <span className="ml-1.5 tabular-nums opacity-70">
+                  {row.last_job_count}
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+
+        <section className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold">
+              Jobs from{" "}
+              <span className="text-emerald-300">
+                {selectedFeed?.name ?? "selected feed"}
+              </span>
+            </h3>
+            {selectedFeed ? (
+              <p className="font-mono text-[11px] text-slate-500">
+                @{selectedFeed.slug}
+              </p>
+            ) : null}
+          </div>
+          <p className="mt-1 text-sm text-slate-400">
+            {selectedFeed
+              ? `Only XML jobs from ${selectedFeed.name} · ${liveTotal} total (showing ${liveJobs.length})`
+              : "Pick WhatsJobs, JobRapido, or another feed above."}
+          </p>
+          {selectedFeed?.feed_url ? (
+            <p className="mt-1 truncate font-mono text-[11px] text-purple-300/90">
+              {selectedFeed.feed_url}
+            </p>
+          ) : null}
+          {liveError ? (
+            <p className="mt-4 text-sm text-amber-300">{liveError}</p>
+          ) : liveLoading ? (
+            <ListSkeleton rows={4} className="mt-4" />
+          ) : liveJobs.length === 0 ? (
+            <p className="mt-4 text-sm text-slate-500">
+              No live jobs in {selectedFeed?.name ?? "this feed"} right now. Try Refresh on the
+              feed row below.
+            </p>
+          ) : (
+            <ul className="mt-4 space-y-2 text-sm">
+              {liveJobs.map((job) => (
+                <li
+                  key={String(job.reference_id)}
+                  className="rounded-lg border border-white/10 px-3 py-2"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold text-zinc-100">
+                      {String(job.title ?? "Job")}
+                    </p>
+                    <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
+                      {String(
+                        job.syndication_feed_name || selectedFeed?.name || "XML",
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-xs text-emerald-400">
+                    {postedAgo(
+                      typeof job.publishdate === "string" ? job.publishdate : null,
+                    )}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {companyName(
+                      typeof job.company === "string" ? job.company : "",
+                      "Company",
+                    )}
+                    {" · "}
+                    {String(job.location_label || job.location || "Remote")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <SyndicationFeedDashboard
+          feeds={feeds}
+          selectedFeed={selectedFeed}
+          jobs={analyticsJobs}
+          loading={liveLoading}
+        />
+      </div>
+
       {showForm ? (
       <form
+        id="onboard-feed"
         onSubmit={submit}
-        className="mt-8 grid gap-4 rounded-xl border border-white/10 bg-white/5 p-5 sm:grid-cols-2"
+        className="mt-8 grid scroll-mt-24 gap-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5 sm:grid-cols-2"
       >
         <h2 className="sm:col-span-2 text-lg font-bold">
-          {editingId ? "Edit feed" : "Add XML feed"}
+          {editingId ? "Edit feed" : "New Onboard — add XML feed"}
         </h2>
         <label className="block text-sm">
           <span className="text-slate-400">Name</span>
@@ -324,7 +479,18 @@ export default function AdminSyndicationFeedsPage() {
       </form>
       ) : null}
 
-      <div className="mt-10 overflow-x-auto rounded-xl border border-white/10">
+      <section className="mt-10">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-zinc-300">Configured feeds</h2>
+          <button
+            type="button"
+            onClick={openAdd}
+            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold"
+          >
+            + New Onboard
+          </button>
+        </div>
+      <div className="overflow-x-auto rounded-xl border border-white/10">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="border-b border-white/10 bg-white/5 text-xs uppercase text-slate-400">
             <tr>
@@ -462,98 +628,16 @@ export default function AdminSyndicationFeedsPage() {
         </table>
         {feeds.length === 0 ? (
           <p className="p-8 text-center text-sm text-slate-500">
-            No feeds yet. Add a URL above or run{" "}
+            No feeds yet. Click{" "}
+            <button type="button" onClick={openAdd} className="font-semibold text-emerald-400 underline">
+              New Onboard
+            </button>{" "}
+            or run{" "}
             <code className="text-purple-300">php artisan db:seed --class=SyndicationFeedSeeder</code>
           </p>
         ) : null}
       </div>
-
-      <div id="live-feed" ref={liveRef} className="mt-8 scroll-mt-24 space-y-6">
-        {feeds.length > 1 ? (
-          <div className="flex flex-wrap gap-2">
-            {feeds.map((row) => (
-              <button
-                key={row.id}
-                type="button"
-                onClick={() => selectFeed(row.slug, false)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  selectedSlug === row.slug
-                    ? "bg-emerald-500 text-zinc-950"
-                    : "border border-white/15 bg-white/5 text-slate-300 hover:border-emerald-400/50"
-                }`}
-              >
-                {row.name}
-                <span className="ml-1 opacity-70">({row.last_job_count})</span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        <SyndicationFeedDashboard
-          feeds={feeds}
-          selectedFeed={selectedFeed}
-          jobs={analyticsJobs}
-          loading={liveLoading}
-        />
-
-        <section className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-bold">
-              Jobs from this XML feed
-              {selectedFeed ? (
-                <span className="ml-2 text-base font-semibold text-emerald-300">
-                  · {selectedFeed.name}
-                </span>
-              ) : null}
-            </h2>
-            {selectedFeed?.is_active ? (
-              <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300">
-                Running
-              </span>
-            ) : selectedFeed ? (
-              <span className="rounded-full bg-slate-500/20 px-3 py-1 text-xs font-semibold text-slate-400">
-                Paused
-              </span>
-            ) : null}
-          </div>
-          <p className="mt-1 text-sm text-slate-400">
-            {selectedFeed
-              ? `Sample of live XML jobs for ${selectedFeed.name} · ${liveTotal} total (showing ${liveJobs.length})`
-              : "Click a feed name or View jobs to see its XML listings."}
-          </p>
-          {liveError ? (
-            <p className="mt-4 text-sm text-amber-300">{liveError}</p>
-          ) : liveLoading ? (
-            <ListSkeleton rows={4} className="mt-4" />
-          ) : liveJobs.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">No live jobs in this feed right now.</p>
-          ) : (
-            <ul className="mt-4 space-y-2 text-sm">
-              {liveJobs.map((job) => (
-                <li
-                  key={String(job.reference_id)}
-                  className="rounded-lg border border-white/10 px-3 py-2"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold text-zinc-100">{String(job.title ?? "Job")}</p>
-                    <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
-                      {String(job.syndication_feed_name || selectedFeed?.name || "XML")}
-                    </span>
-                  </div>
-                  <p className="text-xs text-emerald-400">
-                    {postedAgo(typeof job.publishdate === "string" ? job.publishdate : null)}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    {companyName(typeof job.company === "string" ? job.company : "", "Company")}
-                    {" · "}
-                    {String(job.location_label || job.location || "Remote")}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
+      </section>
     </>
   );
 }

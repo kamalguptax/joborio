@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Listing;
 use App\Services\Tracking\ClickTrackingService;
 use App\Support\ApiResponse;
+use App\Support\TrackingPublicUrl;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -23,12 +24,11 @@ class TrackingLinkController extends Controller
         }
 
         $token = $this->tracking->getOrCreateToken($creator, $listing);
-        $redirectUrl = url('/r/'.$token->token);
 
         return $this->success([
             'listing_id' => $listing->id,
             'token' => $token->token,
-            'tracked_url' => $redirectUrl,
+            'tracked_url' => TrackingPublicUrl::forToken($token->token),
         ]);
     }
 }

@@ -53,6 +53,7 @@ export type Listing = {
   destination_url: string;
   ppc_rate_usd?: string | number | null;
   ppr_rate_usd?: string | number | null;
+  ppa_rate_usd?: string | number | null;
   description?: string | null;
   status?: string;
   source?: string;

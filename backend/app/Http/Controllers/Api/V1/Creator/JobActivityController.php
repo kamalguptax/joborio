@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\V1\Creator;
 
 use App\Http\Controllers\Controller;
 use App\Models\AttributionEvent;
+use App\Models\Creator;
+use App\Models\EarningLedger;
 use App\Services\Creators\CreatorOnboardingService;
 use App\Services\Earnings\EarningLedgerService;
 use App\Support\ApiResponse;
@@ -11,7 +13,9 @@ use App\Support\ClickContext;
 use App\Support\ClickDedup;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class JobActivityController extends Controller
 {
@@ -31,10 +35,22 @@ class JobActivityController extends Controller
             'action' => ['required', Rule::in(['view', 'apply'])],
             'title' => ['nullable', 'string', 'max:255'],
             'company' => ['nullable', 'string', 'max:255'],
+            'category' => ['nullable', 'string', 'max:80'],
+            'source' => ['nullable', 'string', 'max:80'],
         ]);
 
         $eventType = $data['action'] === 'apply' ? 'job_apply' : 'click';
         $windowStart = now()->subMinutes((int) config('joborio.click_dedup_minutes', 10));
+        $source = $data['source'] ?? ($data['action'] === 'apply' ? 'creator_apply' : 'creator_view');
+        $metaBase = [
+            'reference_id' => $data['reference_id'],
+            'title' => $data['title'] ?? null,
+            'company' => $data['company'] ?? null,
+            'category' => $data['category'] ?? null,
+            'source' => $source,
+            'clicked_at' => ClickContext::clickedAt(),
+            'user_agent' => $request->userAgent(),
+        ];
 
         if ($data['action'] === 'view') {
             $legacy = AttributionEvent::query()
@@ -50,16 +66,14 @@ class JobActivityController extends Controller
                     'event_type' => 'click',
                     'is_counted' => true,
                     'fraud_status' => 'clean',
+                    'meta' => array_merge(is_array($legacy->meta) ? $legacy->meta : [], $metaBase),
                 ]);
-                $earning = $legacy->earning;
-                if (! $earning) {
-                    $earning = $this->earnings->createSyndicatedApplyEarning($creator, $legacy);
-                }
+                $earning = $legacy->earning ?: $this->safeEarning($creator, $legacy);
 
                 return $this->success([
                     'tracked' => true,
                     'event_id' => $legacy->id,
-                    'earning_id' => $earning->id,
+                    'earning_id' => $earning?->id,
                 ]);
             }
         }
@@ -69,28 +83,11 @@ class JobActivityController extends Controller
         $existing = ClickDedup::original($creator->id, $ip, $jobKey, $windowStart);
 
         if ($existing) {
-            $duplicate = AttributionEvent::create([
-                'creator_id' => $creator->id,
-                'event_type' => 'click',
-                'ip_address' => $ip,
-                'referrer' => $request->headers->get('referer'),
-                'is_counted' => false,
-                'fraud_status' => 'dedup',
-                'meta' => [
-                    'reference_id' => $data['reference_id'],
-                    'job_key' => $jobKey,
-                    'title' => $data['title'] ?? null,
-                    'company' => $data['company'] ?? null,
-                    'duplicate_of_event_id' => $existing->id,
-                    'clicked_at' => ClickContext::clickedAt(),
-                    'user_agent' => $request->userAgent(),
-                ],
-            ]);
-
+            // Same job + IP inside the dedup window: keep the first click only.
             return $this->success([
                 'tracked' => false,
                 'duplicate' => true,
-                'event_id' => $duplicate->id,
+                'event_id' => $existing->id,
                 'earning_id' => null,
             ]);
         }
@@ -98,18 +95,13 @@ class JobActivityController extends Controller
         $event = AttributionEvent::create([
             'creator_id' => $creator->id,
             'event_type' => $eventType,
-            'ip_address' => ClickContext::ip($request),
+            'ip_address' => $ip,
             'referrer' => $request->headers->get('referer'),
             'is_counted' => true,
             'fraud_status' => 'clean',
-            'meta' => [
-                'reference_id' => $data['reference_id'],
+            'meta' => array_merge($metaBase, [
                 'job_key' => $jobKey,
-                'title' => $data['title'] ?? null,
-                'company' => $data['company'] ?? null,
-                'clicked_at' => ClickContext::clickedAt(),
-                'user_agent' => $request->userAgent(),
-            ],
+            ]),
         ]);
 
         $clickAlreadyPaid = $data['action'] === 'apply' && AttributionEvent::query()
@@ -122,12 +114,27 @@ class JobActivityController extends Controller
 
         $earning = $clickAlreadyPaid
             ? null
-            : $this->earnings->createSyndicatedApplyEarning($creator, $event);
+            : $this->safeEarning($creator, $event);
 
         return $this->success([
             'tracked' => true,
             'event_id' => $event->id,
             'earning_id' => $earning?->id,
         ]);
+    }
+
+    private function safeEarning(Creator $creator, AttributionEvent $event): ?EarningLedger
+    {
+        try {
+            return $this->earnings->createSyndicatedApplyEarning($creator, $event);
+        } catch (Throwable $e) {
+            Log::warning('job_activity_earning_failed', [
+                'creator_id' => $creator->id,
+                'event_id' => $event->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 }

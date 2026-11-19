@@ -21,9 +21,10 @@ class ProgramBudgetService
         $newSpent = (float) $program->budget_spent_usd + $grossAmount;
         $program->update(['budget_spent_usd' => $newSpent]);
 
-        if ($newSpent >= (float) $program->budget_total_usd) {
+        // Auto-pause when budget is fully used (default on).
+        if ($newSpent >= (float) $program->budget_total_usd && $program->autoPauseOnBudget()) {
             $program->update(['status' => 'budget_exhausted']);
-            $program->listing?->update(['status' => 'budget_exhausted']);
+            $program->listing?->update(['status' => 'paused']);
         }
     }
 

@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "@/lib/config";
+import { APP_URL, getApiBaseUrl } from "@/lib/config";
 
 export function publicCodeForUser(user: {
   id: number;
@@ -23,7 +23,14 @@ export function withSubid(url: string, code: string): string {
   }
 }
 
-const PUBLIC_SITE = "https://joborio.com";
+/** Public site used in copied share links (current origin in browser, else APP_URL). */
+function publicSiteBase(): string {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin.replace(/\/$/, "");
+  }
+  const fromEnv = (APP_URL || "").replace(/\/$/, "");
+  return fromEnv || "https://joborio.sevenapps.in";
+}
 
 /** Link a creator copies. Opening it on JobOrio counts the click, then sends the visitor to the employer site. */
 export function shareJobUrl(code: string, referenceId: string): string {
@@ -31,7 +38,7 @@ export function shareJobUrl(code: string, referenceId: string): string {
     code: code.trim(),
     ref: referenceId,
   });
-  return `${PUBLIC_SITE}/go/?${params.toString()}`;
+  return `${publicSiteBase()}/go/?${params.toString()}`;
 }
 
 /** API hop that records the click and redirects to the employer URL with subid. */

@@ -179,6 +179,7 @@ export function adminCreateProgram(body: {
   rate_usd: number;
   budget_total_usd: number;
   trial_without_ip?: boolean;
+  target_niche_ids?: number[];
   target_countries?: string[];
   country_code?: string;
   is_remote?: boolean;
@@ -186,6 +187,12 @@ export function adminCreateProgram(body: {
   post_url?: string;
   engagement_actions?: Array<"like" | "comment" | "repost">;
   engage_brief?: string;
+  starts_at?: string;
+  ends_at?: string;
+  lead_type?: string;
+  required_fields?: string[];
+  qualification_rules?: string;
+  auto_pause_on_budget?: boolean;
 }) {
   return apiFetch<{ program: Record<string, unknown> }>(
     "/api/v1/admin/programs",
@@ -194,6 +201,103 @@ export function adminCreateProgram(body: {
       auth: true,
       body: JSON.stringify(body),
     },
+  );
+}
+
+export function adminGetProgram(programId: number) {
+  return apiFetch<{ program: Record<string, unknown> }>(
+    `/api/v1/admin/programs/${programId}`,
+    { auth: true },
+  );
+}
+
+export function adminUpdateProgram(
+  programId: number,
+  body: Partial<{
+    title: string;
+    description: string;
+    destination_url: string;
+    company_name: string;
+    promotion_type: CampaignTypeId;
+    pricing_model: "ppc" | "ppr" | "ppa" | "ppe";
+    rate_usd: number;
+    budget_total_usd: number;
+    trial_without_ip: boolean;
+    target_niche_ids: number[];
+    target_countries: string[];
+    country_code: string;
+    is_remote: boolean;
+    category: string;
+    post_url: string;
+    engagement_actions: Array<"like" | "comment" | "repost">;
+    engage_brief: string;
+    starts_at: string;
+    ends_at: string;
+    lead_type: string;
+    required_fields: string[];
+    qualification_rules: string;
+    auto_pause_on_budget: boolean;
+  }>,
+) {
+  return apiFetch<{ program: Record<string, unknown> }>(
+    `/api/v1/admin/programs/${programId}`,
+    {
+      method: "PUT",
+      auth: true,
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+async function downloadAuthedFile(path: string, fallbackName: string) {
+  const token = (await import("@/lib/auth/session")).getAuthToken();
+  const { getApiBaseUrl } = await import("@/lib/config");
+  const res = await fetch(`${getApiBaseUrl()}${path}`, {
+    headers: {
+      Accept: "text/csv",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Download failed.");
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get("content-disposition") ?? "";
+  const match = /filename="?([^"]+)"?/i.exec(disposition);
+  const name = match?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export function adminExportPayoutReport(params?: {
+  view?: "transactions" | "users";
+  user_id?: number;
+  search?: string;
+}) {
+  const q = new URLSearchParams();
+  if (params?.view) q.set("view", params.view);
+  if (params?.user_id) q.set("user_id", String(params.user_id));
+  if (params?.search) q.set("search", params.search);
+  const query = q.toString();
+  return downloadAuthedFile(
+    `/api/v1/admin/payouts/export${query ? `?${query}` : ""}`,
+    `payouts-${params?.view ?? "transactions"}.csv`,
+  );
+}
+
+export function adminExportProgramLeads(
+  programId: number,
+  format: "csv" | "excel" = "csv",
+) {
+  return downloadAuthedFile(
+    `/api/v1/admin/programs/${programId}/leads/export?format=${format}`,
+    `campaign-${programId}-leads.csv`,
   );
 }
 
@@ -426,18 +530,37 @@ export function adminListUsers(params?: {
   search?: string;
   role?: string;
   approval_status?: string;
+  is_active?: boolean;
   page?: number;
+  per_page?: number;
 }) {
   const q = new URLSearchParams();
   if (params?.search) q.set("search", params.search);
   if (params?.role) q.set("role", params.role);
   if (params?.approval_status) q.set("approval_status", params.approval_status);
+  if (typeof params?.is_active === "boolean") {
+    q.set("is_active", params.is_active ? "1" : "0");
+  }
   if (params?.page) q.set("page", String(params.page));
+  if (params?.per_page) q.set("per_page", String(params.per_page));
   const query = q.toString();
   return apiFetchWithMeta<AdminUserRow[]>(
     `/api/v1/admin/users${query ? `?${query}` : ""}`,
     { auth: true },
   );
+}
+
+export function adminBulkApproveUsers(userIds: number[]) {
+  return apiFetch<{
+    approved: number;
+    skipped: number;
+    requested: number;
+    message?: string;
+  }>("/api/v1/admin/users/bulk-approve", {
+    method: "POST",
+    auth: true,
+    body: JSON.stringify({ user_ids: userIds }),
+  });
 }
 
 export function adminGetUser(id: number) {
@@ -504,6 +627,7 @@ export function adminActivity(params?: {
   date_to?: string;
   earning?: string;
   category?: string;
+  sort?: "date_desc" | "date_asc" | "earning_desc" | "earning_asc";
   is_counted?: boolean;
 }) {
   const q = new URLSearchParams();
@@ -519,6 +643,7 @@ export function adminActivity(params?: {
   if (params?.date_to) q.set("date_to", params.date_to);
   if (params?.earning) q.set("earning", params.earning);
   if (params?.category) q.set("category", params.category);
+  if (params?.sort) q.set("sort", params.sort);
   if (params?.is_counted !== undefined) q.set("is_counted", params.is_counted ? "1" : "0");
   return apiFetchWithMeta<Array<Record<string, unknown>>>(
     `/api/v1/admin/activity?${q}`,

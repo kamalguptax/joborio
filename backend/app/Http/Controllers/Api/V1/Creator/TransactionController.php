@@ -38,6 +38,7 @@ class TransactionController extends Controller
             'approved_usd' => round((float) (clone $totals)->where('state', 'approved')->sum('net_usd'), 4),
             'payable_usd' => round((float) (clone $totals)->where('state', 'payable')->sum('net_usd'), 4),
             'paid_usd' => round((float) (clone $totals)->where('state', 'paid')->sum('net_usd'), 4),
+            'by_job' => $this->history->forCreatorByJob($creator->id),
         ]);
     }
 }

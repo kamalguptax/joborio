@@ -186,6 +186,13 @@ export default function AdminPlatformSettingsPage() {
                 autoComplete="off"
               />
               <SecretHint meta={data.maps.google_maps_browser_api_key} />
+              <p className="mt-2 text-xs text-zinc-500">
+                Required for onboarding location suggestions. Enable{" "}
+                <strong className="text-zinc-300">Maps JavaScript API</strong> and{" "}
+                <strong className="text-zinc-300">Places API</strong> on this key,
+                allow referrer <code className="text-zinc-300">https://joborio.com/*</code>,
+                and turn on billing. If this field is empty, the server key is used as a fallback.
+              </p>
             </label>
           </section>
 

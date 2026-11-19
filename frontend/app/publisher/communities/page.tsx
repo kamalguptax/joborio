@@ -1,19 +1,24 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, Copy } from "lucide-react";
 import { ApiClientError } from "@/lib/api/client";
+import { fetchNiches } from "@/lib/api/creator";
+import { fetchJobMasterFilters } from "@/lib/api/jobMasters";
 import {
   communityJoinUrl,
   createPublisherCommunity,
   fetchPublisherCommunities,
+  fetchPublisherMarketplace,
   fetchPublisherTeam,
   invitePublisherManager,
   updatePublisherCommunity,
+  type MarketplaceCampaign,
   type PublisherCommunity,
   type PublisherTeamMember,
 } from "@/lib/api/publisher";
+import { formatMoney } from "@/lib/money";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
 
@@ -23,6 +28,9 @@ const field =
 export default function PublisherCommunitiesPage() {
   const [rows, setRows] = useState<PublisherCommunity[]>([]);
   const [team, setTeam] = useState<PublisherTeamMember[]>([]);
+  const [campaigns, setCampaigns] = useState<MarketplaceCampaign[]>([]);
+  const [campaignsLoading, setCampaignsLoading] = useState(false);
+  const [selectedProgramIds, setSelectedProgramIds] = useState<number[]>([]);
   const [canInvite, setCanInvite] = useState(false);
   const [role, setRole] = useState<string>("owner");
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +38,11 @@ export default function PublisherCommunitiesPage() {
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [description, setDescription] = useState("");
   const [country, setCountry] = useState("IN");
-  const [campaignAccess, setCampaignAccess] = useState("all_eligible");
+  const campaignAccess = "selected";
   const [managerId, setManagerId] = useState("");
   const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
@@ -42,6 +52,10 @@ export default function PublisherCommunitiesPage() {
 
   const isOwner = role === "owner";
   const managers = team.filter((t) => t.role === "manager" || t.role === "owner");
+  const sortedCategories = useMemo(
+    () => [...categoryOptions].sort((a, b) => a.localeCompare(b)),
+    [categoryOptions],
+  );
 
   const load = () => {
     setLoading(true);
@@ -64,9 +78,55 @@ export default function PublisherCommunitiesPage() {
       .finally(() => setLoading(false));
   };
 
+  const loadCampaigns = () => {
+    setCampaignsLoading(true);
+    fetchPublisherMarketplace()
+      .then((list) => setCampaigns(list))
+      .catch(() => setCampaigns([]))
+      .finally(() => setCampaignsLoading(false));
+  };
+
   useEffect(() => {
     void load();
   }, []);
+
+  useEffect(() => {
+    loadCampaigns();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCategoriesLoading(true);
+    Promise.all([
+      fetchNiches().catch(() => []),
+      fetchJobMasterFilters().catch(() => ({ category: [] as Array<{ name: string }> })),
+    ])
+      .then(([niches, masters]) => {
+        if (cancelled) return;
+        const names = new Set<string>();
+        for (const n of niches) {
+          const name = (n.name || "").trim();
+          if (name) names.add(name);
+        }
+        for (const row of masters.category ?? []) {
+          const name = (row.name || "").trim();
+          if (name) names.add(name);
+        }
+        setCategoryOptions([...names]);
+      })
+      .finally(() => {
+        if (!cancelled) setCategoriesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const toggleProgram = (id: number) => {
+    setSelectedProgramIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
 
   async function copyJoinLink(row: PublisherCommunity) {
     const url = communityJoinUrl(row);
@@ -87,6 +147,10 @@ export default function PublisherCommunitiesPage() {
       setError("Community name is required.");
       return;
     }
+    if (selectedProgramIds.length === 0) {
+      setError("Pick at least one campaign for this community.");
+      return;
+    }
     setSaving(true);
     try {
       const created = await createPublisherCommunity({
@@ -96,16 +160,19 @@ export default function PublisherCommunitiesPage() {
         country_code: country,
         campaign_access: campaignAccess,
         status: "active",
+        program_ids: selectedProgramIds,
         ...(managerId ? { manager_user_id: Number(managerId) } : {}),
       });
+
       setName("");
       setCategory("");
       setDescription("");
       setManagerId("");
+      setSelectedProgramIds([]);
       setHighlightId(created.id);
       toast.success(
         communityJoinUrl(created) || created.join_path
-          ? `Community created. Share the join link below so members join “${created.name}”.`
+          ? `Community created with ${selectedProgramIds.length} campaign${selectedProgramIds.length === 1 ? "" : "s"}. Share the join link below.`
           : "Community created.",
       );
       await load();
@@ -187,7 +254,7 @@ export default function PublisherCommunitiesPage() {
         <h1 className="mt-1 text-3xl font-bold">Manage communities</h1>
         <p className="mt-2 text-slate-500">
           {isOwner
-            ? "Create communities, assign managers, and set campaign access."
+            ? "Create communities, pick campaigns, and assign managers."
             : "You only see communities assigned to you as manager."}
         </p>
       </div>
@@ -217,12 +284,25 @@ export default function PublisherCommunitiesPage() {
             </label>
             <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
               Category
-              <input
+              <select
                 className={field}
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="Education / Technology"
-              />
+                disabled={categoriesLoading}
+              >
+                <option value="">
+                  {categoriesLoading
+                    ? "Loading categories…"
+                    : sortedCategories.length === 0
+                      ? "No categories yet"
+                      : "Select category"}
+                </option>
+                {sortedCategories.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
               Country
@@ -236,17 +316,82 @@ export default function PublisherCommunitiesPage() {
                 <option value="US">USA</option>
               </select>
             </label>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Campaign access
-              <select
-                className={field}
-                value={campaignAccess}
-                onChange={(e) => setCampaignAccess(e.target.value)}
-              >
-                <option value="all_eligible">All eligible</option>
-                <option value="selected">Selected campaigns</option>
-              </select>
-            </label>
+            <div className="sm:col-span-2 rounded-2xl border border-violet-100 bg-violet-50/50 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-violet-700">
+                    Campaigns
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Select campaigns for this community. The same campaign can be
+                    used on multiple communities.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => loadCampaigns()}
+                  className="text-xs font-semibold text-violet-700 hover:underline"
+                >
+                  Refresh list
+                </button>
+              </div>
+              {campaignsLoading ? (
+                <p className="mt-3 text-sm text-slate-500">Loading campaigns…</p>
+              ) : campaigns.length === 0 ? (
+                <div className="mt-3 rounded-xl border border-dashed border-violet-200 bg-white px-4 py-5 text-sm text-slate-600">
+                  <p className="font-semibold text-[#172b63]">No live campaigns yet</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Launch one from Admin → Manual campaigns, or open{" "}
+                    <Link
+                      href="/publisher/marketplace"
+                      className="font-semibold text-violet-700 hover:underline"
+                    >
+                      Campaign Marketplace
+                    </Link>
+                    .
+                  </p>
+                </div>
+              ) : (
+                <ul className="mt-3 max-h-56 space-y-2 overflow-y-auto">
+                  {campaigns.map((c) => {
+                    const checked = selectedProgramIds.includes(c.id);
+                    return (
+                      <li key={c.id}>
+                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 hover:border-violet-200">
+                          <input
+                            type="checkbox"
+                            className="mt-1"
+                            checked={checked}
+                            onChange={() => toggleProgram(c.id)}
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-semibold text-[#172b63]">
+                              {c.title}
+                            </span>
+                            <span className="mt-0.5 block text-xs text-slate-500">
+                              {(c.promotion_type || "campaign").toString()}
+                              {c.pricing_model ? ` · ${String(c.pricing_model).toUpperCase()}` : ""}
+                              {c.rate_usd != null
+                                ? ` · ${formatMoney(Number(c.rate_usd), "USD")}`
+                                : ""}
+                              {c.employer ? ` · ${c.employer}` : ""}
+                              {c.assigned_community_count
+                                ? ` · already on ${c.assigned_community_count} other community${c.assigned_community_count === 1 ? "" : "ies"}`
+                                : ""}
+                            </span>
+                          </span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              {selectedProgramIds.length > 0 ? (
+                <p className="mt-2 text-xs font-semibold text-violet-700">
+                  {selectedProgramIds.length} selected
+                </p>
+              ) : null}
+            </div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
               Manager (optional)
               <select
@@ -365,9 +510,7 @@ export default function PublisherCommunitiesPage() {
                       {" · "}
                       {row.members_count} members
                       {" · "}
-                      {row.campaign_access === "all_eligible"
-                        ? "All eligible campaigns"
-                        : "Selected campaigns"}
+                      Selected campaigns
                       {row.manager
                         ? ` · Manager: ${row.manager.name}`
                         : " · No manager"}
