@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { fetchMe } from "@/lib/api/auth";
 import PublisherShell from "@/components/publisher/PublisherShell";
 import { getAuthToken } from "@/lib/auth/session";
+import { homePathForUser, navigateTo } from "@/lib/auth/redirect";
 
 const PUBLIC_PATHS = new Set(["/publisher/register", "/publisher/login"]);
 
@@ -42,7 +43,9 @@ export default function PublisherLayout({
           (u.publisher_users?.some((m) => m.is_active) ?? false);
 
         if (!isPublisher) {
-          router.replace("/publisher/login");
+          // Signed in with another account type: go to its own dashboard.
+          const home = homePathForUser(u);
+          navigateTo(router, home === "/onboarding" ? "/publisher/register" : home);
           return;
         }
 

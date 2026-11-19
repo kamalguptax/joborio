@@ -15,8 +15,8 @@ export default function PublisherLoginPage() {
       title="Publisher login"
       subtitle="Separate from creator and brand accounts. Sign in to manage your network."
       topPrompt="Not a publisher?"
-      topLinkLabel="Creator / brand login"
-      topLinkHref="/login"
+      topLinkLabel="Creator login"
+      topLinkHref="/creator/login"
       panelHeading="Your publisher studio, ready when you are."
       panelBody="Communities, members and campaign performance, all in one place."
     >

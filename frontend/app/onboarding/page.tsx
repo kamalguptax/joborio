@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { fetchMe } from "@/lib/api/auth";
 import { createCreatorOnboarding, fetchNiches } from "@/lib/api/creator";
+import { hasNoRole, homePathForUser, navigateTo } from "@/lib/auth/redirect";
 import { getReferralCode, clearReferralCode } from "@/lib/auth/referralStorage";
 import { ApiClientError } from "@/lib/api/client";
 import { getAuthToken } from "@/lib/auth/session";
@@ -139,6 +141,16 @@ export default function OnboardingPage() {
     }
 
     let cancelled = false;
+
+    // Onboarding is only for brand-new accounts. Creator / brand / publisher /
+    // network accounts that already exist go straight to their own dashboard.
+    fetchMe()
+      .then((me) => {
+        if (cancelled) return;
+        if (!hasNoRole(me)) navigateTo(router, homePathForUser(me));
+      })
+      .catch(() => undefined);
+
     setLocating(true);
     detectCurrentPlace()
       .then((place) => {
@@ -220,7 +232,8 @@ export default function OnboardingPage() {
       savePromoteJobTypes(jobTypes);
       clearReferralCode();
       clearSignupRoleIntent();
-      router.push("/creator/dashboard");
+      // "Both": creator profile is done, now set up the company too.
+      router.push(selectedRole === "both" ? "/employer/onboarding" : "/creator/dashboard");
     } catch (err) {
       setSubmitError(
         err instanceof ApiClientError

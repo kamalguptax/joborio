@@ -6,6 +6,7 @@ import { fetchMe, logoutApi } from "@/lib/api/auth";
 import { Building2, LayoutDashboard, Megaphone, Plus, SlidersHorizontal } from "lucide-react";
 import DashboardShell, { type DashboardNavItem } from "@/components/layout/DashboardShell";
 import { clearAuthToken, getAuthToken } from "@/lib/auth/session";
+import { homePathForUser, navigateTo, roleFlags } from "@/lib/auth/redirect";
 import { ShellSkeleton } from "@/components/ui/Skeleton";
 
 const nav: DashboardNavItem[] = [
@@ -23,7 +24,12 @@ export default function EmployerLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const isOnboarding = pathname === "/employer/onboarding";
+  // trailingSlash (static export) gives "/employer/onboarding/": normalise it.
+  const path =
+    pathname && pathname.length > 1 && pathname.endsWith("/")
+      ? pathname.slice(0, -1)
+      : pathname;
+  const isOnboarding = path === "/employer/onboarding";
   const [ok, setOk] = useState(isOnboarding);
 
   useEffect(() => {
@@ -36,8 +42,13 @@ export default function EmployerLayout({
     }
     fetchMe()
       .then((u) => {
-        const isEmployer = u.roles?.some((r) => r.name === "employer");
-        if (!isEmployer) {
+        const f = roleFlags(u);
+        if (f.isAdmin || f.isPublisher || f.isNetworkMember) {
+          // Another account type: send it to its own dashboard.
+          navigateTo(router, homePathForUser(u));
+          return;
+        }
+        if (!f.isEmployer) {
           router.replace("/employer/onboarding");
           return;
         }

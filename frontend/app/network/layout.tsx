@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchMe, logoutApi } from "@/lib/api/auth";
 import { clearAuthToken, getAuthToken } from "@/lib/auth/session";
+import { homePathForUser, navigateTo } from "@/lib/auth/redirect";
 import { ShellSkeleton } from "@/components/ui/Skeleton";
 
 export default function NetworkLayout({
@@ -25,7 +26,7 @@ export default function NetworkLayout({
       .then((u) => {
         const isMember = u.roles?.some((r) => r.name === "network_member");
         if (!isMember) {
-          router.replace("/login");
+          navigateTo(router, homePathForUser(u));
           return;
         }
         setName(u.name || "Member");

@@ -274,6 +274,7 @@ function StepImage({ item, index }: { item: Step; index: number }) {
       alt={item.alt}
       fill
       sizes="(min-width: 768px) 45vw, 90vw"
+      loading={index === 0 ? "eager" : "lazy"}
       onError={() => setFailed(true)}
       className="object-contain"
     />

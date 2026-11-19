@@ -35,13 +35,17 @@ export default function LoginPage() {
         </Link>
       </p>
       <p className="mt-2 text-center text-sm text-slate-500">
-        Publisher network?{" "}
-        <Link href="/publisher/login" className={authLink}>
-          Publisher login
+        Log in as{" "}
+        <Link href="/creator/login" className={authLink}>
+          Creator
         </Link>
         {" · "}
-        <Link href="/publisher/register" className={authLink}>
-          Apply
+        <Link href="/brand/login" className={authLink}>
+          Brand
+        </Link>
+        {" · "}
+        <Link href="/publisher/login" className={authLink}>
+          Publisher
         </Link>
       </p>
     </AuthShell>

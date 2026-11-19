@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
 import { clearAuthToken, getAuthToken } from "@/lib/auth/session";
-import { homePathForUser } from "@/lib/auth/redirect";
+import { canVisit, homePathForUser, navigateTo } from "@/lib/auth/redirect";
 import { sanitizeNextParam } from "@/lib/auth/safeRedirect";
 import { CenteredCardSkeleton } from "@/components/ui/Skeleton";
 
@@ -17,7 +17,13 @@ import { CenteredCardSkeleton } from "@/components/ui/Skeleton";
  * Auth is client-side (token in localStorage), so the check runs in the browser
  * once, on mount. Signing in from the form later does not re-trigger it.
  */
-export default function GuestOnly({ children }: { children: ReactNode }) {
+export default function GuestOnly({
+  children,
+  prefer,
+}: {
+  children: ReactNode;
+  prefer?: "employer";
+}) {
   const router = useRouter();
   const [isGuest, setIsGuest] = useState(false);
 
@@ -35,7 +41,10 @@ export default function GuestOnly({ children }: { children: ReactNode }) {
         const next = sanitizeNextParam(
           new URLSearchParams(window.location.search).get("next"),
         );
-        router.replace(next ?? homePathForUser(me));
+        navigateTo(
+          router,
+          next && canVisit(next, me) ? next : homePathForUser(me, { prefer }),
+        );
       })
       .catch((err) => {
         if (cancelled) return;
@@ -50,7 +59,7 @@ export default function GuestOnly({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, prefer]);
 
   if (!isGuest) return <CenteredCardSkeleton />;
   return <>{children}</>;

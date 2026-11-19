@@ -10,6 +10,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { Building2, Megaphone, Users } from "lucide-react";
+import { homePathForUser } from "@/lib/auth/redirect";
 import { fetchMe, logoutApi } from "@/lib/api/auth";
 import type { User } from "@/lib/api/types";
 import { clearAuthToken, getAuthToken, rememberPublicCode } from "@/lib/auth/session";
@@ -20,11 +22,9 @@ import Logo from "./Logo";
 /*  Auth helpers                                                       */
 /* ------------------------------------------------------------------ */
 
+/** Dashboard link by account type (creator / brand / publisher / network / admin). */
 function dashboardPath(user: User): string {
-  if (user.roles?.some((r) => r.name === "admin")) return "/admin/dashboard";
-  if (user.creator) return "/creator/dashboard";
-  if (user.roles?.some((r) => r.name === "employer")) return "/employer/dashboard";
-  return "/onboarding";
+  return homePathForUser(user);
 }
 
 function accountLabel(user: User): string {
@@ -54,6 +54,12 @@ const topLinks = [
   { label: "Creators", href: "/creators" },
   { label: "Brands", href: "/brands" },
   { label: "About", href: "/about" },
+] as const;
+
+/* Only shown after login (logged-out visitors never see these in the menu) */
+const memberLinks = [
+  { label: "Opportunities", href: "/opportunities" },
+  { label: "Jobs", href: "/jobs" },
 ] as const;
 
 const iconCls = "h-5 w-5";
@@ -187,6 +193,13 @@ const Chevron = ({ open }: { open: boolean }) => (
     <path d="M6 9l6 6 6-6" />
   </svg>
 );
+
+/** Role-specific login + signup entry points shown in the "Login / Signup" menu. */
+const LOGIN_ROLES = [
+  { label: "Creator", desc: "Share opportunities and earn", login: "/creator/login", signup: "/creator/register", Icon: Megaphone },
+  { label: "Publisher", desc: "Manage your communities", login: "/publisher/login", signup: "/publisher/register", Icon: Users },
+  { label: "Brand", desc: "Launch and track campaigns", login: "/brand/login", signup: "/brand/register", Icon: Building2 },
+] as const;
 
 const Arrow = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -338,8 +351,12 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const visibleTopLinks: ReadonlyArray<{ label: string; href: string }> =
+    authReady && user ? [...topLinks, ...memberLinks] : topLinks;
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const loginRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
 
   const isActive = useCallback(
@@ -415,6 +432,23 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", onDoc);
   }, [openDropdown, accountOpen]);
 
+  // "Login / Signup" menu: close on outside click or Escape
+  useEffect(() => {
+    if (!loginOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (loginRef.current && !loginRef.current.contains(e.target as Node)) setLoginOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLoginOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [loginOpen]);
+
   // Esc closes everything
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -462,8 +496,8 @@ export default function Header() {
           <Logo compact={scrolled} />
 
           {/* Desktop (≥1280) */}
-          <ul className="hidden items-center gap-7 xl:flex 2xl:gap-9">
-            {topLinks.map((l) => {
+          <ul className="hidden items-center gap-5 xl:flex 2xl:gap-9">
+            {visibleTopLinks.map((l) => {
               const active = isActive(l.href);
               return (
                 <li key={l.href}>
@@ -569,25 +603,60 @@ export default function Header() {
               </div>
             ) : authReady ? (
               <>
-                <Link
-                  href="/login"
-                  className="btn-tap inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-                >
-                  Log in
-                </Link>
-                <Link
-                  href="/hiring"
-                  className="btn-tap hidden min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 md:inline-flex"
-                >
-                  Live Campaigns
-                </Link>
-                <Link
-                  href="/signup"
-                  className="btn-tap hidden min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 sm:inline-flex"
-                >
-                  Start Earning
-                  <Arrow />
-                </Link>
+                <div className="relative" ref={loginRef}>
+                  <button
+                    type="button"
+                    onClick={() => setLoginOpen((v) => !v)}
+                    aria-expanded={loginOpen}
+                    aria-controls="login-menu"
+                    className="btn-tap inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  >
+                    Login / Signup
+                    <Chevron open={loginOpen} />
+                  </button>
+                  {loginOpen ? (
+                    <div
+                      id="login-menu"
+                      className="absolute right-0 top-full z-[100] mt-3 w-[min(19rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#0B1D4F] shadow-2xl shadow-black/40"
+                    >
+                      <ul className="py-2">
+                        {LOGIN_ROLES.map(({ label, desc, login, Icon }) => (
+                          <li key={login}>
+                            <Link
+                              href={login}
+                              onClick={() => setLoginOpen(false)}
+                              className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/10"
+                            >
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+                                <Icon size={18} aria-hidden="true" />
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-sm font-semibold text-white">Login with {label}</span>
+                                <span className="block text-xs text-indigo-200/80">{desc}</span>
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="border-t border-white/10 bg-white/5 px-4 py-3">
+                        <p className="text-xs text-indigo-200/80">New here? Create an account as</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {LOGIN_ROLES.map(({ label, signup }) => (
+                            <Link
+                              key={signup}
+                              href={signup}
+                              onClick={() => setLoginOpen(false)}
+                              className="rounded-full border border-white/20 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white/10"
+                            >
+                              {label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
               </>
             ) : null}
 
@@ -628,7 +697,7 @@ export default function Header() {
           >
             <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
               <ul className="space-y-1">
-                {topLinks.map((l) => (
+                {visibleTopLinks.map((l) => (
                   <li key={l.href}>
                     <Link
                       href={l.href}
@@ -745,13 +814,38 @@ export default function Header() {
                 I&apos;m Hiring
               </Link>
               {authReady && !user ? (
-                <Link
-                  href="/login"
-                  onClick={() => setDrawerOpen(false)}
-                  className="flex min-h-11 w-full items-center justify-center text-sm font-medium text-indigo-200"
-                >
-                  Log in
-                </Link>
+                <div className="space-y-2 pt-1">
+                  <p className="text-center text-xs font-medium uppercase tracking-wider text-indigo-300/70">
+                    Log in as
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {LOGIN_ROLES.map(({ label, login }) => (
+                      <Link
+                        key={login}
+                        href={login}
+                        onClick={() => setDrawerOpen(false)}
+                        className="flex min-h-11 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-2 text-sm font-semibold text-white transition hover:bg-white/15"
+                      >
+                        {label}
+                      </Link>
+                    ))}
+                  </div>
+                  <p className="text-center text-xs text-indigo-200/80">
+                    New here? Sign up as{" "}
+                    {LOGIN_ROLES.map(({ label, signup }, i) => (
+                      <span key={signup}>
+                        {i > 0 ? " · " : ""}
+                        <Link
+                          href={signup}
+                          onClick={() => setDrawerOpen(false)}
+                          className="font-semibold text-white underline-offset-2 hover:underline"
+                        >
+                          {label}
+                        </Link>
+                      </span>
+                    ))}
+                  </p>
+                </div>
               ) : null}
             </div>
           </div>

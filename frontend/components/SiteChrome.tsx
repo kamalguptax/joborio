@@ -14,6 +14,7 @@ const AUTH_ROUTES = new Set([
   "/publisher/login",
   "/publisher/register",
   "/creator/register",
+  "/brand/login",
   "/brand/register",
   "/brand/verify",
 ]);

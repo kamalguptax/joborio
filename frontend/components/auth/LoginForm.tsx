@@ -6,8 +6,10 @@ import { FormEvent, useCallback, useState } from "react";
 import { sanitizeNextParam } from "@/lib/auth/safeRedirect";
 import { login, fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
-import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
-import { homePathForUser } from "@/lib/auth/redirect";
+import { clearAuthToken, getAuthToken, rememberPublicCode, setAuthToken } from "@/lib/auth/session";
+import { cacheUser } from "@/lib/auth/userCache";
+import { canVisit, homePathForUser, navigateTo, roleFlags } from "@/lib/auth/redirect";
+import { ADMIN_LOGIN_URL } from "@/lib/siteUrls";
 import MathCaptcha, { isCaptchaFailureMessage } from "@/components/auth/MathCaptcha";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import AuthDivider from "@/components/auth/AuthDivider";
@@ -19,7 +21,7 @@ import {
   authPrimaryButton,
 } from "@/components/auth/authStyles";
 
-export default function LoginForm() {
+export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextAfterLogin = sanitizeNextParam(searchParams.get("next"));
@@ -53,14 +55,25 @@ export default function LoginForm() {
       });
       setAuthToken(data.token);
       rememberPublicCode(data.user);
-      if (nextAfterLogin) {
-        router.push(nextAfterLogin);
-        return;
-      }
 
       const me = await fetchMe();
       rememberPublicCode(me);
-      router.push(homePathForUser(me));
+      cacheUser(me, getAuthToken()); // header shows the avatar instantly
+
+      // Admin accounts use the separate admin app (own login).
+      if (roleFlags(me).isAdmin) {
+        clearAuthToken();
+        window.location.href = ADMIN_LOGIN_URL;
+        return;
+      }
+
+      // ?next= is honoured only if it belongs to THIS account type;
+      // otherwise the user goes to their own dashboard / onboarding.
+      const target =
+        nextAfterLogin && canVisit(nextAfterLogin, me)
+          ? nextAfterLogin
+          : homePathForUser(me, { prefer });
+      navigateTo(router, target);
     } catch (err) {
       const message =
         err instanceof ApiClientError

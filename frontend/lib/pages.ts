@@ -395,7 +395,7 @@ export const pages = {
     highlight: "Turn your traffic into revenue.",
     description:
       "Monetise your traffic with relevant opportunities and long-term partnerships, without spamming the people who trust you.",
-    primary: { label: "Become a Partner", href: "/signup" },
+    primary: { label: "Become a Partner", href: "/publisher/register" },
     secondary: { label: "About Joborio", href: "/about" },
     sectionLabel: "Partner with us",
     sectionTitle: "Built for community owners",
@@ -409,7 +409,7 @@ export const pages = {
     ctaTitle: "Become a partner",
     ctaText: "Tell us about your community and we will take it from there.",
     ctaLabel: "Become a Partner",
-    ctaHref: "/signup",
+    ctaHref: "/publisher/register",
     stats: [
       { value: "Relevant", label: "Offers matched to your community" },
       { value: "Clear", label: "Traffic, clicks and revenue reporting" },
