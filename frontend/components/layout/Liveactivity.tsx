@@ -111,7 +111,7 @@ export default function LiveActivity() {
             <span className="absolute h-3 w-3 animate-ping rounded-full bg-emerald-400/60 motion-reduce:animate-none" />
             <span className="relative h-2.5 w-2.5 rounded-full bg-emerald-500" />
           </span>
-          <span className="text-card-heading text-slate-900">Live activity</span>
+          <span className="text-card-heading text-slate-900">Lunch activity</span>
         </div>
 
         {/* Marquee */}

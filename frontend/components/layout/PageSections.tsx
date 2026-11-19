@@ -104,33 +104,3 @@ export function BenefitsSection({
     </section>
   );
 }
-
-/** Accordion of questions; uses <details> so it works without JavaScript. */
-export function FaqSection({
-  title = "Frequently asked questions",
-  faqs,
-}: {
-  title?: string;
-  faqs: { q: string; a: string }[];
-}) {
-  return (
-    <section className={`${wrap} pb-16 md:pb-24`}>
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
-        <SectionHeading className="min-w-0" eyebrow="FAQ" title={title} />
-        <div className="min-w-0 divide-y divide-slate-200 overflow-hidden rounded-3xl border border-slate-200 bg-white">
-          {faqs.map((f) => (
-            <details key={f.q} className="group px-5 py-1 sm:px-7">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-left text-base font-semibold text-[#0F1B3D] marker:hidden [&::-webkit-details-marker]:hidden">
-                {f.q}
-                <svg viewBox="0 0 20 20" className="h-5 w-5 shrink-0 text-violet-600 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M5 8l5 5 5-5" />
-                </svg>
-              </summary>
-              <p className="text-body pb-5 pr-8 text-slate-500">{f.a}</p>
-            </details>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}

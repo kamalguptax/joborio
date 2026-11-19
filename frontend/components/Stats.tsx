@@ -15,7 +15,7 @@ const tones = {
 } as const;
 
 type Stat = {
-  icon: "users" | "wave" | "case" | "shield" | "wallet";
+  icon: "users" | "wave" | "case" | "shield";
   value: number;
   decimals?: number;
   prefix?: string;
@@ -26,11 +26,10 @@ type Stat = {
 };
 
 const stats: Stat[] = [
-  { icon: "users", value: 12500, suffix: "+", label: "Active creators", delta: "+18%", tone: "violet" },
+  { icon: "users", value: 1250, suffix: "+", label: "Active creators", delta: "+18%", tone: "violet" },
   { icon: "wave", value: 3.8, decimals: 1, suffix: "M+", label: "Monthly reach", delta: "+24%", tone: "sky" },
   { icon: "case", value: 250, suffix: "+", label: "Active opportunities", delta: "+12%", tone: "orange" },
   { icon: "shield", value: 98, suffix: "%", label: "Verified & trusted", delta: "+6%", tone: "green" },
-  { icon: "wallet", value: 1.8, decimals: 1, prefix: "₹", suffix: "L+", label: "Total creator earnings", delta: "+32%", tone: "violet" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -66,14 +65,6 @@ function Icon({ name }: { name: Stat["icon"] }) {
         <>
           <path d="M12 3l7 3v5.5c0 4.5-3 8-7 9.5-4-1.5-7-5-7-9.5V6l7-3z" />
           <path d="M8.8 12.2l2.4 2.4 4.2-4.4" />
-        </>
-      )}
-      {name === "wallet" && (
-        <>
-          <path d="M3.5 10.5h13a2 2 0 012 2V19a2 2 0 01-2 2h-11a2 2 0 01-2-2v-8.5z" />
-          <circle cx="15.5" cy="15.8" r="1" />
-          <path d="M7 14h4M7 16h4M7 14c2.6 0 2.6 3 0 3l2.6 2.2" />
-          <path d="M8 8l3-3 2 2 4-4M14 3h3v3" />
         </>
       )}
     </svg>
@@ -215,16 +206,14 @@ export default function Stats() {
 
   return (
     <section ref={ref} aria-label="Platform stats" className="mx-auto w-full max-w-[1600px] px-4 py-10 sm:px-8 sm:py-12 lg:px-10">
-      {/* Mobile: 2-col grid. Tablet: 2. Desktop: 5. */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-6 xl:grid-cols-5">
+      {/* Mobile: 2-col grid. Tablet: 2. Desktop: 4. */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         {stats.map((s, idx) => {
           const t = tones[s.tone];
-          const span = idx < 3 ? "lg:col-span-2 xl:col-span-1" : "lg:col-span-3 xl:col-span-1";
-          const last = idx === stats.length - 1 ? "col-span-2 md:col-span-2 xl:col-span-1" : "";
           return (
             <div
               key={s.label}
-              className={`${span} ${last} min-w-0 transition-all duration-700 ease-out motion-reduce:transition-none ${
+              className={`min-w-0 transition-all duration-700 ease-out motion-reduce:transition-none ${
                 hidden ? "translate-y-7 opacity-0" : "translate-y-0 opacity-100"
               }`}
               style={{ transitionDelay: `${idx * 90}ms` }}
@@ -261,7 +250,7 @@ export default function Stats() {
                     {["from-amber-400 to-rose-500", "from-slate-700 to-slate-900", "from-sky-300 to-indigo-400"].map((g, i) => (
                       <span key={i} className={`-ml-2 hidden h-9 w-9 rounded-full bg-gradient-to-br ring-2 ring-white first:ml-0 sm:block ${g}`} />
                     ))}
-                    <span className="text-[10px] text-slate-500 sm:ml-3 sm:text-xs">+ 12.5K creators</span>
+                    <span className="text-[10px] text-slate-500 sm:ml-3 sm:text-xs">+ 1.25K creators</span>
                   </div>
                 ) : (
                   <div className="pointer-events-none absolute bottom-0 right-0 hidden w-[48%] sm:block">
