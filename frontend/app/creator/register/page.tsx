@@ -17,7 +17,7 @@ export default function CreatorRegisterPage() {
       subtitle="Share trusted campaigns, track real results, and get paid."
       topPrompt="Already a creator?"
       topLinkLabel="Log in"
-      topLinkHref="/login?next=/creator/dashboard"
+      topLinkHref="/creator/login"
       wide
       panelHeading="Your audience has value. Start earning today."
       panelBody="Share trusted campaigns and earn USD on verified clicks and registrations."

@@ -11,9 +11,12 @@ import {
   authLink,
   authPrimaryButton,
 } from "@/components/auth/authStyles";
+import { fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
+import { homePathForUser, navigateTo } from "@/lib/auth/redirect";
 import { loginPublisher } from "@/lib/api/publisherAuth";
-import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
+import { getAuthToken, rememberPublicCode, setAuthToken } from "@/lib/auth/session";
+import { cacheUser } from "@/lib/auth/userCache";
 
 const field = authField;
 
@@ -46,7 +49,12 @@ export default function PublisherLoginForm() {
       });
       setAuthToken(data.token);
       rememberPublicCode(data.user);
-      router.push("/publisher/dashboard");
+      // Publisher accounts land on the publisher dashboard; any other
+      // account type is sent to its own dashboard instead.
+      const me = await fetchMe();
+      rememberPublicCode(me);
+      cacheUser(me, getAuthToken()); // header shows the avatar instantly
+      navigateTo(router, homePathForUser(me));
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -96,8 +104,8 @@ export default function PublisherLoginForm() {
         <Link href="/forgot-password" className={authLink}>
           Forgot password?
         </Link>
-        <Link href="/login" className="font-semibold text-slate-500 transition hover:text-violet-600">
-          Creator / brand login
+        <Link href="/creator/login" className="font-semibold text-slate-500 transition hover:text-violet-600">
+          Creator login
         </Link>
       </div>
 

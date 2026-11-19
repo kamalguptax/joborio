@@ -17,7 +17,7 @@ export default function BrandRegisterPage() {
       subtitle="Amplify your brand through modern creator campaigns."
       topPrompt="Already registered?"
       topLinkLabel="Log in"
-      topLinkHref="/login?next=/employer/dashboard"
+      topLinkHref="/brand/login"
       wide
       panelHeading="Reach the right people through trusted creators."
       panelBody="Create your brand account and launch performance-based hiring campaigns."

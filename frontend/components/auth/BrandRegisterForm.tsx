@@ -310,7 +310,7 @@ export default function BrandRegisterForm() {
 
         <p className="text-center text-sm text-slate-500">
           Already have an account?{" "}
-          <Link href="/login?next=/employer/dashboard" className={authLink}>
+          <Link href="/brand/login" className={authLink}>
             Sign in
           </Link>
         </p>

@@ -7,6 +7,7 @@ import { claimCreatorReferral } from "@/lib/api/creator";
 import CreatorShell from "@/components/creator/CreatorShell";
 import { clearReferralCode, getReferralCode } from "@/lib/auth/referralStorage";
 import { getAuthToken } from "@/lib/auth/session";
+import { homePathForUser, navigateTo, roleFlags } from "@/lib/auth/redirect";
 
 export default function CreatorLayout({
   children,
@@ -20,10 +21,10 @@ export default function CreatorLayout({
     pathname && pathname.length > 1 && pathname.endsWith("/")
       ? pathname.slice(0, -1)
       : pathname;
-  const isPublicRegister = path === "/creator/register";
+  const isPublicAuth = path === "/creator/register" || path === "/creator/login";
 
   useEffect(() => {
-    if (isPublicRegister) return;
+    if (isPublicAuth) return;
 
     if (!getAuthToken()) {
       router.replace("/login");
@@ -31,18 +32,11 @@ export default function CreatorLayout({
     }
     fetchMe()
       .then((u) => {
-        const isAdmin = u.roles?.some((r) => r.name === "admin");
-        if (isAdmin) {
-          router.replace("/admin/dashboard");
-          return;
-        }
-        const isEmployer = u.roles?.some((r) => r.name === "employer");
-        if (isEmployer && !u.creator) {
-          router.replace("/employer/dashboard");
-          return;
-        }
-        if (!u.creator) {
-          router.replace("/onboarding");
+        // Not a creator: every account type goes to its own place
+        // (publisher -> publisher dashboard, brand -> employer dashboard,
+        //  brand-new account -> creator onboarding).
+        if (roleFlags(u).isAdmin || !u.creator) {
+          navigateTo(router, homePathForUser(u));
           return;
         }
         setHandle(u.creator.handle);
@@ -59,9 +53,9 @@ export default function CreatorLayout({
         }
       })
       .catch(() => router.replace("/login"));
-  }, [router, isPublicRegister]);
+  }, [router, isPublicAuth]);
 
-  if (isPublicRegister) {
+  if (isPublicAuth) {
     return <>{children}</>;
   }
 

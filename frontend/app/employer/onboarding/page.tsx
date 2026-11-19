@@ -6,7 +6,9 @@ import { Building2 } from "lucide-react";
 import OnboardingShell from "@/components/auth/OnboardingShell";
 import { authField, authLabel } from "@/components/auth/authStyles";
 import { registerEmployer } from "@/lib/api/employer";
+import { fetchMe } from "@/lib/api/auth";
 import { getAuthToken } from "@/lib/auth/session";
+import { homePathForUser, navigateTo, roleFlags } from "@/lib/auth/redirect";
 
 const steps = [
   {
@@ -25,8 +27,18 @@ export default function EmployerOnboardingPage() {
 
   useEffect(() => {
     if (!getAuthToken()) {
-      router.replace("/login");
+      router.replace("/brand/register");
+      return;
     }
+    fetchMe()
+      .then((u) => {
+        const f = roleFlags(u);
+        // Already a brand (or another account type): no company onboarding.
+        if (f.isEmployer || f.isAdmin || f.isPublisher || f.isNetworkMember) {
+          navigateTo(router, homePathForUser(u, { prefer: "employer" }));
+        }
+      })
+      .catch(() => router.replace("/login"));
   }, [router]);
 
   const submit = async () => {

@@ -347,7 +347,7 @@ export default function CreatorRegisterForm() {
         <p className="text-center text-sm text-slate-500">
           Already have an account?{" "}
           <Link
-            href="/login?next=/creator/dashboard"
+            href="/creator/login"
             className={authLink}
           >
             Sign in
