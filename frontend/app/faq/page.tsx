@@ -12,9 +12,7 @@ export default function FaqPage() {
         primary={{ label: "Start Earning", href: "/signup" }}
         secondary={{ label: "Refer & Earn", href: "/refer-and-earn" }}
       />
-      <div className="mx-auto w-full max-w-[1200px] px-4 pb-20 pt-12 sm:px-8 sm:pb-28 sm:pt-16">
-        <FAQSection />
-      </div>
+      <FAQSection />
     </>
   );
 }

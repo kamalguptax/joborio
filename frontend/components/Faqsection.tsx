@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useId, useState } from "react";
 import { Plus } from "lucide-react";
 
-const faqs = [
+export type FaqItem = { question: string; answer: string };
+
+const defaultFaqs: FaqItem[] = [
   {
     question: "How does JobOrio work for creators?",
     answer:
@@ -47,7 +49,62 @@ const faqs = [
   },
 ];
 
-export default function FAQSection() {
+type Cta = { title: string; text?: string; label: string; href: string };
+
+const defaultCta: Cta = {
+  title: "Want the full referral breakdown?",
+  text: "See how Refer & Earn works, step by step.",
+  label: "Refer & Earn",
+  href: "/refer-and-earn",
+};
+
+/** Each row gets its own accent colour so the list is easy to scan. */
+const tones = [
+  {
+    chip: "bg-violet-100 text-violet-600",
+    open: "from-violet-50 to-indigo-50 border-violet-200",
+    bar: "from-[#7C3AED] to-[#2563EB]",
+  },
+  {
+    chip: "bg-sky-100 text-sky-600",
+    open: "from-sky-50 to-blue-50 border-sky-200",
+    bar: "from-sky-400 to-blue-500",
+  },
+  {
+    chip: "bg-orange-100 text-orange-600",
+    open: "from-orange-50 to-amber-50 border-orange-200",
+    bar: "from-orange-400 to-amber-500",
+  },
+  {
+    chip: "bg-emerald-100 text-emerald-600",
+    open: "from-emerald-50 to-teal-50 border-emerald-200",
+    bar: "from-emerald-400 to-teal-500",
+  },
+] as const;
+
+const ctaBg = { backgroundImage: "linear-gradient(135deg, #0B1D4F 0%, #14296B 48%, #2E2297 100%)" };
+
+type Props = {
+  /** Questions to show. Defaults to the main JobOrio FAQ. */
+  items?: FaqItem[];
+  title?: string;
+  description?: string;
+  /** Help card next to the heading. Pass `null` to hide it. */
+  cta?: Cta | null;
+  id?: string;
+};
+
+/**
+ * The one FAQ design used across the site (home, /faq and every content page).
+ * Pass `items` to show page-specific questions; everything else stays the same.
+ */
+export default function FAQSection({
+  items = defaultFaqs,
+  title = "Frequently Asked Questions",
+  description = "Earnings, referrals, and how JobOrio pays creators.",
+  cta = defaultCta,
+  id = "faq",
+}: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const baseId = useId();
 
@@ -55,56 +112,93 @@ export default function FAQSection() {
     setOpenIndex((prev) => (prev === i ? null : i));
   };
 
+  // Last word of the heading gets the brand gradient.
+  const words = title.trim().split(" ");
+  const lastWord = words.length > 1 ? words.pop() : null;
+  const firstPart = lastWord ? words.join(" ") : title;
+
   return (
-    <section id="faq" className="section-pad w-full overflow-x-clip bg-white">
-      <div className="mx-auto grid max-w-[1400px] gap-8 px-4 sm:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] lg:gap-12 xl:gap-20">
+    <section
+      id={id}
+      className="section-pad relative w-full overflow-x-clip bg-gradient-to-b from-white via-violet-50/60 to-white"
+    >
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-violet-300/20 blur-3xl" />
+        <div className="absolute -right-24 bottom-10 h-72 w-72 rounded-full bg-sky-300/20 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto grid max-w-[1400px] gap-8 px-4 sm:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] lg:gap-12 xl:gap-20">
         {/* ---------- Left: label + heading ---------- */}
         <div className="min-w-0 lg:sticky lg:top-28 lg:self-start">
-          <span className="inline-flex items-center gap-2.5 rounded-full bg-slate-100 py-1.5 pl-1.5 pr-4 text-sm font-semibold text-slate-600">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-xs font-bold text-[#633BFF] shadow-sm">
+          <span className="inline-flex items-center gap-2.5 rounded-full bg-violet-100 py-1.5 pl-1.5 pr-4 text-sm font-semibold text-violet-700">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#2563EB] text-xs font-bold text-white shadow-sm">
               ?
             </span>
             FAQ
           </span>
 
-          <h2 className="mt-5 max-w-[16ch] text-balance text-[clamp(1.75rem,1.2rem+2.2vw,2.75rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-[#0F1B3D]">
-            Frequently Asked Questions
+          <h2 className="mt-5 max-w-[18ch] text-balance text-[clamp(1.75rem,1.2rem+2.2vw,2.75rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-[#0F1B3D]">
+            {firstPart}
+            {lastWord ? (
+              <>
+                {" "}
+                <span className="bg-gradient-to-r from-[#7C3AED] to-[#2563EB] bg-clip-text text-transparent">
+                  {lastWord}
+                </span>
+              </>
+            ) : null}
           </h2>
-          <p className="mt-4 max-w-sm text-base leading-relaxed text-slate-500">
-            Earnings, referrals, and how JobOrio pays creators.
-          </p>
+          <p className="mt-4 max-w-sm text-base leading-relaxed text-slate-500">{description}</p>
 
-          <div className="mt-8 hidden max-w-sm rounded-3xl bg-[#F3F3F5] p-6 lg:block">
-            <p className="text-base font-semibold text-[#1F2A44]">
-              Want the full referral breakdown?
-            </p>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
-              See how Refer &amp; Earn works, step by step.
-            </p>
-            <Link
-              href="/refer-and-earn"
-              className="mt-5 inline-flex min-h-11 items-center rounded-full bg-[#633BFF] px-6 text-sm font-semibold text-white transition hover:bg-[#4f2ee0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#633BFF]"
+          {cta ? (
+            <div
+              className="relative mt-8 hidden max-w-sm overflow-hidden rounded-3xl p-6 text-white shadow-[0_24px_50px_-30px_rgba(46,34,151,0.8)] lg:block"
+              style={ctaBg}
             >
-              Refer &amp; Earn
-            </Link>
-          </div>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-violet-500/40 blur-3xl"
+              />
+              <div className="relative">
+                <p className="text-base font-semibold">{cta.title}</p>
+                {cta.text ? (
+                  <p className="mt-1.5 text-sm leading-relaxed text-indigo-100/80">{cta.text}</p>
+                ) : null}
+                <Link
+                  href={cta.href}
+                  className="mt-5 inline-flex min-h-11 items-center rounded-full bg-white px-6 text-sm font-semibold text-[#2E2297] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                  {cta.label}
+                </Link>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* ---------- Right: accordion ---------- */}
         <div className="min-w-0">
           <div className="flex flex-col gap-3">
-            {faqs.map((faq, i) => {
+            {items.map((faq, i) => {
               const isOpen = openIndex === i;
+              const tone = tones[i % tones.length];
               const panelId = `${baseId}-panel-${i}`;
               const buttonId = `${baseId}-button-${i}`;
 
               return (
                 <div
                   key={faq.question}
-                  className={`rounded-3xl transition-colors duration-300 ${
-                    isOpen ? "bg-[#EEEEF2]" : "bg-[#F3F3F5] hover:bg-[#EDEDF1]"
+                  className={`relative overflow-hidden rounded-3xl border transition-all duration-300 ${
+                    isOpen
+                      ? `bg-gradient-to-br ${tone.open} shadow-[0_18px_40px_-28px_rgba(76,29,149,0.45)]`
+                      : "border-slate-200/80 bg-white shadow-sm hover:border-violet-200 hover:shadow-md"
                   }`}
                 >
+                  {isOpen ? (
+                    <span
+                      aria-hidden="true"
+                      className={`absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b ${tone.bar}`}
+                    />
+                  ) : null}
                   <h3>
                     <button
                       id={buttonId}
@@ -114,17 +208,17 @@ export default function FAQSection() {
                       aria-controls={panelId}
                       className="flex w-full items-center justify-between gap-4 rounded-3xl px-5 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#633BFF] sm:px-8 sm:py-6"
                     >
-                      <span className="text-base font-medium leading-snug text-[#1F2A44] sm:text-lg">
+                      <span className="text-base font-semibold leading-snug text-[#0F1B3D] sm:text-lg">
                         {faq.question}
                       </span>
-                      <Plus
-                        size={22}
-                        strokeWidth={1.6}
+                      <span
                         aria-hidden="true"
-                        className={`shrink-0 transition-transform duration-300 motion-reduce:transition-none ${
-                          isOpen ? "rotate-45 text-[#1F2A44]" : "text-slate-400"
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all duration-300 motion-reduce:transition-none ${
+                          isOpen ? `rotate-45 bg-gradient-to-br ${tone.bar} text-white shadow-md` : tone.chip
                         }`}
-                      />
+                      >
+                        <Plus size={18} strokeWidth={2.2} />
+                      </span>
                     </button>
                   </h3>
 
@@ -147,18 +241,21 @@ export default function FAQSection() {
             })}
           </div>
 
-          {/* Mobile / tablet CTA (left column is hidden CTA on lg+) */}
-          <div className="mt-6 flex flex-col items-center gap-3 rounded-3xl bg-[#F3F3F5] px-6 py-6 text-center lg:hidden">
-            <p className="text-base font-semibold text-[#1F2A44]">
-              Want the full referral breakdown?
-            </p>
-            <Link
-              href="/refer-and-earn"
-              className="inline-flex min-h-11 items-center rounded-full bg-[#633BFF] px-6 text-sm font-semibold text-white transition hover:bg-[#4f2ee0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#633BFF]"
+          {/* Mobile / tablet CTA (the left-column card is hidden below lg) */}
+          {cta ? (
+            <div
+              className="relative mt-6 flex flex-col items-center gap-3 overflow-hidden rounded-3xl px-6 py-6 text-center text-white lg:hidden"
+              style={ctaBg}
             >
-              Refer &amp; Earn
-            </Link>
-          </div>
+              <p className="text-base font-semibold">{cta.title}</p>
+              <Link
+                href={cta.href}
+                className="inline-flex min-h-11 items-center rounded-full bg-white px-6 text-sm font-semibold text-[#2E2297] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                {cta.label}
+              </Link>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import PageHero from "./PageHero";
 import SectionHeading from "./SectionHeading";
 import CtaBand from "./CtaBand";
-import { BenefitsSection, FaqSection, StatsStrip, StepsSection, type InfoItem } from "./PageSections";
+import FAQSection from "@/components/Faqsection";
+import { BenefitsSection, StatsStrip, StepsSection, type InfoItem } from "./PageSections";
 
 export type PageContent = {
   eyebrow: string;
@@ -86,7 +87,20 @@ export default function PageTemplate({
         <BenefitsSection eyebrow={c.benefits.label} title={c.benefits.title} intro={c.benefits.intro} items={c.benefits.items} />
       ) : null}
 
-      {c.faqs ? <FaqSection title={c.faqs.title} faqs={c.faqs.items} /> : null}
+      {c.faqs ? (
+        <FAQSection
+          id="page-faq"
+          title={c.faqs.title ?? "Frequently asked questions"}
+          description="Quick answers before you get started."
+          items={c.faqs.items.map((f) => ({ question: f.q, answer: f.a }))}
+          cta={{
+            title: "Still have questions?",
+            text: "Browse the full help center or get in touch.",
+            label: "Visit help center",
+            href: "/faq",
+          }}
+        />
+      ) : null}
 
       <CtaBand title={c.ctaTitle} text={c.ctaText} label={c.ctaLabel} href={c.ctaHref} />
     </>
