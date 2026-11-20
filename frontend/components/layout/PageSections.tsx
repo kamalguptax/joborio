@@ -1,6 +1,37 @@
 import SectionHeading from "./SectionHeading";
 
-export type InfoItem = { title: string; text: string };
+import {
+  BadgeDollarSign,
+  ChartColumn,
+  Share2,
+  ShieldCheck,
+  SlidersHorizontal,
+  Users,
+} from "lucide-react";
+
+/** Icon keys a benefit card can use. Cards with an icon render as rich cards. */
+export type BenefitIcon = "sliders" | "reward" | "share" | "chart" | "shield" | "users";
+
+export type InfoItem = { title: string; text: string; icon?: BenefitIcon };
+
+const BENEFIT_ICONS = {
+  sliders: SlidersHorizontal,
+  reward: BadgeDollarSign,
+  share: Share2,
+  chart: ChartColumn,
+  shield: ShieldCheck,
+  users: Users,
+} as const;
+
+/** One colour family per card position (literal classes so Tailwind keeps them). */
+const BENEFIT_TONES = [
+  { chip: "bg-violet-100 text-violet-600", glow: "from-violet-100/70", hover: "hover:border-violet-200" },
+  { chip: "bg-emerald-100 text-emerald-600", glow: "from-emerald-100/70", hover: "hover:border-emerald-200" },
+  { chip: "bg-sky-100 text-sky-600", glow: "from-sky-100/70", hover: "hover:border-sky-200" },
+  { chip: "bg-amber-100 text-amber-600", glow: "from-amber-100/70", hover: "hover:border-amber-200" },
+  { chip: "bg-rose-100 text-rose-600", glow: "from-rose-100/70", hover: "hover:border-rose-200" },
+  { chip: "bg-fuchsia-100 text-fuchsia-600", glow: "from-fuchsia-100/70", hover: "hover:border-fuchsia-200" },
+] as const;
 
 const wrap = "mx-auto w-full max-w-[1600px] px-4 sm:px-8 lg:px-10";
 
@@ -84,6 +115,39 @@ export function BenefitsSection({
   intro?: string;
   items: InfoItem[];
 }) {
+  // Items that carry an icon get the richer card layout; others keep the check-mark list.
+  if (items.length > 0 && items.every((b) => b.icon)) {
+    return (
+      <section className={`${wrap} py-16 md:py-24`}>
+        <SectionHeading className="max-w-3xl min-w-0" eyebrow={eyebrow} title={title} description={intro} />
+        <ul className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+          {items.map((b, i) => {
+            const Icon = BENEFIT_ICONS[b.icon!];
+            const tone = BENEFIT_TONES[i % BENEFIT_TONES.length];
+            return (
+              <li
+                key={b.title}
+                className={`group relative min-w-0 overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,27,61,0.04),0_18px_40px_-28px_rgba(15,27,61,0.25)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_50px_-30px_rgba(91,53,213,0.4)] sm:p-7 ${tone.hover}`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br ${tone.glow} to-transparent opacity-70 transition duration-300 group-hover:scale-125`}
+                />
+                <span
+                  className={`relative flex h-12 w-12 items-center justify-center rounded-2xl ${tone.chip} transition duration-300 group-hover:scale-105`}
+                >
+                  <Icon size={22} strokeWidth={2} aria-hidden="true" />
+                </span>
+                <h3 className="relative mt-5 text-lg font-bold text-[#0F1B3D]">{b.title}</h3>
+                <p className="text-body relative mt-2 leading-7 text-slate-500">{b.text}</p>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    );
+  }
+
   return (
     <section className={`${wrap} py-16 md:py-24`}>
       <SectionHeading className="max-w-3xl min-w-0" eyebrow={eyebrow} title={title} description={intro} />

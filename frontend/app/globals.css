@@ -883,3 +883,75 @@ body {
     padding: 1.5rem 1.65rem 1.75rem;
   }
 }
+
+/* ——— Mobile hardening ——— */
+/* iOS Safari zooms the page when a focused field is < 16px, which shifts the layout sideways. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"]),
+  select,
+  textarea,
+  .dash-content
+    :is(
+      input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"]),
+      select,
+      textarea
+    ) {
+    font-size: 16px;
+  }
+}
+
+/* Long words / URLs / pasted HTML in job descriptions must never push the page wider than the screen. */
+.job-desc__body {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.job-desc__body img,
+.job-desc__body video,
+.job-desc__body iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.job-desc__body pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 639px) {
+  .job-desc__body table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Safety net: media inside <main> can never exceed its container. */
+main img,
+main video,
+main canvas {
+  max-width: 100%;
+}
+
+/* Account dropdown entrance */
+@keyframes menu-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.menu-pop {
+  animation: menu-pop 0.16s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-pop {
+    animation: none;
+  }
+}

@@ -6,6 +6,7 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { resendEmailOtp, verifyEmailOtp } from "@/lib/api/brandAuth";
 import { ApiClientError } from "@/lib/api/client";
 import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
+import { markOnboardingPending } from "@/lib/auth/onboardingFlag";
 import AuthShell from "@/components/auth/AuthShell";
 import {
   authAlertError,
@@ -45,7 +46,8 @@ function VerifyForm() {
       setAuthToken(data.token);
       rememberPublicCode(data.user);
       sessionStorage.removeItem("joborio_brand_verify_email");
-      router.push("/employer/dashboard");
+      markOnboardingPending(data.user.id, "employer");
+      router.push("/brand/onboarding");
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : "Verification failed.");
     } finally {

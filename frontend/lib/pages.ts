@@ -67,7 +67,7 @@ export const pages = {
     description:
       "Share relevant jobs, courses and campaigns with your community. Every share has a tracked link, so you can see real results and get paid for qualified actions.",
     primary: { label: "Join as a Creator", href: "/creator/register" },
-    secondary: { label: "See opportunities", href: "/opportunities" },
+    secondary: { label: "Join as a Publisher", href: "/publisher/register" },
     sectionLabel: "How creators earn",
     sectionTitle: "Share. Track. Earn.",
     sectionIntro: "Four simple steps from profile to payout.",
@@ -92,12 +92,12 @@ export const pages = {
       title: "Earn without spamming your audience",
       intro: "You choose what to share, so your community keeps trusting you.",
       items: [
-        { title: "Choose what fits", text: "Pick jobs, courses and campaigns your audience will find useful. Nothing is forced on you." },
-        { title: "Know the reward first", text: "See what an opportunity pays before you share it." },
-        { title: "Share anywhere", text: "Use your tracked link on Instagram, WhatsApp, Telegram, YouTube, a newsletter or a website." },
-        { title: "See real results", text: "Follow clicks, registrations and earnings in one dashboard, filtered by campaign type and date." },
-        { title: "Fair, clean counting", text: "Duplicate clicks are filtered, so what you see is what counts." },
-        { title: "Earn from referrals too", text: "Invite other creators and earn a share of the platform fee on their earnings." },
+        { icon: "sliders", title: "Choose what fits", text: "Pick jobs, courses and campaigns your audience will find useful. Nothing is forced on you." },
+        { icon: "reward", title: "Know the reward first", text: "See what an opportunity pays before you share it." },
+        { icon: "share", title: "Share anywhere", text: "Use your tracked link on Instagram, WhatsApp, Telegram, YouTube, a newsletter or a website." },
+        { icon: "chart", title: "See real results", text: "Follow clicks, registrations and earnings in one dashboard, filtered by campaign type and date." },
+        { icon: "shield", title: "Fair, clean counting", text: "Duplicate clicks are filtered, so what you see is what counts." },
+        { icon: "users", title: "Earn from referrals too", text: "Invite other creators and earn a share of the platform fee on their earnings." },
       ],
     },
     faqs: {

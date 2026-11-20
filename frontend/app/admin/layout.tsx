@@ -33,7 +33,7 @@ export default function AdminLayout({
 
   if (!ok) {
     return (
-      <div className="admin-console flex min-h-screen items-center justify-center bg-zinc-950">
+      <div className="admin-console flex min-h-svh items-center justify-center bg-zinc-950">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-500" />
           <p className="mt-4 text-sm text-zinc-500">Verifying admin access…</p>

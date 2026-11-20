@@ -16,33 +16,12 @@ import {
 import ReferralCapture from "@/components/auth/ReferralCapture";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import { register } from "@/lib/api/auth";
-import { createCreatorOnboarding } from "@/lib/api/creator";
 import { ApiClientError } from "@/lib/api/client";
-import { getReferralCode, saveReferralCode, clearReferralCode } from "@/lib/auth/referralStorage";
+import { getReferralCode, saveReferralCode } from "@/lib/auth/referralStorage";
 import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
+import { markOnboardingPending } from "@/lib/auth/onboardingFlag";
 
 const field = authField;
-
-function makeHandle(name: string, email: string): string {
-  const fromName = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_|_$/g, "");
-  const fromEmail = email
-    .split("@")[0]
-    .toLowerCase()
-    .replace(/[^a-z0-9_]+/g, "_")
-    .replace(/^_|_$/g, "");
-  const base = (fromName || fromEmail || "creator").slice(0, 24);
-  return base.length >= 3 ? base : `creator_${Date.now().toString(36)}`;
-}
-
-function normalizeUrl(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return `https://${trimmed}`;
-}
 
 export default function CreatorRegisterForm() {
   const router = useRouter();
@@ -51,10 +30,6 @@ export default function CreatorRegisterForm() {
   const [referralCode, setReferralCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [linkedin, setLinkedin] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [community, setCommunity] = useState("");
-  const [website, setWebsite] = useState("");
   const [accepted, setAccepted] = useState(false);
   const [captcha, setCaptcha] = useState({ captcha_id: "", captcha_answer: "" });
   const [error, setError] = useState<string | null>(null);
@@ -90,17 +65,6 @@ export default function CreatorRegisterForm() {
       return;
     }
 
-    const linkedinUrl = normalizeUrl(linkedin);
-    const instagramUrl = normalizeUrl(instagram);
-    const communityUrl = normalizeUrl(community);
-    const websiteUrl = normalizeUrl(website);
-    if (!linkedinUrl && !instagramUrl && !communityUrl && !websiteUrl) {
-      setError(
-        "Add at least one LinkedIn, Instagram, community, or website link. We approve creator accounts manually.",
-      );
-      return;
-    }
-
     setLoading(true);
     try {
       const code = referralCode.trim().toUpperCase() || undefined;
@@ -119,42 +83,10 @@ export default function CreatorRegisterForm() {
       setAuthToken(data.token);
       rememberPublicCode(data.user);
 
-      const baseHandle = makeHandle(fullName.trim(), email.trim());
-      const social_links = {
-        ...(linkedinUrl ? { linkedin: linkedinUrl } : {}),
-        ...(instagramUrl ? { instagram: instagramUrl } : {}),
-        ...(communityUrl ? { community: communityUrl } : {}),
-        ...(websiteUrl ? { website: websiteUrl } : {}),
-      };
-
-      let onboarded = false;
-      let lastError: unknown = null;
-      const attempts: string[] = [
-        baseHandle,
-        `${baseHandle}_${Math.floor(Math.random() * 900 + 100)}`.slice(0, 30),
-      ];
-      for (const handle of attempts) {
-        try {
-          await createCreatorOnboarding({
-            handle,
-            social_links,
-            ...(code ? { referral_code: code } : {}),
-          });
-          onboarded = true;
-          break;
-        } catch (err) {
-          lastError = err;
-        }
-      }
-
-      if (!onboarded) {
-        throw lastError instanceof Error
-          ? lastError
-          : new Error("Could not finish creator profile.");
-      }
-
-      clearReferralCode();
-      router.push("/creator/dashboard");
+      markOnboardingPending(data.user.id, "creator");
+      // Profile links, niches and the rest are collected in /onboarding.
+      sessionStorage.setItem("joborio_signup_role", "creator");
+      router.push("/onboarding");
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -254,57 +186,6 @@ export default function CreatorRegisterForm() {
                 onChange={(e) => setConfirm(e.target.value)}
                 placeholder="Repeat password"
                 autoComplete="new-password"
-                className={field}
-              />
-            </label>
-          </div>
-        </section>
-
-        <section>
-          <h2 className={authSectionHeading}>3. Profile links (required)</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Add at least one LinkedIn, Instagram, community, or website link.
-            Accounts stay <span className="font-semibold text-amber-700">pending</span> until
-            an admin approves them manually.
-          </p>
-          <div className="mt-3 space-y-4">
-            <label className={authLabel}>
-              LinkedIn
-              <input
-                type="url"
-                value={linkedin}
-                onChange={(e) => setLinkedin(e.target.value)}
-                placeholder="https://linkedin.com/in/your-profile"
-                className={field}
-              />
-            </label>
-            <label className={authLabel}>
-              Instagram
-              <input
-                type="url"
-                value={instagram}
-                onChange={(e) => setInstagram(e.target.value)}
-                placeholder="https://instagram.com/yourhandle"
-                className={field}
-              />
-            </label>
-            <label className={authLabel}>
-              Community link
-              <input
-                type="url"
-                value={community}
-                onChange={(e) => setCommunity(e.target.value)}
-                placeholder="https://t.me/yourgroup or Discord invite"
-                className={field}
-              />
-            </label>
-            <label className={authLabel}>
-              Website / portfolio
-              <input
-                type="url"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://yourwebsite.com"
                 className={field}
               />
             </label>

@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchMe } from "@/lib/api/auth";
 import { createCreatorOnboarding, fetchNiches } from "@/lib/api/creator";
 import { hasNoRole, homePathForUser, navigateTo } from "@/lib/auth/redirect";
 import { getReferralCode, clearReferralCode } from "@/lib/auth/referralStorage";
 import { ApiClientError } from "@/lib/api/client";
 import { getAuthToken } from "@/lib/auth/session";
+import { clearOnboardingPending, isOnboardingPending } from "@/lib/auth/onboardingFlag";
 import { detectCurrentPlace } from "@/lib/maps/detectPlace";
 import GooglePlacesLocationInput from "@/components/maps/GooglePlacesLocationInput";
 import NicheSearch from "@/components/jobs/NicheSearch";
@@ -120,6 +121,7 @@ export default function OnboardingPage() {
   const [locationFromGoogle, setLocationFromGoogle] = useState(false);
   const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [skipRoleStep, setSkipRoleStep] = useState(false);
+  const userIdRef = useRef<number | null>(null);
   const [linkedin, setLinkedin] = useState("");
   const [instagram, setInstagram] = useState("");
   const [community, setCommunity] = useState("");
@@ -147,7 +149,12 @@ export default function OnboardingPage() {
     fetchMe()
       .then((me) => {
         if (cancelled) return;
-        if (!hasNoRole(me)) navigateTo(router, homePathForUser(me));
+        userIdRef.current = me.id;
+        // A brand-new account can already have a creator profile (the API may
+        // create it at sign-up), so the pending flag, not "no role", decides.
+        if (!hasNoRole(me) && !isOnboardingPending(me.id, "creator")) {
+          navigateTo(router, homePathForUser(me));
+        }
       })
       .catch(() => undefined);
 
@@ -181,10 +188,15 @@ export default function OnboardingPage() {
     );
   };
 
+  const finishOnboarding = () => {
+    if (userIdRef.current != null) clearOnboardingPending(userIdRef.current, "creator");
+  };
+
   const completeOnboarding = async () => {
     setSubmitError(null);
 
     if (selectedRole === "recruiter") {
+      finishOnboarding();
       router.push("/employer/onboarding");
       return;
     }
@@ -232,6 +244,7 @@ export default function OnboardingPage() {
       savePromoteJobTypes(jobTypes);
       clearReferralCode();
       clearSignupRoleIntent();
+      finishOnboarding();
       // "Both": creator profile is done, now set up the company too.
       router.push(selectedRole === "both" ? "/employer/onboarding" : "/creator/dashboard");
     } catch (err) {
@@ -294,6 +307,8 @@ export default function OnboardingPage() {
       intro="Get started by setting up your JobOrio profile in a few quick steps."
       error={submitError}
       exitHref="/creator/dashboard"
+      exitLabel="Skip for now"
+      onExit={finishOnboarding}
       onBack={currentStep === 1 ? undefined : previousStep}
       onNext={isLast ? completeOnboarding : nextStep}
       nextDisabled={submitting}

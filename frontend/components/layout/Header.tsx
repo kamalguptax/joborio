@@ -10,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Building2, Megaphone, Users } from "lucide-react";
+import { Building2, LayoutDashboard, LogOut, Megaphone, Settings, Users } from "lucide-react";
 import { homePathForUser } from "@/lib/auth/redirect";
 import { fetchMe, logoutApi } from "@/lib/api/auth";
 import type { User } from "@/lib/api/types";
@@ -485,7 +485,7 @@ export default function Header() {
 
   return (
     <>
-      <header ref={headerRef} className="fixed inset-x-0 top-4 z-[100] w-full">
+      <header ref={headerRef} className="fixed inset-x-0 top-3 z-[100] w-full px-3 sm:top-4 sm:px-4 xl:px-6">
      
         <nav
           className={`relative mx-auto flex max-w-[1600px]  items-center justify-between gap-3 px-4 transition-[height] duration-300 sm:px-8 xl:px-10 rounded-[12px] lg:rounded-[34px] bg-[#0c1e52] ${
@@ -538,27 +538,52 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => setAccountOpen((v) => !v)}
-                  className="inline-flex max-w-[180px] items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                  className="inline-flex max-w-[200px] items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1.5 pl-1.5 pr-3.5 text-sm font-semibold text-white transition hover:border-white/35 hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   aria-expanded={accountOpen}
                   aria-haspopup="menu"
                 >
+                  <span
+                    aria-hidden="true"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#2563EB] text-xs font-bold uppercase text-white"
+                  >
+                    {accountLabel(user).replace(/^@/, "").charAt(0) || "U"}
+                  </span>
                   <span className="truncate">{accountLabel(user)}</span>
                   <Chevron open={accountOpen} />
                 </button>
                 {accountOpen ? (
                   <div
                     role="menu"
-                    className="absolute right-0 z-[130] mt-2 w-52 rounded-xl border border-white/10 bg-[#0B1D4F] py-2 shadow-xl"
+                    className="menu-pop absolute right-0 z-[130] mt-3 w-64 origin-top-right rounded-2xl border border-white/10 bg-[#0B1D4F] p-2 shadow-2xl shadow-black/40 ring-1 ring-black/10"
                   >
-                    <p className="px-4 pb-2 text-xs font-semibold text-indigo-200">
-                      Link id {publicCodeForUser(user)}
-                    </p>
+                    <span
+                      aria-hidden="true"
+                      className="absolute -top-1.5 right-8 h-3 w-3 rotate-45 border-l border-t border-white/10 bg-[#0B1D4F]"
+                    />
+                    <div className="mb-1 flex items-center gap-3 rounded-xl bg-white/[0.06] px-3 py-3">
+                      <span
+                        aria-hidden="true"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#2563EB] text-base font-bold uppercase text-white ring-2 ring-white/15"
+                      >
+                        {accountLabel(user).replace(/^@/, "").charAt(0) || "U"}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-white">{accountLabel(user)}</p>
+                        <p className="mt-0.5 inline-flex items-center rounded-md bg-white/10 px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-indigo-100">
+                          Link ID · {publicCodeForUser(user)}
+                        </p>
+                      </div>
+                    </div>
+
                     <Link
                       role="menuitem"
                       href={dashboardPath(user)}
                       onClick={() => setAccountOpen(false)}
-                      className="block px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10"
+                      className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-indigo-50 transition hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:outline-none"
                     >
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.07] text-indigo-200 transition group-hover:bg-white/15 group-hover:text-white">
+                        <LayoutDashboard size={16} aria-hidden="true" />
+                      </span>
                       My dashboard
                     </Link>
                     {user.creator ? (
@@ -566,8 +591,11 @@ export default function Header() {
                         role="menuitem"
                         href="/creator/settings"
                         onClick={() => setAccountOpen(false)}
-                        className="block px-4 py-2.5 text-sm font-medium text-indigo-100 hover:bg-white/10"
+                        className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-indigo-50 transition hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:outline-none"
                       >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.07] text-indigo-200 transition group-hover:bg-white/15 group-hover:text-white">
+                          <Settings size={16} aria-hidden="true" />
+                        </span>
                         Account settings
                       </Link>
                     ) : null}
@@ -576,15 +604,21 @@ export default function Header() {
                         role="menuitem"
                         href="/employer/dashboard"
                         onClick={() => setAccountOpen(false)}
-                        className="block px-4 py-2.5 text-sm font-medium text-indigo-100 hover:bg-white/10"
+                        className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-indigo-50 transition hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:outline-none"
                       >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.07] text-indigo-200 transition group-hover:bg-white/15 group-hover:text-white">
+                          <Building2 size={16} aria-hidden="true" />
+                        </span>
                         Employer portal
                       </Link>
                     ) : null}
+
+                    <div className="my-2 h-px bg-white/10" />
+
                     <button
                       type="button"
                       role="menuitem"
-                      className="block w-full px-4 py-2.5 text-left text-sm font-medium text-rose-200 hover:bg-white/10"
+                      className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-rose-200 transition hover:bg-rose-500/15 hover:text-rose-100 focus-visible:bg-rose-500/15 focus-visible:outline-none"
                       onClick={async () => {
                         setAccountOpen(false);
                         try {
@@ -596,6 +630,9 @@ export default function Header() {
                         window.location.href = "/login";
                       }}
                     >
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-300 transition group-hover:bg-rose-500/20">
+                        <LogOut size={16} aria-hidden="true" />
+                      </span>
                       Sign out
                     </button>
                   </div>

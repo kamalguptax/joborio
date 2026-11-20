@@ -164,7 +164,7 @@ export default function Hero() {
       {/* ---------- Layout grid ----------
           0 - 992px : 1 column (text, phir visual + cards), kuch hide nahi
           993px+    : 2 columns, 100svh me fit                              */}
-      <div className="relative mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 items-center gap-8 pb-10 pt-4 sm:px-8 sm:pb-12 min-[993px]:h-full min-[993px]:min-h-0 min-[993px]:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] min-[993px]:grid-rows-1 min-[993px]:gap-8 min-[993px]:px-10 min-[993px]:py-4 xl:gap-12">
+      <div className="relative mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 items-center gap-8 px-4 pb-10 pt-4 sm:px-8 sm:pb-12 min-[993px]:h-full min-[993px]:min-h-0 min-[993px]:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] min-[993px]:grid-rows-1 min-[993px]:gap-8 min-[993px]:px-10 min-[993px]:py-4 xl:gap-12">
         {/* ---------- Left: content ---------- */}
         <div className="relative z-10 w-full min-w-0 self-center">
           <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 backdrop-blur-sm sm:gap-3 sm:px-4 sm:py-2 [@media(min-width:993px)_and_(max-height:620px)]:hidden">

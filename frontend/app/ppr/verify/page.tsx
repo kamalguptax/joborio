@@ -27,7 +27,7 @@ function Inner() {
   }, [params]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#fff9fd] px-6">
+    <main className="flex min-h-svh items-center justify-center bg-[#fff9fd] px-6">
       <p className="max-w-md text-center text-sm font-medium text-slate-700">
         {status}
       </p>
@@ -37,7 +37,7 @@ function Inner() {
 
 export default function PprVerifyPage() {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-[#fff9fd]" />}>
+    <Suspense fallback={<main className="min-h-svh bg-[#fff9fd]" />}>
       <Inner />
     </Suspense>
   );

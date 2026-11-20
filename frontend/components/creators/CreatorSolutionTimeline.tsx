@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CirclePlus, Heart, Pencil, Share2 } from "lucide-react";
 import Character from "@/components/art/Character";
+import SocialIcon, { SOCIAL_BG, type SocialKey } from "@/components/creators/SocialIcon";
 
-/* ——— Palette (editorial cream / navy / coral) ——— */
-const NAVY = "text-[#1E1B5A]";
-const CORAL = "#E8654E";
+/* ——— Palette: site theme (navy text, violet accent) ——— */
+const NAVY = "text-[#0F1B3D]";
+const ACCENT = "#7C3AED";
 
 /* ——— Small shared pieces ——— */
 
@@ -14,7 +15,7 @@ function MockCard({ children, className = "" }: { children: ReactNode; className
   return (
     <div
       aria-hidden="true"
-      className={`w-full max-w-[390px] rounded-[28px] bg-[#FBFAF6] p-4 shadow-[0_34px_60px_-34px_rgba(30,27,90,0.35)] ring-1 ring-black/[0.04] transition duration-300 hover:-translate-y-1 hover:shadow-[0_40px_64px_-32px_rgba(30,27,90,0.45)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${className}`}
+      className={`w-full max-w-[390px] rounded-[28px] bg-white p-4 shadow-[0_34px_60px_-34px_rgba(30,27,90,0.35)] ring-1 ring-black/[0.04] transition duration-300 hover:-translate-y-1 hover:shadow-[0_40px_64px_-32px_rgba(30,27,90,0.45)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${className}`}
     >
       {children}
     </div>
@@ -35,22 +36,15 @@ function Toggle({ on }: { on: boolean }) {
   );
 }
 
-function YouTubeGlyph() {
+/** Round brand button used on the profile card (LinkedIn, Instagram, TikTok, Telegram, YouTube, WhatsApp channel). */
+function SocialDot({ platform }: { platform: SocialKey }) {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-      <rect x="2" y="5" width="20" height="14" rx="4" fill="#fff" />
-      <path d="M10 9l5 3-5 3z" fill="#E11D48" />
-    </svg>
-  );
-}
-
-function InstagramGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="#fff" strokeWidth="2" aria-hidden="true">
-      <rect x="4" y="4" width="16" height="16" rx="5" />
-      <circle cx="12" cy="12" r="3.6" />
-      <circle cx="17" cy="7" r="0.8" fill="#fff" stroke="none" />
-    </svg>
+    <span
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white"
+      style={{ background: SOCIAL_BG[platform] }}
+    >
+      <SocialIcon platform={platform} size={13} />
+    </span>
   );
 }
 
@@ -61,21 +55,23 @@ function ProfileCard() {
     <MockCard>
       <div className="h-24 rounded-2xl bg-[linear-gradient(115deg,#79D3B8_0%,#C6E7A6_38%,#F6E4A0_64%,#F7C8B8_100%)]" />
       <div className="-mt-10 flex flex-col items-center">
-        <span className="block h-20 w-20 overflow-hidden rounded-full bg-orange-100 ring-4 ring-[#FBFAF6]">
+        <span className="block h-20 w-20 overflow-hidden rounded-full bg-orange-100 ring-4 ring-white">
           <Character hoodie="#F59E0B" className="h-full w-full" />
         </span>
       </div>
       <div className="-mt-9 flex items-center justify-between px-1">
         <span className="flex gap-1.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#E11D48]">
-            <YouTubeGlyph />
-          </span>
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(45deg,#F59E0B,#E11D48,#7C3AED)]">
-            <InstagramGlyph />
-          </span>
+          <SocialDot platform="linkedin" />
+          <SocialDot platform="instagram" />
+          <SocialDot platform="tiktok" />
         </span>
-        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500">
-          <Share2 size={14} />
+        <span className="flex gap-1.5">
+          <SocialDot platform="telegram" />
+          <SocialDot platform="youtube" />
+          <SocialDot platform="whatsapp" />
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500">
+            <Share2 size={13} />
+          </span>
         </span>
       </div>
       <div className="mt-2 text-center">
@@ -101,6 +97,14 @@ function ProfileCard() {
   );
 }
 
+/** The four ways a creator can earn (PPC, PPR, PPA, PPE). Values are examples. */
+const RATES: { title: string; hint: string; value: string; unit?: string; example?: boolean }[] = [
+  { title: "Pay per click (PPC)", hint: "Earn for every verified click", value: "$0.04", unit: "per click" },
+  { title: "Pay per registration (PPR)", hint: "Earn when someone signs up", value: "Example: $1.20 per registration", example: true },
+  { title: "Pay per action (PPA)", hint: "Earn for a lead or an application", value: "Example: $0.80 per application", example: true },
+  { title: "Pay per engagement (PPE)", hint: "Earn when you like, comment or repost", value: "Example: $0.25 per engagement", example: true },
+];
+
 function RatesCard() {
   return (
     <MockCard className="p-5">
@@ -108,43 +112,58 @@ function RatesCard() {
       <p className="mx-auto mt-1.5 max-w-[17rem] text-center text-[12px] leading-snug text-slate-500">
         Choose what your audience will find useful. The reward is shown before you share.
       </p>
-      <div className="mt-4 space-y-3 rounded-2xl bg-[#F4F2EC] p-3">
-        <div>
-          <p className="text-[13px] font-medium text-slate-900">Pay per click (PPC)</p>
-          <p className="text-[11px] text-slate-500">Earn for every verified click</p>
-          <div className="mt-2 rounded-xl bg-[#FBFAF6] px-3 py-3 text-[14px] font-medium text-slate-900">
-            $0.04 <span className="text-[12px] font-normal text-slate-500">per click</span>
+      <div className="mt-4 space-y-2.5 rounded-2xl bg-slate-50 p-3">
+        {RATES.map((r) => (
+          <div key={r.title}>
+            <p className="text-[13px] font-medium text-slate-900">{r.title}</p>
+            <p className="text-[11px] text-slate-500">{r.hint}</p>
+            <div
+              className={`mt-1.5 rounded-xl bg-white px-3 py-2.5 text-[14px] ${
+                r.example ? "text-slate-400" : "font-medium text-slate-900"
+              }`}
+            >
+              {r.example ? (
+                r.value
+              ) : (
+                <>
+                  {r.value} <span className="text-[12px] font-normal text-slate-500">{r.unit}</span>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-        <div>
-          <p className="text-[13px] font-medium text-slate-900">Pay per registration (PPR)</p>
-          <p className="text-[11px] text-slate-500">Earn when someone signs up</p>
-          <div className="mt-2 rounded-xl bg-[#FBFAF6] px-3 py-3 text-[14px] text-slate-400">
-            Example: $1.20 per registration
-          </div>
-        </div>
+        ))}
       </div>
     </MockCard>
   );
 }
 
 function LinksCard() {
-  const rows = [
-    { label: "Instagram bio", link: "jobrio.link/aarav", on: true },
-    { label: "WhatsApp channel", link: "jobrio.link/aarav-wa", on: false },
-    { label: "Telegram group", link: "jobrio.link/aarav-tg", on: true },
+  const rows: { platform: SocialKey; label: string; link: string; on: boolean }[] = [
+    { platform: "linkedin", label: "LinkedIn profile", link: "jobrio.link/aarav-in", on: true },
+    { platform: "instagram", label: "Instagram bio", link: "jobrio.link/aarav", on: true },
+    { platform: "telegram", label: "Telegram group", link: "jobrio.link/aarav-tg", on: true },
+    { platform: "youtube", label: "YouTube channel", link: "jobrio.link/aarav-yt", on: false },
+    { platform: "whatsapp", label: "WhatsApp channel", link: "jobrio.link/aarav-wa", on: false },
   ];
   return (
     <MockCard className="p-5">
       <p className="text-center text-[1.05rem] font-medium text-slate-800">Your Share Links</p>
-      <div className="mt-3 space-y-1">
+      <div className="mt-2 space-y-0.5">
         {rows.map((r) => (
           <div key={r.label}>
             <div className="flex items-center justify-between px-1 pt-2 text-[13px] text-slate-500">
-              {r.label}
+              <span className="flex items-center gap-2">
+                <span
+                  className="flex h-5 w-5 items-center justify-center rounded-full text-white"
+                  style={{ background: SOCIAL_BG[r.platform] }}
+                >
+                  <SocialIcon platform={r.platform} size={11} />
+                </span>
+                {r.label}
+              </span>
               <CirclePlus size={16} className="text-slate-400" />
             </div>
-            <div className="mt-1 flex items-center justify-between rounded-xl border border-slate-200 bg-[#F4F2EC] px-3.5 py-3 text-[13px] text-slate-800">
+            <div className="mt-1 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-[13px] text-slate-800">
               <span>{r.link}</span>
               <span className="flex items-center gap-3">
                 <Pencil size={13} className="text-slate-400" />
@@ -162,11 +181,16 @@ function JobShareCard() {
   return (
     <div
       aria-hidden="true"
-      className="relative h-[230px] w-full max-w-[390px] overflow-hidden rounded-[28px] bg-[linear-gradient(120deg,#1F4E79_0%,#2B3560_50%,#5B3A72_100%)] shadow-[0_34px_60px_-34px_rgba(30,27,90,0.5)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_40px_64px_-32px_rgba(30,27,90,0.6)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      className="relative h-[230px] w-full max-w-[390px] overflow-hidden rounded-[28px] bg-[linear-gradient(120deg,#0B1D4F_0%,#14296B_50%,#2E2297_100%)] shadow-[0_34px_60px_-34px_rgba(30,27,90,0.5)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_40px_64px_-32px_rgba(30,27,90,0.6)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
-      <div className="absolute left-0 top-0 flex text-[11px] font-medium">
-        <span className="rounded-br-xl bg-[#C2415F] px-3 py-1.5 text-white">Jobs &amp; Careers</span>
-        <span className="bg-white/10 px-3 py-1.5 text-white/80">Verified</span>
+      <div className="absolute left-0 top-0 flex max-w-[calc(100%-3rem)] text-[10.5px] font-medium sm:text-[11px]">
+        <span className="whitespace-nowrap rounded-br-xl bg-[#7C3AED] px-2.5 py-1.5 text-white sm:px-3">
+          Jobs &amp; Careers
+        </span>
+        <span className="whitespace-nowrap bg-white/10 px-2.5 py-1.5 text-white/80 sm:px-3">Courses</span>
+        <span className="whitespace-nowrap bg-white/10 px-2.5 py-1.5 text-white/80 sm:px-3">
+          Other Campaigns
+        </span>
       </div>
       <span className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white text-slate-700">
         <Heart size={14} />
@@ -199,12 +223,12 @@ function EarningsCard() {
   return (
     <MockCard className="p-5">
       <p className="text-center text-[1.05rem] font-medium text-slate-900">Earnings Summary</p>
-      <div className="mt-3 space-y-2.5 rounded-2xl bg-[#F4F2EC] p-2.5">
+      <div className="mt-3 space-y-2.5 rounded-2xl bg-slate-50 p-2.5">
         {[
           { t: "Verified clicks", s: "1,050 clicks", v: "$42.00" },
           { t: "Registrations", s: "86 sign-ups", v: "$103.20" },
         ].map((r) => (
-          <div key={r.t} className="flex items-center justify-between rounded-xl bg-[#FBFAF6] px-3.5 py-3">
+          <div key={r.t} className="flex items-center justify-between rounded-xl bg-white px-3.5 py-3">
             <div>
               <p className="text-[13px] font-medium text-slate-900">{r.t}</p>
               <p className="text-[11px] text-slate-500">{r.s}</p>
@@ -216,7 +240,7 @@ function EarningsCard() {
           </div>
         ))}
       </div>
-      <div className="mt-3 rounded-2xl bg-[#F4F2EC] px-3.5 py-3">
+      <div className="mt-3 rounded-2xl bg-slate-50 px-3.5 py-3">
         <p className="text-[11px] text-slate-500">All campaigns this month</p>
         <div className="mt-0.5 flex items-center justify-between">
           <p className="text-[1.05rem] text-slate-900">Total Earned</p>
@@ -304,23 +328,22 @@ export default function CreatorSolutionTimeline() {
   return (
     <section
       aria-labelledby="creator-solution-title"
-      className="relative overflow-hidden bg-[#F2EEE3] py-20 sm:py-24 md:py-28"
+      className="relative overflow-hidden bg-[linear-gradient(180deg,#F5F3FF_0%,#F8FAFF_55%,#FFFFFF_100%)] py-16 sm:py-20 md:py-24"
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-32 top-24 h-80 w-80 rounded-full bg-[#E8654E]/10 blur-[110px]" />
-        <div className="absolute -right-32 bottom-24 h-96 w-96 rounded-full bg-violet-400/10 blur-[120px]" />
+        <div className="absolute -left-32 top-24 h-80 w-80 rounded-full bg-sky-400/10 blur-[110px]" />
+        <div className="absolute -right-32 bottom-24 h-96 w-96 rounded-full bg-violet-400/15 blur-[120px]" />
       </div>
       <div className="relative mx-auto w-full max-w-[1100px] px-5 sm:px-8">
         <div className="text-center">
-          <p className={`flex items-center justify-center gap-3 text-[12px] font-semibold tracking-[0.22em] ${NAVY}`}>
-            <span aria-hidden="true" className="h-px w-6 bg-[#1E1B5A]" />
+          <p className="text-eyebrow flex items-center justify-center gap-3 text-violet-600">
+            <span aria-hidden="true" className="h-px w-6 bg-violet-400" />
             THE SOLUTION
-            <span aria-hidden="true" className="h-px w-6 bg-[#1E1B5A]" />
+            <span aria-hidden="true" className="h-px w-6 bg-violet-400" />
           </p>
           <h2
             id="creator-solution-title"
-            className={`mx-auto mt-6 max-w-3xl text-balance font-semibold leading-[1.12] tracking-tight ${NAVY}`}
-            style={{ fontSize: "clamp(2rem, 1.2rem + 3.4vw, 3.4rem)" }}
+            className={`text-section-heading mx-auto mt-4 max-w-3xl ${NAVY}`}
           >
             Turn your audience into income. One link. Verified pay.
           </h2>
@@ -332,7 +355,7 @@ export default function CreatorSolutionTimeline() {
           <div
             aria-hidden="true"
             className="absolute left-5 top-0 w-0.5 -translate-x-[0.5px] rounded-full md:left-1/2"
-            style={{ height: fill, backgroundColor: CORAL, transition: "height 120ms linear" }}
+            style={{ height: fill, backgroundColor: ACCENT, transition: "height 120ms linear" }}
           />
 
           <ol className="relative">
@@ -353,8 +376,8 @@ export default function CreatorSolutionTimeline() {
                     aria-hidden="true"
                     className={`absolute left-5 top-14 z-10 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border text-[12px] font-semibold tabular-nums transition-all duration-300 motion-reduce:transition-none md:left-1/2 md:top-1/2 md:-translate-y-1/2 ${
                       isActive
-                        ? "scale-105 border-[#E8654E] bg-[#E8654E] text-white shadow-[0_10px_24px_-6px_rgba(232,101,78,0.6)] ring-[10px] ring-[#E8654E]/20"
-                        : "border-slate-300 bg-[#F2EEE3] text-slate-500"
+                        ? "scale-105 border-[#7C3AED] bg-[#7C3AED] text-white shadow-[0_10px_24px_-6px_rgba(124,58,237,0.55)] ring-[10px] ring-[#7C3AED]/20"
+                        : "border-slate-300 bg-white text-slate-500"
                     }`}
                   >
                     {number}
@@ -366,7 +389,7 @@ export default function CreatorSolutionTimeline() {
                         textLeft ? "md:col-start-1 md:text-right" : "md:col-start-2"
                       } ${isActive ? "opacity-100" : "opacity-60"}`}
                     >
-                      <p className="text-[11px] font-semibold tracking-[0.2em] text-[#E8654E]">STEP {number}</p>
+                      <p className="text-[11px] font-semibold tracking-[0.2em] text-[#7C3AED]">STEP {number}</p>
                       <h3 className={`mt-2 text-balance text-[1.6rem] font-semibold leading-tight tracking-tight md:text-[1.9rem] ${NAVY}`}>
                         {step.title}
                       </h3>

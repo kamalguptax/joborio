@@ -82,7 +82,7 @@ function CountTable({
       <div className="border-b border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-zinc-200">
         {title}
       </div>
-      <table className="w-full text-left text-sm">
+      <div className="overflow-x-auto"><table className="w-full min-w-[420px] text-left text-sm">
         <thead className="text-[11px] uppercase text-slate-500">
           <tr>
             <th className="px-4 py-2 font-semibold">Name</th>
@@ -116,7 +116,7 @@ function CountTable({
             })
           )}
         </tbody>
-      </table>
+      </table></div>
     </div>
   );
 }

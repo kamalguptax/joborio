@@ -21,6 +21,7 @@ import {
 } from "@/lib/api/publisherAuth";
 import type { Niche } from "@/lib/api/types";
 import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
+import { markOnboardingPending } from "@/lib/auth/onboardingFlag";
 
 const fieldOk = authField;
 const fieldErr = authFieldError;
@@ -303,7 +304,8 @@ export default function PublisherRegisterForm() {
       });
       setAuthToken(data.token);
       rememberPublicCode(data.user);
-      router.push("/publisher/dashboard");
+      markOnboardingPending(data.user.id, "publisher");
+      router.push("/publisher/onboarding");
     } catch (err) {
       setFormError(
         err instanceof ApiClientError

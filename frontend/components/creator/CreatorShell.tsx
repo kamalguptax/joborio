@@ -54,6 +54,7 @@ export default function CreatorShell({
       nav={nav}
       userName={handle ? `@${handle}` : "Your account"}
       userHint="Creator studio"
+      settingsHref="/creator/profile"
       profileHref={handle ? creatorProfilePath(handle) : undefined}
       onSignOut={async () => {
         try {
