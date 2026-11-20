@@ -8,6 +8,7 @@ import DashboardShell, { type DashboardNavItem } from "@/components/layout/Dashb
 import { clearAuthToken, getAuthToken } from "@/lib/auth/session";
 import { homePathForUser, navigateTo, roleFlags } from "@/lib/auth/redirect";
 import { ShellSkeleton } from "@/components/ui/Skeleton";
+import { isOnboardingPending, ONBOARDING_PATHS } from "@/lib/auth/onboardingFlag";
 
 const nav: DashboardNavItem[] = [
   { href: "/employer/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -52,6 +53,11 @@ export default function EmployerLayout({
           router.replace("/employer/onboarding");
           return;
         }
+        // Brand that just registered: finish onboarding first.
+        if (isOnboardingPending(u.id, "employer")) {
+          router.replace(ONBOARDING_PATHS.employer);
+          return;
+        }
         setOk(true);
       })
       .catch(() => router.replace("/login"));
@@ -72,6 +78,7 @@ export default function EmployerLayout({
       nav={nav}
       userName="Employer portal"
       userHint="Brand & company account"
+      settingsHref="/employer/profile"
       onSignOut={async () => {
         try {
           await logoutApi();

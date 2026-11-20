@@ -6,6 +6,7 @@ import { fetchMe } from "@/lib/api/auth";
 import PublisherShell from "@/components/publisher/PublisherShell";
 import { getAuthToken } from "@/lib/auth/session";
 import { homePathForUser, navigateTo } from "@/lib/auth/redirect";
+import { isOnboardingPending, ONBOARDING_PATHS } from "@/lib/auth/onboardingFlag";
 
 const PUBLIC_PATHS = new Set(["/publisher/register", "/publisher/login"]);
 
@@ -27,6 +28,7 @@ export default function PublisherLayout({
   const [role, setRole] = useState<"owner" | "manager" | undefined>();
   const path = normalizePath(pathname);
   const isPublic = PUBLIC_PATHS.has(path);
+  const isOnboarding = path === ONBOARDING_PATHS.publisher;
 
   useEffect(() => {
     if (isPublic) return;
@@ -49,14 +51,20 @@ export default function PublisherLayout({
           return;
         }
 
+        // Publisher that just registered: finish onboarding first.
+        if (!isOnboarding && isOnboardingPending(u.id, "publisher")) {
+          router.replace(ONBOARDING_PATHS.publisher);
+          return;
+        }
+
         const active = u.publisher_users?.find((m) => m.is_active);
         setUsername(active?.publisher?.username ?? u.name);
         setRole(active?.role === "manager" ? "manager" : "owner");
       })
       .catch(() => router.replace("/publisher/login"));
-  }, [router, isPublic, pathname]);
+  }, [router, isPublic, isOnboarding, pathname]);
 
-  if (isPublic) {
+  if (isPublic || isOnboarding) {
     return <>{children}</>;
   }
 

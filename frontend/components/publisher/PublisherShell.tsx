@@ -50,6 +50,7 @@ export default function PublisherShell({
     <DashboardShell
       nav={nav}
       userName={username ? `@${username}` : "Your network"}
+      settingsHref="/publisher/profile"
       userHint={role === "manager" ? "Manager · assigned communities" : "Publisher studio"}
       onSignOut={async () => {
         try {

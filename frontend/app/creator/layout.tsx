@@ -7,6 +7,7 @@ import { claimCreatorReferral } from "@/lib/api/creator";
 import CreatorShell from "@/components/creator/CreatorShell";
 import { clearReferralCode, getReferralCode } from "@/lib/auth/referralStorage";
 import { getAuthToken } from "@/lib/auth/session";
+import { isOnboardingPending } from "@/lib/auth/onboardingFlag";
 import { homePathForUser, navigateTo, roleFlags } from "@/lib/auth/redirect";
 
 export default function CreatorLayout({
@@ -37,6 +38,11 @@ export default function CreatorLayout({
         //  brand-new account -> creator onboarding).
         if (roleFlags(u).isAdmin || !u.creator) {
           navigateTo(router, homePathForUser(u));
+          return;
+        }
+        // Just signed up: finish onboarding before the dashboard.
+        if (isOnboardingPending(u.id, "creator")) {
+          router.replace("/onboarding");
           return;
         }
         setHandle(u.creator.handle);

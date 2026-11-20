@@ -3,7 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
-import { ChevronDown, ExternalLink, LogOut } from "lucide-react";
+import {
+  BookOpen,
+  ChevronDown,
+  CircleHelp,
+  Globe,
+  Lightbulb,
+  LogOut,
+  MessageCircle,
+  UserRound,
+} from "lucide-react";
+import { fetchMe } from "@/lib/api/auth";
+import { getAuthToken } from "@/lib/auth/session";
+import { readCachedUser } from "@/lib/auth/userCache";
 import Logo from "@/components/layout/Logo";
 import { Toaster } from "@/components/ui/Toast";
 
@@ -24,6 +36,8 @@ type Props = {
   /** Optional "view public page" link in the account menu. */
   profileHref?: string;
   profileLabel?: string;
+  /** "Profile settings" page (photo, name, username, password). */
+  settingsHref?: string;
   onSignOut: () => void | Promise<void>;
   /** Controls in the top-right of the content area (settings, bell…). */
   topRight?: ReactNode;
@@ -40,7 +54,60 @@ function isActive(path: string, item: DashboardNavItem): boolean {
   return hit(item.href) || (item.alsoActive?.some(hit) ?? false);
 }
 
-type AccountMenuProps = Pick<Props, "userName" | "userHint" | "profileHref" | "profileLabel" | "onSignOut">;
+type AccountMenuProps = Pick<
+  Props,
+  "userName" | "userHint" | "profileHref" | "profileLabel" | "settingsHref" | "onSignOut"
+> & { avatarUrl?: string | null };
+
+/** Profile photo of the signed-in user; refreshes when account settings change. */
+function useAccountAvatar(): string | null {
+  const [url, setUrl] = useState<string | null>(() => {
+    const token = getAuthToken();
+    return token ? (readCachedUser(token)?.avatar_url ?? null) : null;
+  });
+  useEffect(() => {
+    const load = () => {
+      if (!getAuthToken()) return;
+      fetchMe()
+        .then((u) => setUrl(u.avatar_url ?? null))
+        .catch(() => undefined);
+    };
+    load();
+    window.addEventListener("joborio:account-updated", load);
+    return () => window.removeEventListener("joborio:account-updated", load);
+  }, []);
+  return url;
+}
+
+/** Optional WhatsApp channel for product updates; the menu item shows only when this is set. */
+const WHATSAPP_UPDATES_URL = process.env.NEXT_PUBLIC_WHATSAPP_UPDATES_URL || "";
+
+function MenuLink({
+  href,
+  icon: Icon,
+  external = false,
+  onDone,
+  children,
+}: {
+  href: string;
+  icon: ComponentType<{ size?: number; "aria-hidden"?: boolean | "true" | "false" }>;
+  external?: boolean;
+  onDone: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      role="menuitem"
+      href={href}
+      onClick={onDone}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium text-slate-700 transition hover:bg-slate-50 hover:text-[#0F1B3D] focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500"
+    >
+      <Icon size={18} aria-hidden="true" />
+      <span className="truncate">{children}</span>
+    </Link>
+  );
+}
 
 /**
  * Account dropdown. Rendered once in the desktop sidebar and once in the mobile
@@ -52,11 +119,14 @@ function AccountMenu({
   userHint,
   profileHref,
   profileLabel = "Public page",
+  settingsHref,
+  avatarUrl,
   onSignOut,
 }: AccountMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const initial = (userName.replace(/^@/, "").trim()[0] ?? "U").toUpperCase();
+  const close = () => setMenuOpen(false);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -83,8 +153,13 @@ function AccountMenu({
         aria-expanded={menuOpen}
         className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500"
       >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-blue-600 text-sm font-bold text-white">
-          {initial}
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-blue-600 text-sm font-bold text-white">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+          ) : (
+            initial
+          )}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-[#0F1B3D]">{userName}</span>
         <ChevronDown
@@ -97,30 +172,68 @@ function AccountMenu({
       {menuOpen ? (
         <div
           role="menu"
-          className="absolute left-0 right-0 top-full z-50 mt-1.5 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-900/10"
+          className="absolute left-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-slate-900/10"
         >
-          {userHint ? <p className="px-3 py-2 text-xs text-slate-500">{userHint}</p> : null}
-          {profileHref ? (
-            <Link
+          {/* Who is signed in */}
+          <div className="flex items-center gap-3 px-3 pb-3 pt-2.5">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-blue-600 text-lg font-bold text-white ring-2 ring-violet-100">
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                initial
+              )}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-bold text-[#0F1B3D]">{userName}</p>
+              {userHint ? <p className="truncate text-xs text-slate-500">{userHint}</p> : null}
+            </div>
+          </div>
+
+          <div role="separator" className="mx-1 border-t border-slate-100" />
+          <div className="py-1.5">
+            {settingsHref ? (
+              <MenuLink href={settingsHref} icon={UserRound} onDone={close}>
+                Account
+              </MenuLink>
+            ) : null}
+            {profileHref ? (
+              <MenuLink href={profileHref} icon={Globe} external onDone={close}>
+                {profileLabel}
+              </MenuLink>
+            ) : null}
+            {WHATSAPP_UPDATES_URL ? (
+              <MenuLink href={WHATSAPP_UPDATES_URL} icon={MessageCircle} external onDone={close}>
+                Subscribe to WhatsApp updates
+              </MenuLink>
+            ) : null}
+          </div>
+
+          <div role="separator" className="mx-1 border-t border-slate-100" />
+          <div className="py-1.5">
+            <MenuLink href="/contact" icon={CircleHelp} onDone={close}>
+              Ask question
+            </MenuLink>
+            <MenuLink href="/faq" icon={BookOpen} onDone={close}>
+              Help Topics
+            </MenuLink>
+            <MenuLink href="/contact" icon={Lightbulb} onDone={close}>
+              Share Feedback
+            </MenuLink>
+          </div>
+
+          <div role="separator" className="mx-1 border-t border-slate-100" />
+          <div className="pt-1.5">
+            <button
+              type="button"
               role="menuitem"
-              href={profileHref}
-              target="_blank"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              onClick={() => void onSignOut()}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[15px] font-medium text-red-600 transition hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-400"
             >
-              <ExternalLink size={16} aria-hidden="true" />
-              {profileLabel}
-            </Link>
-          ) : null}
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => void onSignOut()}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-red-50 hover:text-red-600"
-          >
-            <LogOut size={16} aria-hidden="true" />
-            Sign out
-          </button>
+              <LogOut size={18} aria-hidden="true" />
+              Logout
+            </button>
+          </div>
         </div>
       ) : null}
     </div>
@@ -137,11 +250,13 @@ export default function DashboardShell({
   userHint,
   profileHref,
   profileLabel = "Public page",
+  settingsHref,
   onSignOut,
   topRight,
   children,
 }: Props) {
   const path = normalize(usePathname());
+  const avatarUrl = useAccountAvatar();
 
   return (
     <div className="min-h-svh bg-[#F8F8FB] text-[#0F1B3D] lg:grid lg:grid-cols-[16.5rem_minmax(0,1fr)]">
@@ -158,6 +273,8 @@ export default function DashboardShell({
             userHint={userHint}
             profileHref={profileHref}
             profileLabel={profileLabel}
+            settingsHref={settingsHref}
+            avatarUrl={avatarUrl}
             onSignOut={onSignOut}
           />
         </div>
@@ -246,6 +363,8 @@ export default function DashboardShell({
                 userHint={userHint}
                 profileHref={profileHref}
                 profileLabel={profileLabel}
+                settingsHref={settingsHref}
+                avatarUrl={avatarUrl}
                 onSignOut={onSignOut}
               />
             </div>

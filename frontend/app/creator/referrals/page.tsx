@@ -114,7 +114,7 @@ export default function CreatorReferralsPage() {
               <Users size={18} className="text-purple-600" />
               <h2 className="font-bold">Referred creators</h2>
             </div>
-            <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto"><table className="w-full min-w-[520px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                 <tr>
                   <th className="px-4 py-2">Handle</th>
@@ -140,7 +140,7 @@ export default function CreatorReferralsPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
             {data.referred_creators.length === 0 ? (
               <p className="p-8 text-center text-sm text-slate-500">
                 No referrals yet. Share your invite link to get started.

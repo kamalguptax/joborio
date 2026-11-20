@@ -343,7 +343,7 @@ export default function AdminPayoutsPage() {
             <strong>${Number(preview.total_usd ?? 0).toFixed(2)}</strong> · min $
             {Number(preview.min_payout_usd ?? 10).toFixed(2)}
           </div>
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-left text-sm">
             <thead className="text-xs uppercase text-slate-400">
               <tr>
                 <th className="px-4 py-2">Handle</th>
@@ -366,7 +366,7 @@ export default function AdminPayoutsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       ) : null}
 

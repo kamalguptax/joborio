@@ -6,11 +6,16 @@ import { fetchMe } from "@/lib/api/auth";
 import { fetchNiches, updateCreatorProfile } from "@/lib/api/creator";
 import NicheSearch from "@/components/jobs/NicheSearch";
 import { toast } from "@/components/ui/Toast";
+import SocialLinksFields from "@/components/creators/SocialLinksFields";
+import { SOCIAL_PLATFORMS, normalizeSocialUrl, type SocialKey } from "@/lib/socialLinks";
 
 export default function CreatorSettingsPage() {
   const [bio, setBio] = useState("");
   const [accent, setAccent] = useState("#2563eb");
   const [nicheIds, setNicheIds] = useState<number[]>([]);
+  const [socials, setSocials] = useState<Partial<Record<SocialKey, string>>>({});
+  // Links the form has no field for (community, website) are kept as they are.
+  const [otherLinks, setOtherLinks] = useState<Record<string, string>>({});
   const [niches, setNicheIdsList] = useState<Array<{ id: number; name: string }>>(
     [],
   );
@@ -20,6 +25,16 @@ export default function CreatorSettingsPage() {
     fetchMe().then((u) => {
       setBio(u.creator?.bio ?? "");
       setAccent(u.creator?.accent_color ?? "#2563eb");
+      const links = u.creator?.social_links ?? {};
+      const known: Partial<Record<SocialKey, string>> = {};
+      const rest: Record<string, string> = {};
+      for (const [k, v] of Object.entries(links)) {
+        if (!v) continue;
+        if (SOCIAL_PLATFORMS.some((p) => p.key === k)) known[k as SocialKey] = v;
+        else rest[k] = v;
+      }
+      setSocials(known);
+      setOtherLinks(rest);
       if (u.creator?.niches?.length) {
         setNicheIds(u.creator.niches.map((n) => n.id));
       }
@@ -27,10 +42,22 @@ export default function CreatorSettingsPage() {
   }, []);
 
   const saveProfile = async () => {
+    const social_links: Record<string, string> = { ...otherLinks };
+    for (const p of SOCIAL_PLATFORMS) {
+      const raw = socials[p.key]?.trim();
+      if (!raw) continue;
+      const url = normalizeSocialUrl(p.key, raw);
+      if (!url) {
+        toast.error(`Enter a valid ${p.label} link.`);
+        return;
+      }
+      social_links[p.key] = url;
+    }
     try {
       await updateCreatorProfile({
         bio,
         accent_color: accent,
+        social_links,
         niche_ids: nicheIds.length ? nicheIds : undefined,
       });
       toast.success("Profile saved.");
@@ -76,6 +103,10 @@ export default function CreatorSettingsPage() {
               }
             />
           </div>
+          <SocialLinksFields
+            values={socials}
+            onChange={(key, value) => setSocials((prev) => ({ ...prev, [key]: value }))}
+          />
           <button
             type="button"
             onClick={saveProfile}

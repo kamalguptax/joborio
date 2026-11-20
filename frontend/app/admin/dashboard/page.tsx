@@ -154,7 +154,7 @@ export default function AdminDashboardPage() {
               Manage →
             </Link>
           </div>
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-left text-sm">
             <thead className="text-xs uppercase text-zinc-600">
               <tr>
                 <th className="px-4 py-2 font-semibold">Name</th>
@@ -192,7 +192,7 @@ export default function AdminDashboardPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </section>
       ) : null}
 

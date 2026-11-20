@@ -18,6 +18,7 @@ import { register } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
 import { getReferralCode, saveReferralCode } from "@/lib/auth/referralStorage";
 import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
+import { markOnboardingPending } from "@/lib/auth/onboardingFlag";
 
 const roles = [
   { value: "creator", label: "Creator", hint: "I have an audience" },
@@ -123,6 +124,7 @@ export default function SignupForm() {
       });
       setAuthToken(data.token);
       rememberPublicCode(data.user);
+      markOnboardingPending(data.user.id, "creator");
       sessionStorage.setItem(SIGNUP_ROLE_KEY, effectiveRole);
       router.push("/onboarding");
     } catch (err) {

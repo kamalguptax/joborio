@@ -25,6 +25,8 @@ type Props = {
   /** Right-side link in the top bar. */
   exitHref?: string;
   exitLabel?: string;
+  /** Runs when the exit link is clicked (e.g. to mark onboarding as skipped). */
+  onExit?: () => void;
 };
 
 /**
@@ -43,6 +45,7 @@ export default function OnboardingShell({
   nextDisabled,
   exitHref = "/",
   exitLabel = "Save & Exit",
+  onExit,
 }: Props) {
   const step = steps[current];
   return (
@@ -51,6 +54,7 @@ export default function OnboardingShell({
         <Logo tone="dark" compact />
         <Link
           href={exitHref}
+          onClick={onExit}
           className="rounded-lg px-3 py-1.5 text-[13px] font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
         >
           {exitLabel}

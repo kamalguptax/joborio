@@ -57,7 +57,7 @@ function AuthCallbackInner() {
   }, [params, router]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#fff9fd] px-6">
+    <main className="flex min-h-svh items-center justify-center bg-[#fff9fd] px-6">
       <p className="text-sm font-medium text-slate-600">{message}</p>
     </main>
   );

@@ -1,6 +1,7 @@
 import type { User } from "@/lib/api/types";
 import { postLoginRedirect } from "@/lib/auth/session";
 import { ADMIN_LOGIN_URL } from "@/lib/siteUrls";
+import { ONBOARDING_PATHS, isOnboardingPending } from "@/lib/auth/onboardingFlag";
 
 /** Which account types this user has. One user can have more than one. */
 export function roleFlags(me: User) {
@@ -25,9 +26,9 @@ export function hasNoRole(me: User): boolean {
 /**
  * Where a signed-in user lands, based on their account type:
  *   admin          -> admin app (separate site)
- *   publisher      -> /publisher/dashboard
- *   network member -> /network/dashboard
- *   brand/employer -> /employer/dashboard
+ *   publisher      -> /publisher/dashboard   (/publisher/onboarding until finished)
+ *   network member -> /network/dashboard     (/network/onboarding until finished)
+ *   brand/employer -> /employer/dashboard    (/brand/onboarding until finished)
  *   creator        -> /creator/dashboard
  *   nothing yet    -> /onboarding (creator onboarding)
  * `prefer: "employer"` is for the brand login page: a user who is both a
@@ -39,12 +40,31 @@ export function homePathForUser(
 ): string {
   const f = roleFlags(me);
   if (f.isAdmin) return ADMIN_LOGIN_URL;
-  if (f.isPublisher) return "/publisher/dashboard";
-  if (f.isNetworkMember) return "/network/dashboard";
-  if (f.isEmployer && (opts?.prefer === "employer" || !f.isCreator)) {
-    return "/employer/dashboard";
+  // A freshly registered brand / publisher / network member finishes their own
+  // onboarding first (the flag is set by their register form).
+  if (f.isPublisher) {
+    return isOnboardingPending(me.id, "publisher")
+      ? ONBOARDING_PATHS.publisher
+      : "/publisher/dashboard";
   }
-  if (f.isCreator) return "/creator/dashboard";
+  if (f.isNetworkMember) {
+    return isOnboardingPending(me.id, "network")
+      ? ONBOARDING_PATHS.network
+      : "/network/dashboard";
+  }
+  if (f.isCreator && isOnboardingPending(me.id, "creator") && opts?.prefer !== "employer") {
+    return ONBOARDING_PATHS.creator;
+  }
+  if (f.isEmployer && (opts?.prefer === "employer" || !f.isCreator)) {
+    return isOnboardingPending(me.id, "employer")
+      ? ONBOARDING_PATHS.employer
+      : "/employer/dashboard";
+  }
+  if (f.isCreator) {
+    return isOnboardingPending(me.id, "creator")
+      ? ONBOARDING_PATHS.creator
+      : "/creator/dashboard";
+  }
   return postLoginRedirect(false);
 }
 
@@ -60,7 +80,9 @@ export function canVisit(path: string, me: User): boolean {
     return !(f.isEmployer || f.isAdmin || f.isPublisher || f.isNetworkMember);
   }
   if (p.startsWith("/employer")) return f.isEmployer;
-  if (p.startsWith("/onboarding")) return hasNoRole(me);
+  if (p.startsWith("/onboarding")) {
+    return hasNoRole(me) || isOnboardingPending(me.id, "creator");
+  }
   return true;
 }
 

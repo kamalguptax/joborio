@@ -11,9 +11,7 @@ type Props = {
   description: string;
   primary?: Action;
   secondary?: Action;
-  /** Short reassurance line items under the buttons. */
   points?: string[];
-  /** Smaller banner for list / legal pages (no side artwork, tighter spacing). */
   compact?: boolean;
 };
 

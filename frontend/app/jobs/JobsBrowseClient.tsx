@@ -214,7 +214,7 @@ export default function JobsPage() {
   }, [search]);
 
   return (
-    <main className="min-h-screen bg-[#F7F8FC] pb-20 text-[#172b63]">
+    <main className="min-h-svh bg-[#F7F8FC] pb-20 text-[#172b63]">
       <PageHero
         compact
         eyebrow="Jobs"

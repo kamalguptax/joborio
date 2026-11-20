@@ -424,7 +424,7 @@ export default function CreatorPerformancePage() {
                       ) : null}
 
                       <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
-                        <table className="w-full text-left text-sm">
+                        <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-left text-sm">
                           <thead className="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                             <tr>
                               <th className="px-4 py-3">Listing</th>
@@ -472,7 +472,7 @@ export default function CreatorPerformancePage() {
                               </tr>
                             ))}
                           </tbody>
-                        </table>
+                        </table></div>
                         {regLoading ? (
                           <div className="p-4"><ListSkeleton rows={3} /></div>
                         ) : null}

@@ -18,6 +18,7 @@ import {
 } from "@/lib/auth/session";
 import { useResolvedParam } from "@/lib/hooks/useResolvedParam";
 import { STATIC_EXPORT_PLACEHOLDER } from "@/lib/staticExport";
+import { markOnboardingPending } from "@/lib/auth/onboardingFlag";
 
 const field =
   "mt-2 h-12 w-full rounded-xl border border-indigo-100 bg-white px-4 text-base text-[#0F1B3D] placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15";
@@ -142,7 +143,8 @@ export default function JoinInviteClient() {
       );
       setAuthToken(res.token);
       rememberPublicCode(res.user);
-      router.push(res.redirect || "/network/dashboard");
+      markOnboardingPending(res.user.id, "network");
+      router.push("/network/onboarding");
     } catch (err) {
       setError(
         err instanceof ApiClientError

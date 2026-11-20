@@ -15,7 +15,7 @@ function VerifyPprContent() {
   const failed = status === "error" || (!verified && status !== null);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f5f7ff] px-5 pt-20">
+    <main className="flex min-h-svh items-center justify-center bg-[#f5f7ff] px-5 pt-20">
       <div className="max-w-md rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-lg">
         {verified ? (
           <>
