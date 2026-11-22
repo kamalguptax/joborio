@@ -104,8 +104,11 @@ export default function PublisherLoginForm() {
         <Link href="/forgot-password" className={authLink}>
           Forgot password?
         </Link>
-        <Link href="/creator/login" className="font-semibold text-slate-500 transition hover:text-violet-600">
-          Creator login
+        <Link
+          href="/login"
+          className="font-semibold text-slate-500 transition hover:text-violet-600"
+        >
+          Network Member sign-in
         </Link>
       </div>
 
@@ -114,13 +117,20 @@ export default function PublisherLoginForm() {
         disabled={loading}
         className={authPrimaryButton}
       >
-        {loading ? "Signing in…" : "Sign in to publisher studio"}
+        {loading ? "Signing in…" : "Sign in as Publisher"}
       </button>
 
       <p className="text-center text-sm text-slate-500">
+        Joining a community? Use{" "}
+        <Link href="/login" className={authLink}>
+          Network Member
+        </Link>{" "}
+        sign-in after you accept an invite.
+      </p>
+      <p className="text-center text-sm text-slate-500">
         New publisher?{" "}
         <Link href="/publisher/register" className={authLink}>
-          Apply here
+          Apply Now
         </Link>
       </p>
     </form>

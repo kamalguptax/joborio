@@ -13,14 +13,14 @@ export default function PublisherRegisterPage() {
   return (
     <GuestOnly>
     <AuthShell
-      title="Publisher registration"
-      subtitle="One-page application. After review and activation you can manage communities, invite members and track performance."
+      title="Apply Now — Publisher Network"
+      subtitle="Share your name, username, email, country, audience niches, social links, team size, and preferred integration. After approval you can create communities and invite creators."
       topPrompt="Already approved?"
       topLinkLabel="Publisher login"
       topLinkHref="/publisher/login"
       wide
-      panelHeading="Run your network. Grow every community."
-      panelBody="Manage communities, invite members and track publisher-level performance in one studio."
+      panelHeading="Apply to run a JobOrio Publisher Network."
+      panelBody="Create private communities, invite creators as Network Members, track campaign performance, and earn 10–15% of the creator pool."
     >
       <PublisherRegisterForm />
     </AuthShell>

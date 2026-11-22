@@ -21,14 +21,14 @@ type PublisherNavItem = DashboardNavItem & { ownerOnly?: boolean };
 
 const allNav: PublisherNavItem[] = [
   { href: "/publisher/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/publisher/network", label: "My Network", icon: Network },
+  { href: "/publisher/network", label: "Invite Team", icon: Network },
   { href: "/publisher/communities", label: "Communities", icon: Users },
   { href: "/publisher/marketplace", label: "Campaign Marketplace", icon: Store },
   { href: "/publisher/post-studio", label: "Post Studio", icon: Zap },
-  { href: "/publisher/reports", label: "Performance Reports", icon: BarChart3 },
-  { href: "/publisher/earnings", label: "Publisher Earnings", icon: Wallet, ownerOnly: true },
+  { href: "/publisher/reports", label: "View Reports", icon: BarChart3 },
+  { href: "/publisher/earnings", label: "Check Earnings", icon: Wallet, ownerOnly: true },
   { href: "/publisher/integrations", label: "API & Integration", icon: Plug, ownerOnly: true },
-  { href: "/publisher/payments", label: "Payment History", icon: History, ownerOnly: true },
+  { href: "/publisher/payments", label: "Payout status", icon: History, ownerOnly: true },
   { href: "/publisher/settings", label: "Account Settings", icon: Settings },
 ];
 

@@ -15,14 +15,16 @@ export function creatorProfilePath(handle: string): string {
   return `/p/static/?handle=${encodeURIComponent(handle)}`;
 }
 
-/** Static-export-safe network invite. Pretty `/join/{pub}/{com}` needs host rewrite. */
+/**
+ * Network invite path. Prefer pretty `/join/{pub}/{com}/?token=…`.
+ * Hostinger `.htaccess` rewrites those to `/join/static/static/index.html`.
+ * Old `/join/static/static/?token=&pub=&com=` links still work via query fallback.
+ */
 export function joinInvitePath(pub: string, com: string, token: string): string {
-  const q = new URLSearchParams({
-    token,
-    pub,
-    com,
-  });
-  return `/join/${STATIC_EXPORT_PLACEHOLDER}/${STATIC_EXPORT_PLACEHOLDER}/?${q.toString()}`;
+  const q = new URLSearchParams({ token });
+  const pubSeg = encodeURIComponent(pub.trim() || "PUB");
+  const comSeg = encodeURIComponent(com.trim() || "ALL");
+  return `/join/${pubSeg}/${comSeg}/?${q.toString()}`;
 }
 
 /** Static-export-safe admin user detail. Pretty `/admin/users/{id}` 404s without Apache rewrite. */

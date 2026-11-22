@@ -6,9 +6,13 @@ export type PublisherCommunity = {
   code: string;
   name: string;
   category?: string | null;
+  categories?: string[];
+  commission_percent?: number | null;
   description?: string | null;
   country_code?: string | null;
   campaign_access: string;
+  xml_job_refs?: string[];
+  xml_jobs_count?: number;
   status: string;
   members_count: number;
   manager_user_id?: number | null;
@@ -113,16 +117,20 @@ export function fetchPublisherCommunities() {
 export function createPublisherCommunity(body: {
   name: string;
   category?: string;
+  categories?: string[];
+  commission_percent: number;
   description?: string;
   country_code?: string;
   campaign_access?: string;
   status?: string;
   manager_user_id?: number | null;
   program_ids?: number[];
+  xml_job_refs?: string[];
 }) {
   return apiFetch<{
     community: PublisherCommunity;
     assigned_program_ids?: number[];
+    xml_job_refs?: string[];
   }>("/api/v1/publisher/communities", {
     method: "POST",
     auth: true,
@@ -135,6 +143,8 @@ export function updatePublisherCommunity(
   body: Partial<{
     name: string;
     category: string;
+    categories: string[];
+    commission_percent: number;
     description: string;
     country_code: string;
     campaign_access: string;
@@ -245,10 +255,15 @@ export type MarketplaceCampaign = {
   title: string;
   pricing_model: string;
   promotion_type?: string | null;
+  /** job = job programs; campaign = course/tool/branding/etc. */
+  source_kind?: "job" | "campaign" | string | null;
   rate_usd: string | number;
   budget_total_usd?: string | number;
   status: string;
   employer?: string | null;
+  category?: string | null;
+  country_code?: string | null;
+  listing_title?: string | null;
   already_assigned: boolean;
   assigned_community_ids?: number[];
   assigned_community_count?: number;
@@ -269,9 +284,16 @@ export type PublisherAssignment = {
   community?: { id: number; code: string; name: string } | null;
 };
 
-export function fetchPublisherMarketplace() {
+export function fetchPublisherMarketplace(opts?: {
+  type?: "all" | "job" | "campaign";
+  community_id?: number | null;
+}) {
+  const q = new URLSearchParams();
+  if (opts?.type && opts.type !== "all") q.set("type", opts.type);
+  if (opts?.community_id) q.set("community_id", String(opts.community_id));
+  const qs = q.toString();
   return apiFetch<{ campaigns: MarketplaceCampaign[] }>(
-    "/api/v1/publisher/marketplace",
+    `/api/v1/publisher/marketplace${qs ? `?${qs}` : ""}`,
     { auth: true },
   ).then((d) => d.campaigns);
 }
@@ -404,6 +426,18 @@ export type PublisherEarnings = {
     status: string;
     effective_from?: string | null;
   } | null;
+  platform_fee_percent?: number;
+  permitted_percentages?: number[];
+  example_split?: {
+    campaign_earnings_usd: number;
+    platform_fee_percent: number;
+    platform_fee_usd: number;
+    creator_pool_usd: number;
+    publisher_percent: number;
+    publisher_usd: number;
+    creators_percent_of_pool: number;
+    creators_usd: number;
+  };
   note: string;
   by_assignment: Array<{
     assignment_id: number;
@@ -439,7 +473,18 @@ export function fetchPublisherEarnings() {
 
 export type PublisherCommissionConfig = {
   permitted_percentages: number[];
+  platform_fee_percent?: number;
   note: string;
+  example_split?: {
+    campaign_earnings_usd: number;
+    platform_fee_percent: number;
+    platform_fee_usd: number;
+    creator_pool_usd: number;
+    publisher_percent: number;
+    publisher_usd: number;
+    creators_percent_of_pool: number;
+    creators_usd: number;
+  };
   commission: {
     commission_percent: string | number;
     currency: string;

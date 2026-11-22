@@ -53,9 +53,11 @@ export default function PublisherOnboardingPage() {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
+  const [commissionPercent, setCommissionPercent] = useState(12);
   const [integration, setIntegration] = useState("dashboard");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const commissionOptions = [10, 11, 12, 13, 14, 15];
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -90,6 +92,8 @@ export default function PublisherOnboardingPage() {
         await createPublisherCommunity({
           name: name.trim(),
           category: category.trim() || undefined,
+          categories: category.trim() ? [category.trim()] : undefined,
+          commission_percent: commissionPercent,
           description: description.trim() || undefined,
         });
         setHasCommunity(true);
@@ -162,6 +166,28 @@ export default function PublisherOnboardingPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 className={authTextarea}
               />
+            </div>
+            <div>
+              <p className={authLabel}>Publisher commission (10–15% of creator pool)</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {commissionOptions.map((pct) => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => setCommissionPercent(pct)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-bold ${
+                      commissionPercent === pct
+                        ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white"
+                        : "border border-slate-200 bg-white text-slate-700"
+                    }`}
+                  >
+                    {pct}%
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-slate-500">
+                JobOrio keeps 30% first; your rate is from the remaining pool.
+              </p>
             </div>
             <p className="text-xs text-slate-500">Leave the name empty to skip this step.</p>
           </div>

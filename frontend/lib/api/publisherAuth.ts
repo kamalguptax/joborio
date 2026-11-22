@@ -66,9 +66,9 @@ export function registerPublisher(input: {
   niche_ids: number[];
   job_preferences: string[];
   network_type: string;
-  social_url: string;
-  website_url: string;
-  integration_preference: string;
+  social_url?: string;
+  website_url?: string;
+  integration_preference?: string;
   accepted_terms: boolean;
   captcha_id: string;
   captcha_answer: string;

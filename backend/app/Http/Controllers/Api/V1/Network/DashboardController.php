@@ -64,11 +64,10 @@ class DashboardController extends Controller
             ->latest()
             ->get();
 
-        // Member-safe payload: name + status only (no rates / fees / payouts).
+        // Member-safe payload: name + status only (no rates / fees / payouts / prices).
         $assignedCampaigns = $assignments->map(fn (PublisherCampaignAssignment $a) => [
             'name' => $a->program?->title,
             'status' => $a->status === 'active' ? ($a->program?->status ?? 'active') : $a->status,
-            'type' => $a->program?->pricing_model,
         ])->filter(fn ($c) => filled($c['name']))->values();
 
         return $this->success([

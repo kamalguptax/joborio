@@ -10,6 +10,7 @@ use App\Models\PublisherLedgerEntry;
 use App\Services\Publishers\PublisherLedgerService;
 use App\Support\ApiResponse;
 use App\Support\PublisherAccess;
+use App\Support\PublisherCommissionSplit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -71,6 +72,10 @@ class EarningsController extends Controller
             ->get()
             ->map(fn (PublisherLedgerEntry $e) => $this->serializeEntry($e));
 
+        $publisherPct = $commission
+            ? (float) $commission->commission_percent
+            : PublisherCommissionSplit::PUBLISHER_MIN_PERCENT;
+
         return $this->success([
             'balances' => $balances,
             'commission' => $commission ? [
@@ -80,7 +85,10 @@ class EarningsController extends Controller
                 'status' => $commission->status,
                 'effective_from' => optional($commission->effective_from)?->toIso8601String(),
             ] : null,
-            'note' => 'Publisher commercial earnings only. Member/creator payouts are not included here.',
+            'platform_fee_percent' => PublisherCommissionSplit::PLATFORM_FEE_PERCENT,
+            'permitted_percentages' => PublisherCommissionSplit::permittedPublisherPercents(),
+            'example_split' => PublisherCommissionSplit::split(10, $publisherPct),
+            'note' => 'Check Earnings: JobOrio keeps 30% platform fee. Your commission is 10–15% of the remaining creator pool. Member/creator payouts are separate.',
             'by_assignment' => $byAssignment,
             'member_settlements_pending' => $memberSettlementsPending,
             'recent_entries' => $recent,

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PublisherCommission;
 use App\Support\ApiResponse;
 use App\Support\PublisherAccess;
+use App\Support\PublisherCommissionSplit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,9 +14,6 @@ use Illuminate\Validation\Rule;
 class CommissionController extends Controller
 {
     use ApiResponse;
-
-    /** Permitted publisher commission percentages (product-constrained). */
-    public const PERMITTED = [10, 15, 20, 25, 30];
 
     public function show(Request $request): JsonResponse
     {
@@ -28,9 +26,15 @@ class CommissionController extends Controller
             ->orderByDesc('version')
             ->first();
 
+        $publisherPct = $active
+            ? (float) $active->commission_percent
+            : PublisherCommissionSplit::PUBLISHER_MIN_PERCENT;
+
         return $this->success([
-            'permitted_percentages' => self::PERMITTED,
-            'note' => 'JobOrio platform fee is never distributed to the publisher.',
+            'permitted_percentages' => PublisherCommissionSplit::permittedPublisherPercents(),
+            'platform_fee_percent' => PublisherCommissionSplit::PLATFORM_FEE_PERCENT,
+            'note' => 'JobOrio keeps a 30% platform fee. The remaining 70% is the creator pool. Your commission is 10–15% of that pool; creators receive the rest.',
+            'example_split' => PublisherCommissionSplit::split(10, $publisherPct),
             'commission' => $active ? [
                 'commission_percent' => $active->commission_percent,
                 'currency' => $active->currency,
@@ -47,7 +51,11 @@ class CommissionController extends Controller
         $publisher = PublisherAccess::publisher($request->user());
 
         $data = $request->validate([
-            'commission_percent' => ['required', 'numeric', Rule::in(self::PERMITTED)],
+            'commission_percent' => [
+                'required',
+                'numeric',
+                Rule::in(PublisherCommissionSplit::permittedPublisherPercents()),
+            ],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -82,8 +90,10 @@ class CommissionController extends Controller
                 'status' => $row->status,
                 'effective_from' => optional($row->effective_from)?->toIso8601String(),
             ],
-            'permitted_percentages' => self::PERMITTED,
-            'message' => 'Commercial commission updated. Platform fee remains with JobOrio.',
+            'permitted_percentages' => PublisherCommissionSplit::permittedPublisherPercents(),
+            'platform_fee_percent' => PublisherCommissionSplit::PLATFORM_FEE_PERCENT,
+            'example_split' => PublisherCommissionSplit::split(10, (float) $row->commission_percent),
+            'message' => 'Publisher commission updated (10–15% of the creator pool after JobOrio’s 30% fee).',
         ]);
     }
 }

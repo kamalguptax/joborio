@@ -266,12 +266,13 @@ export default function PublisherNetworkClient() {
     <>
       <div className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-          My Network
+          Invite Team
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Community members & invites</h1>
+        <h1 className="mt-1 text-3xl font-bold">Invite creators to your community</h1>
         <p className="mt-2 text-slate-500">
-          View all members and their earnings. Select a community to invite or
-          filter the list.
+          Share a join link, upload a CSV of creators, or use the API. Creators
+          sign in as Network Members — campaign prices and publisher financials
+          stay hidden from them.
         </p>
       </div>
 

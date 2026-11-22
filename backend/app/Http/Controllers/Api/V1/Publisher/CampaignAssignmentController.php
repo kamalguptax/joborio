@@ -21,11 +21,30 @@ class CampaignAssignmentController extends Controller
         $publisher = $membership->publisher;
         $showRates = $membership->isOwner();
 
-        $programs = Program::query()
+        $typeFilter = strtolower(trim((string) $request->query('type', 'all')));
+        if (! in_array($typeFilter, ['all', 'job', 'campaign'], true)) {
+            $typeFilter = 'all';
+        }
+
+        $programsQuery = Program::query()
             ->where('status', 'active')
-            ->with('employer:id,company_name')
+            ->with([
+                'employer:id,company_name',
+                'listing:id,title,category,country_code,company_name,type',
+            ]);
+
+        if ($typeFilter === 'job') {
+            $programsQuery->where('promotion_type', 'job');
+        } elseif ($typeFilter === 'campaign') {
+            $programsQuery->where(function ($q) {
+                $q->whereNull('promotion_type')
+                    ->orWhere('promotion_type', '!=', 'job');
+            });
+        }
+
+        $programs = $programsQuery
             ->latest()
-            ->limit(100)
+            ->limit(200)
             ->get();
 
         $filterCommunityId = $request->filled('community_id')
@@ -52,22 +71,29 @@ class CampaignAssignmentController extends Controller
                 $alreadyForCommunity = $filterCommunityId
                     ? $rows->contains(fn ($row) => (int) $row->community_id === $filterCommunityId)
                     : $rows->isNotEmpty();
+                $listing = $p->listing;
+                $promo = strtolower((string) ($p->promotion_type ?? 'other'));
 
                 return [
                     'id' => $p->id,
                     'title' => $p->title,
                     'pricing_model' => $showRates ? $p->pricing_model : null,
                     'promotion_type' => $p->promotion_type,
+                    'source_kind' => $promo === 'job' ? 'job' : 'campaign',
                     'rate_usd' => $showRates ? $p->rate_usd : null,
                     'budget_total_usd' => $showRates ? $p->budget_total_usd : null,
                     'status' => $p->status,
-                    'employer' => $p->employer?->company_name,
+                    'employer' => $p->employer?->company_name ?? $listing?->company_name,
+                    'category' => $listing?->category,
+                    'country_code' => $listing?->country_code,
+                    'listing_title' => $listing?->title,
                     // Same campaign may be used on multiple communities.
                     'already_assigned' => $alreadyForCommunity,
                     'assigned_community_ids' => $communityIds,
                     'assigned_community_count' => count($communityIds),
                 ];
             }),
+            'type_filter' => $typeFilter,
             'rates_visible' => $showRates,
             'membership_role' => $membership->role,
             'shares_allowed' => true,
