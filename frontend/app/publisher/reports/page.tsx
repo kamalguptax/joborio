@@ -63,12 +63,13 @@ export default function PublisherReportsPage() {
       <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-            Performance Reports
+            View Reports
           </p>
-          <h1 className="mt-1 text-3xl font-bold">Network performance</h1>
+          <h1 className="mt-1 text-3xl font-bold">Campaign & member performance</h1>
           <p className="mt-2 text-slate-500">
-            Publisher-level view of communities, members, invites, and campaign
-            assignments. Confirmed partner actions appear after tracking is live.
+            Track clicks, signups, applications, and conversions at campaign and
+            member level. Network Members only see their own counts — never rates
+            or publisher payouts.
           </p>
         </div>
         <Link

@@ -138,8 +138,22 @@ export default function PublisherDashboardPage() {
             href="/publisher/network"
             className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
           >
-            Invite members
+            Invite Team
           </Link>
+          <Link
+            href="/publisher/reports"
+            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            View Reports
+          </Link>
+          {canFinance ? (
+            <Link
+              href="/publisher/earnings"
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+            >
+              Check Earnings
+            </Link>
+          ) : null}
         </div>
       </div>
 
@@ -147,15 +161,16 @@ export default function PublisherDashboardPage() {
         <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
           <p className="font-bold text-amber-900">Application under review</p>
           <p className="mt-1 text-sm text-amber-800">
-            Status: {publisher.status_label}. You can still set up communities and invite
-            links while review is in progress.
+            Status: {publisher.status_label}. You can still create communities and
+            prepare invite links while review is in progress.
           </p>
         </div>
       ) : (
         <div className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-          <p className="font-bold text-emerald-900">Publisher account active</p>
+          <p className="font-bold text-emerald-900">Publisher Network active</p>
           <p className="mt-1 text-sm text-emerald-800">
-            Manage communities, invite members, and assign campaigns.
+            Create communities, invite creators, view reports, and check your
+            commission (10–15% of the creator pool after JobOrio’s 30% fee).
           </p>
         </div>
       )}

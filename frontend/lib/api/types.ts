@@ -38,6 +38,7 @@ export type Creator = {
   bio?: string | null;
   trust_tier?: string;
   accent_color?: string;
+  social_links?: Record<string, string> | null;
   niches?: Niche[];
 };
 

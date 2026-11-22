@@ -22,8 +22,8 @@ function money(n: number | string) {
 
 export default function PublisherEarningsPage() {
   const [data, setData] = useState<PublisherEarnings | null>(null);
-  const [permitted, setPermitted] = useState<number[]>([10, 15, 20, 25, 30]);
-  const [selectedPct, setSelectedPct] = useState<number>(20);
+  const [permitted, setPermitted] = useState<number[]>([10, 11, 12, 13, 14, 15]);
+  const [selectedPct, setSelectedPct] = useState<number>(12);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -31,10 +31,16 @@ export default function PublisherEarningsPage() {
     Promise.all([fetchPublisherEarnings(), fetchPublisherCommission()])
       .then(([earnings, commissionCfg]) => {
         setData(earnings);
-        setPermitted(commissionCfg.permitted_percentages);
+        const allowed =
+          commissionCfg.permitted_percentages?.length
+            ? commissionCfg.permitted_percentages
+            : earnings.permitted_percentages ?? [10, 11, 12, 13, 14, 15];
+        setPermitted(allowed);
         const current = commissionCfg.commission
           ? Number(commissionCfg.commission.commission_percent)
-          : commissionCfg.permitted_percentages[0] ?? 20;
+          : allowed.includes(12)
+            ? 12
+            : allowed[0] ?? 12;
         setSelectedPct(current);
       })
       .catch((err) =>
@@ -97,16 +103,16 @@ export default function PublisherEarningsPage() {
       <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-            Publisher Earnings
+            Check Earnings
           </p>
-          <h1 className="mt-1 text-3xl font-bold">Commercial earnings</h1>
+          <h1 className="mt-1 text-3xl font-bold">Commission & payouts</h1>
           <p className="mt-2 max-w-2xl text-slate-500">{data.note}</p>
         </div>
         <Link
           href="/publisher/payments"
           className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
         >
-          Payment history
+          Payout status
         </Link>
       </div>
 
@@ -118,22 +124,30 @@ export default function PublisherEarningsPage() {
 
       <div className="mb-6 rounded-2xl border border-violet-200 bg-violet-50 px-5 py-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
-          Commercial commission
+          Publisher commission (of creator pool)
         </p>
         {commission ? (
           <p className="mt-1 text-xl font-bold text-violet-950">
-            {Number(commission.commission_percent).toFixed(2)}% publisher
-            commission · v{commission.version}
+            {Number(commission.commission_percent).toFixed(0)}% of pool · v
+            {commission.version}
           </p>
         ) : (
           <p className="mt-1 text-sm font-semibold text-violet-950">
-            No active commission yet — choose a permitted rate below.
+            No active rate yet — choose 10–15% below.
           </p>
         )}
         <p className="mt-1 text-sm text-violet-800">
-          Only permitted percentages can be selected. JobOrio platform fee is
-          never distributed to the publisher.
+          JobOrio keeps {(data.platform_fee_percent ?? 30).toFixed(0)}% platform
+          fee. Your rate is 10–15% of the remaining pool; creators get the rest.
         </p>
+        {data.example_split ? (
+          <p className="mt-2 rounded-xl bg-white/70 px-3 py-2 text-xs text-violet-900">
+            Example on ${Number(data.example_split.campaign_earnings_usd).toFixed(0)}:{" "}
+            JobOrio {money(data.example_split.platform_fee_usd)} · you{" "}
+            {money(data.example_split.publisher_usd)} · creators{" "}
+            {money(data.example_split.creators_usd)}
+          </p>
+        ) : null}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {permitted.map((pct) => (
             <button

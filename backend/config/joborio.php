@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'platform_fee_percent' => (float) env('JOBORIO_PLATFORM_FEE_PERCENT', 25),
+    'platform_fee_percent' => (float) env('JOBORIO_PLATFORM_FEE_PERCENT', 30),
     'ppc_hold_days' => (int) env('JOBORIO_PPC_HOLD_DAYS', 5),
     'ppc_hold_days_micro' => (int) env('JOBORIO_PPC_HOLD_DAYS_MICRO', 3),
     'click_dedup_minutes' => (int) env('JOBORIO_CLICK_DEDUP_MINUTES', 10),

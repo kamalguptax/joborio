@@ -41,11 +41,10 @@ class PublisherRegistrationService
             ]);
         }
 
-        $integration = Str::lower((string) $data['integration_preference']);
-        if (! in_array($integration, Publisher::INTEGRATIONS, true)) {
-            throw ValidationException::withMessages([
-                'integration_preference' => ['Invalid integration preference.'],
-            ]);
+        // Registration no longer collects this; default to dashboard (set later in integrations).
+        $integration = Str::lower((string) ($data['integration_preference'] ?? 'dashboard'));
+        if ($integration === '' || ! in_array($integration, Publisher::INTEGRATIONS, true)) {
+            $integration = 'dashboard';
         }
 
         $nicheIds = array_values(array_unique(array_map('intval', $data['niche_ids'] ?? [])));
@@ -81,8 +80,8 @@ class PublisherRegistrationService
                 'display_name' => trim((string) $data['full_name']),
                 'country_code' => $country,
                 'network_type' => $networkType,
-                'social_url' => trim((string) $data['social_url']),
-                'website_url' => trim((string) $data['website_url']),
+                'social_url' => filled($data['social_url'] ?? null) ? trim((string) $data['social_url']) : null,
+                'website_url' => filled($data['website_url'] ?? null) ? trim((string) $data['website_url']) : null,
                 'integration_preference' => $integration,
                 'niche_ids' => $nicheIds,
                 'job_preferences' => $jobPrefs,

@@ -25,11 +25,11 @@ export default function CreatorSettingsPage() {
     fetchMe().then((u) => {
       setBio(u.creator?.bio ?? "");
       setAccent(u.creator?.accent_color ?? "#2563eb");
-      const links = u.creator?.social_links ?? {};
+      const links = (u.creator?.social_links ?? {}) as Record<string, unknown>;
       const known: Partial<Record<SocialKey, string>> = {};
       const rest: Record<string, string> = {};
       for (const [k, v] of Object.entries(links)) {
-        if (!v) continue;
+        if (typeof v !== "string" || !v.trim()) continue;
         if (SOCIAL_PLATFORMS.some((p) => p.key === k)) known[k as SocialKey] = v;
         else rest[k] = v;
       }

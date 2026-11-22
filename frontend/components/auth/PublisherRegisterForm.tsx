@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import MathCaptcha from "@/components/auth/MathCaptcha";
 import MultiSelect from "@/components/ui/MultiSelect";
 import {
@@ -47,13 +47,6 @@ const jobPrefs = [
   { value: "fresher", label: "Fresher" },
 ] as const;
 
-const integrations = [
-  { value: "dashboard", label: "Dashboard" },
-  { value: "api", label: "API" },
-  { value: "xml", label: "XML" },
-  { value: "webhook", label: "Webhook" },
-] as const;
-
 type FieldKey =
   | "fullName"
   | "username"
@@ -66,7 +59,6 @@ type FieldKey =
   | "jobs"
   | "socialUrl"
   | "websiteUrl"
-  | "integration"
   | "accepted"
   | "captcha";
 
@@ -94,8 +86,61 @@ function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+const apiFieldMap: Record<string, FieldKey> = {
+  email: "email",
+  username: "username",
+  full_name: "fullName",
+  password: "password",
+  password_confirmation: "confirm",
+  country: "country",
+  network_type: "networkType",
+  niche_ids: "niches",
+  job_preferences: "jobs",
+  social_url: "socialUrl",
+  website_url: "websiteUrl",
+  accepted_terms: "accepted",
+  captcha_id: "captcha",
+  captcha_answer: "captcha",
+};
+
+function firstDetailMessage(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (Array.isArray(value)) {
+    const first = value.find((v) => typeof v === "string" && v.trim());
+    return typeof first === "string" ? first.trim() : null;
+  }
+  return null;
+}
+
+/** Map API validation / conflict messages onto form fields. */
+function fieldErrorsFromApi(err: ApiClientError): FieldErrors {
+  const next: FieldErrors = {};
+  const details = err.details;
+  if (details && typeof details === "object" && !Array.isArray(details)) {
+    for (const [key, value] of Object.entries(details as Record<string, unknown>)) {
+      const field = apiFieldMap[key];
+      const message = firstDetailMessage(value);
+      if (field && message) next[field] = message;
+    }
+  }
+
+  const msg = err.message || "";
+  if (
+    !next.email &&
+    /email.*(already|taken|registered)|already registered|already been taken/i.test(msg)
+  ) {
+    next.email = msg;
+  }
+  if (!next.username && /username.*(already|taken)/i.test(msg)) {
+    next.username = msg;
+  }
+
+  return next;
+}
+
 export default function PublisherRegisterForm() {
   const router = useRouter();
+  const emailRef = useRef<HTMLInputElement>(null);
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -103,7 +148,6 @@ export default function PublisherRegisterForm() {
   const [confirm, setConfirm] = useState("");
   const [country, setCountry] = useState<"" | "IN" | "AE" | "US">("");
   const [networkType, setNetworkType] = useState("");
-  const [integration, setIntegration] = useState("");
   const [socialUrl, setSocialUrl] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [selectedNiches, setSelectedNiches] = useState<number[]>([]);
@@ -246,7 +290,6 @@ export default function PublisherRegisterForm() {
 
     if (!country) next.country = "Select a country.";
     if (!networkType) next.networkType = "Select a network type.";
-    if (!integration) next.integration = "Select an integration preference.";
 
     if (selectedNiches.length < 1) {
       next.niches = "Select at least one audience niche.";
@@ -255,14 +298,19 @@ export default function PublisherRegisterForm() {
       next.jobs = "Select at least one job preference.";
     }
 
-    if (!social) next.socialUrl = "Social media URL is required.";
-    else if (!isValidUrl(social)) {
-      next.socialUrl = "Enter a valid URL starting with https://";
-    }
-
-    if (!website) next.websiteUrl = "Website / community URL is required.";
-    else if (!isValidUrl(website)) {
-      next.websiteUrl = "Enter a valid URL starting with https://";
+    // At least one of social / website is required.
+    if (!social && !website) {
+      const either =
+        "Provide a social media URL or a website / community URL.";
+      next.socialUrl = either;
+      next.websiteUrl = either;
+    } else {
+      if (social && !isValidUrl(social)) {
+        next.socialUrl = "Enter a valid URL starting with https://";
+      }
+      if (website && !isValidUrl(website)) {
+        next.websiteUrl = "Enter a valid URL starting with https://";
+      }
     }
 
     if (!accepted) next.accepted = "You must accept the Terms & Conditions.";
@@ -295,9 +343,8 @@ export default function PublisherRegisterForm() {
         niche_ids: selectedNiches,
         job_preferences: selectedJobs,
         network_type: networkType,
-        social_url: socialUrl.trim(),
-        website_url: websiteUrl.trim(),
-        integration_preference: integration,
+        social_url: socialUrl.trim() || undefined,
+        website_url: websiteUrl.trim() || undefined,
         accepted_terms: true,
         captcha_id: captcha.captcha_id,
         captcha_answer: captcha.captcha_answer,
@@ -307,11 +354,19 @@ export default function PublisherRegisterForm() {
       markOnboardingPending(data.user.id, "publisher");
       router.push("/publisher/onboarding");
     } catch (err) {
-      setFormError(
-        err instanceof ApiClientError
-          ? err.message
-          : "Could not register. Check the API is running.",
-      );
+      if (err instanceof ApiClientError) {
+        const fieldErrs = fieldErrorsFromApi(err);
+        setErrors(fieldErrs);
+        setFormError(err.message);
+        if (fieldErrs.email) {
+          requestAnimationFrame(() => {
+            emailRef.current?.focus();
+            emailRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+          });
+        }
+      } else {
+        setFormError("Could not register. Check the API is running.");
+      }
     } finally {
       setLoading(false);
     }
@@ -386,12 +441,15 @@ export default function PublisherRegisterForm() {
         Email
         <RequiredMark />
         <input
+          ref={emailRef}
           type="email"
+          aria-invalid={Boolean(errors.email)}
           className={errors.email ? fieldErr : fieldOk}
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
             clearError("email");
+            if (formError) setFormError(null);
           }}
           autoComplete="email"
           required
@@ -543,61 +601,44 @@ export default function PublisherRegisterForm() {
         <FieldError message={errors.jobs} />
       </div>
 
-      <label className={authLabel}>
-        Social media URL
-        <RequiredMark />
-        <input
-          type="url"
-          className={errors.socialUrl ? fieldErr : fieldOk}
-          value={socialUrl}
-          onChange={(e) => {
-            setSocialUrl(e.target.value);
-            clearError("socialUrl");
-          }}
-          placeholder="https://…"
-          required
-        />
-        <FieldError message={errors.socialUrl} />
-      </label>
+      <div className="space-y-4">
+        <p className="text-xs text-slate-500">
+          Social media or website —{" "}
+          <span className="font-semibold text-violet-600">at least one required</span>
+          .
+        </p>
+        <label className={authLabel}>
+          Social media URL
+          <input
+            type="url"
+            className={errors.socialUrl ? fieldErr : fieldOk}
+            value={socialUrl}
+            onChange={(e) => {
+              setSocialUrl(e.target.value);
+              clearError("socialUrl");
+              clearError("websiteUrl");
+            }}
+            placeholder="https://…"
+          />
+          <FieldError message={errors.socialUrl} />
+        </label>
 
-      <label className={authLabel}>
-        Website / community URL
-        <RequiredMark />
-        <input
-          type="url"
-          className={errors.websiteUrl ? fieldErr : fieldOk}
-          value={websiteUrl}
-          onChange={(e) => {
-            setWebsiteUrl(e.target.value);
-            clearError("websiteUrl");
-          }}
-          placeholder="https://…"
-          required
-        />
-        <FieldError message={errors.websiteUrl} />
-      </label>
-
-      <label className={authLabel}>
-        Integration preference
-        <RequiredMark />
-        <select
-          className={errors.integration ? fieldErr : fieldOk}
-          value={integration}
-          onChange={(e) => {
-            setIntegration(e.target.value);
-            clearError("integration");
-          }}
-          required
-        >
-          <option value="">Select integration</option>
-          {integrations.map((i) => (
-            <option key={i.value} value={i.value}>
-              {i.label}
-            </option>
-          ))}
-        </select>
-        <FieldError message={errors.integration} />
-      </label>
+        <label className={authLabel}>
+          Website / community URL
+          <input
+            type="url"
+            className={errors.websiteUrl ? fieldErr : fieldOk}
+            value={websiteUrl}
+            onChange={(e) => {
+              setWebsiteUrl(e.target.value);
+              clearError("websiteUrl");
+              clearError("socialUrl");
+            }}
+            placeholder="https://…"
+          />
+          <FieldError message={errors.websiteUrl} />
+        </label>
+      </div>
 
       <div>
         <MathCaptcha onChange={onCaptcha} />
@@ -640,7 +681,7 @@ export default function PublisherRegisterForm() {
         disabled={loading}
         className={authPrimaryButton}
       >
-        {loading ? "Submitting…" : "Submit publisher application"}
+        {loading ? "Submitting…" : "Apply Now"}
       </button>
 
       <p className="text-center text-sm text-slate-500">

@@ -12,13 +12,13 @@ export default function PublisherLoginPage() {
   return (
     <GuestOnly>
     <AuthShell
-      title="Publisher login"
-      subtitle="Separate from creator and brand accounts. Sign in to manage your network."
-      topPrompt="Not a publisher?"
-      topLinkLabel="Creator login"
-      topLinkHref="/creator/login"
-      panelHeading="Your publisher studio, ready when you are."
-      panelBody="Communities, members and campaign performance, all in one place."
+      title="Publisher Network sign-in"
+      subtitle="Publishers manage communities and commissions. Network Members use the member portal after joining via invite."
+      topPrompt="Network Member?"
+      topLinkLabel="Member sign-in"
+      topLinkHref="/login"
+      panelHeading="Run your private creator network."
+      panelBody="Create communities, invite creators, track reports, and check your 10–15% pool commission."
     >
       <PublisherLoginForm />
     </AuthShell>

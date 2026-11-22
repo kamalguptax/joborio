@@ -13,12 +13,22 @@ class PublisherCommunity extends Model
         'code',
         'name',
         'category',
+        'commission_percent',
         'description',
         'country_code',
         'campaign_access',
+        'xml_job_refs',
         'manager_user_id',
         'status',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'commission_percent' => 'decimal:2',
+            'xml_job_refs' => 'array',
+        ];
+    }
 
     public function publisher(): BelongsTo
     {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PreferredJobsList from "@/components/job-preferences/PreferredJobsList";
+import EmployerAwareness from "@/components/employer/EmployerAwareness";
 import {
   fetchEmployerMe,
   fetchEmployerPreferredJobs,
@@ -67,6 +68,30 @@ export default function EmployerDashboardPage() {
           <p className="mt-2 text-3xl font-bold">${totalBudget.toFixed(0)}</p>
         </div>
       </div>
+
+      {programs.length === 0 ? (
+        <div className="mt-10 rounded-3xl border border-violet-100 bg-[#f8f7fc] p-6 sm:p-8">
+          <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
+            Why brands join JobOrio
+          </p>
+          <h2 className="mt-1 text-xl font-bold text-[#172b63]">
+            Understand the benefits before you launch
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-slate-500">
+            See who can advertise, which outcomes you can drive, and how PPC /
+            PPR / PPA / PPE campaigns work — then create your first program.
+          </p>
+          <div className="mt-6">
+            <EmployerAwareness
+              compact
+              primaryHref="/employer/programs/new"
+              primaryLabel="Create your first program"
+              secondaryHref="/brands"
+              secondaryLabel="Full brand guide"
+            />
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-10">
         <div className="flex flex-wrap items-center justify-between gap-2">
