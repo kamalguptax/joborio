@@ -2,18 +2,28 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useCallback, useEffect, useState } from "react";
-import MathCaptcha from "@/components/auth/MathCaptcha";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import MathCaptcha, { isCaptchaFailureMessage } from "@/components/auth/MathCaptcha";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import AuthDivider from "@/components/auth/AuthDivider";
 import PasswordInput from "@/components/auth/PasswordInput";
+import FieldError from "@/components/auth/FieldError";
+import { focusFirstInvalid, useFieldErrors } from "@/components/auth/useFieldErrors";
 import {
   authAlertError,
   authField,
+  authFieldError,
   authLabel,
   authLink,
   authPrimaryButton,
 } from "@/components/auth/authStyles";
+import {
+  apiFieldErrors,
+  confirmPasswordProblem,
+  emailProblem,
+  nameProblem,
+  newPasswordProblem,
+} from "@/lib/validation";
 import { register } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
 import { getReferralCode, saveReferralCode } from "@/lib/auth/referralStorage";
@@ -29,6 +39,18 @@ const roles = [
 type SignupRole = (typeof roles)[number]["value"];
 
 const field = authField;
+
+type FieldKey = "name" | "email" | "password" | "confirm" | "accepted" | "captcha" | "referral";
+
+const apiFieldMap: Record<string, FieldKey> = {
+  name: "name",
+  email: "email",
+  password: "password",
+  password_confirmation: "confirm",
+  referral_code: "referral",
+  captcha_id: "captcha",
+  captcha_answer: "captcha",
+};
 
 const SIGNUP_ROLE_KEY = "joborio_signup_role";
 
@@ -63,12 +85,35 @@ export default function SignupForm() {
   const [accepted, setAccepted] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [captcha, setCaptcha] = useState({ captcha_id: "", captcha_answer: "" });
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const { errors, setErrors, clear, setOne } = useFieldErrors<FieldKey>();
 
-  const onCaptcha = useCallback((v: { captcha_id: string; captcha_answer: string }) => {
-    setCaptcha(v);
-  }, []);
+  const onCaptcha = useCallback(
+    (v: { captcha_id: string; captcha_answer: string }) => {
+      setCaptcha(v);
+      if (v.captcha_id && v.captcha_answer.trim()) clear("captcha");
+    },
+    [clear],
+  );
+
+  const rules: Record<FieldKey, () => string | null> = {
+    name: () => nameProblem(name),
+    email: () => emailProblem(email),
+    referral: () => null,
+    password: () => newPasswordProblem(password),
+    confirm: () => confirmPasswordProblem(password, confirmPassword),
+    accepted: () => (accepted ? null : "You must accept the Terms & Conditions."),
+    captcha: () =>
+      captcha.captcha_id && captcha.captcha_answer.trim() ? null : "Complete the captcha.",
+  };
+  const blur = (key: FieldKey) => setOne(key, rules[key]() ?? undefined);
+  const aria = (key: FieldKey) => ({
+    "aria-invalid": Boolean(errors[key]),
+    "aria-describedby": errors[key] ? `signup-${key}-error` : undefined,
+  });
   /** Hide Employer / Partner only when signup opened with ?ref=CODE */
   const [inviteFromUrl, setInviteFromUrl] = useState(false);
 
@@ -85,24 +130,20 @@ export default function SignupForm() {
     if (existing) setReferralCode(existing);
   }, []);
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (loading) return;
     setError(null);
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (!accepted) {
-      setError("Please accept the Terms & Conditions.");
-      return;
-    }
-    if (!captcha.captcha_id || !captcha.captcha_answer) {
-      setError("Complete the captcha.");
+    const found: Partial<Record<FieldKey, string>> = {};
+    (Object.keys(rules) as FieldKey[]).forEach((k) => {
+      const problem = rules[k]();
+      if (problem) found[k] = problem;
+    });
+    setErrors(found);
+    if (Object.keys(found).length > 0) {
+      setError("Please fix the highlighted fields.");
+      focusFirstInvalid(formRef.current);
       return;
     }
 
@@ -115,8 +156,8 @@ export default function SignupForm() {
         saveReferralCode(refCode);
       }
       const data = await register({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
         password,
         captcha_id: captcha.captcha_id,
         captcha_answer: captcha.captcha_answer,
@@ -128,11 +169,25 @@ export default function SignupForm() {
       sessionStorage.setItem(SIGNUP_ROLE_KEY, effectiveRole);
       router.push("/onboarding");
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : "Unable to create account. Check the API is running.",
-      );
+      if (err instanceof ApiClientError) {
+        const mapped = apiFieldErrors(err, apiFieldMap);
+        if (
+          !mapped.email &&
+          /email.*(already|taken|registered)|already registered|already been taken/i.test(err.message)
+        ) {
+          mapped.email = err.message;
+        }
+        if (isCaptchaFailureMessage(err.message)) {
+          mapped.captcha = err.message;
+          setCaptcha({ captcha_id: "", captcha_answer: "" });
+          setCaptchaResetKey((k) => k + 1);
+        }
+        setErrors(mapped);
+        setError(Object.keys(mapped).length > 0 ? "Please fix the highlighted fields." : err.message);
+        focusFirstInvalid(formRef.current);
+      } else {
+        setError("Unable to create account. Check the API is running.");
+      }
     } finally {
       setLoading(false);
     }
@@ -144,9 +199,11 @@ export default function SignupForm() {
 
       <AuthDivider />
 
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form ref={formRef} onSubmit={onSubmit} className="space-y-4" noValidate>
       {error ? (
-        <p className={authAlertError}>{error}</p>
+        <p role="alert" className={authAlertError}>
+          {error}
+        </p>
       ) : null}
 
       <div>
@@ -157,13 +214,18 @@ export default function SignupForm() {
           id="name"
           name="name"
           type="text"
-          required
           autoComplete="name"
           placeholder="Your name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          className={field}
+          onChange={(e) => {
+            setName(e.target.value);
+            clear("name");
+          }}
+          onBlur={() => blur("name")}
+          className={errors.name ? authFieldError : field}
+          {...aria("name")}
         />
+        <FieldError id="signup-name-error" message={errors.name} />
       </div>
 
       <div>
@@ -174,13 +236,18 @@ export default function SignupForm() {
           id="email"
           name="email"
           type="email"
-          required
           autoComplete="email"
           placeholder="you@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={field}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            clear("email");
+          }}
+          onBlur={() => blur("email")}
+          className={errors.email ? authFieldError : field}
+          {...aria("email")}
         />
+        <FieldError id="signup-email-error" message={errors.email} />
       </div>
 
       <div>
@@ -194,12 +261,17 @@ export default function SignupForm() {
           autoComplete="off"
           placeholder="Enter a creator’s code"
           value={referralCode}
-          onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+          onChange={(e) => {
+            setReferralCode(e.target.value.toUpperCase());
+            clear("referral");
+          }}
           readOnly={inviteFromUrl}
-          className={`${field} tracking-wide ${
+          className={`${errors.referral ? authFieldError : field} tracking-wide ${
             inviteFromUrl ? "bg-slate-50 text-slate-700" : ""
           }`}
+          {...aria("referral")}
         />
+        <FieldError id="signup-referral-error" message={errors.referral} />
         <p className="mt-1.5 text-xs text-slate-500">
           Have a friend’s invite? Enter it here, or open their referral link.{" "}
           <Link href="/refer-and-earn" className={authLink}>
@@ -216,13 +288,19 @@ export default function SignupForm() {
           <PasswordInput
             id="password"
             name="password"
-            required
-            minLength={8}
             autoComplete="new-password"
             placeholder="Min. 8 characters"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              clear("password");
+              if (errors.confirm && confirmPassword === e.target.value) clear("confirm");
+            }}
+            onBlur={() => blur("password")}
+            className={errors.password ? authFieldError : field}
+            {...aria("password")}
           />
+          <FieldError id="signup-password-error" message={errors.password} />
         </div>
         <div>
           <label htmlFor="confirmPassword" className={authLabel}>
@@ -231,21 +309,32 @@ export default function SignupForm() {
           <PasswordInput
             id="confirmPassword"
             name="confirmPassword"
-            required
             autoComplete="new-password"
             placeholder="Repeat password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              clear("confirm");
+            }}
+            onBlur={() => blur("confirm")}
+            className={errors.confirm ? authFieldError : field}
+            {...aria("confirm")}
           />
+          <FieldError id="signup-confirm-error" message={errors.confirm} />
         </div>
       </div>
 
+      <div>
       <label className="flex items-start gap-2 text-xs text-slate-500">
         <input
           type="checkbox"
           checked={accepted}
-          onChange={(e) => setAccepted(e.target.checked)}
+          onChange={(e) => {
+            setAccepted(e.target.checked);
+            if (e.target.checked) clear("accepted");
+          }}
           className="mt-0.5 h-4 w-4 rounded border-slate-300 text-violet-600 accent-violet-600"
+          {...aria("accepted")}
         />
         <span>
           I agree to JobOrio&apos;s{" "}
@@ -262,8 +351,13 @@ export default function SignupForm() {
           </Link>
         </span>
       </label>
+      <FieldError id="signup-accepted-error" message={errors.accepted} />
+      </div>
 
-      <MathCaptcha onChange={onCaptcha} />
+      <div>
+        <MathCaptcha onChange={onCaptcha} resetKey={captchaResetKey} />
+        <FieldError id="signup-captcha-error" message={errors.captcha} />
+      </div>
 
       <button
         type="submit"
@@ -275,7 +369,7 @@ export default function SignupForm() {
 
       <p className="text-center text-sm text-slate-500">
         Already have an account?{" "}
-        <Link href="/login" className={authLink}>
+        <Link href="/creator/login" className={authLink}>
           Log in
         </Link>
       </p>

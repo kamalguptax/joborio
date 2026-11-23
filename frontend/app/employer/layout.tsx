@@ -38,7 +38,7 @@ export default function EmployerLayout({
       return;
     }
     if (!getAuthToken()) {
-      router.replace("/login");
+      router.replace("/brand/login");
       return;
     }
     fetchMe()
@@ -60,7 +60,7 @@ export default function EmployerLayout({
         }
         setOk(true);
       })
-      .catch(() => router.replace("/login"));
+      .catch(() => router.replace("/brand/login"));
   }, [router, isOnboarding]);
 
   if (isOnboarding) {
@@ -86,7 +86,7 @@ export default function EmployerLayout({
           /* ignore */
         }
         clearAuthToken();
-        router.push("/login");
+        router.push("/brand/login");
       }}
     >
       {children}

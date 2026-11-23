@@ -129,7 +129,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (!getAuthToken()) {
-      router.replace("/login");
+      router.replace("/creator/login");
       return;
     }
     fetchNiches()

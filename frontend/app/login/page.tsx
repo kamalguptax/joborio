@@ -16,11 +16,12 @@ export default function LoginPage() {
   return (
     <GuestOnly>
     <AuthShell
-      title="Welcome back"
-      subtitle="Sign in to your JobOrio account and continue earning on performance."
+      title="Log in to JobOrio"
+      subtitle="Pick your account type above, or sign in below and we'll take you to the right dashboard."
       topPrompt="New to JobOrio?"
       topLinkLabel="Create an account"
       topLinkHref="/signup"
+      roleSwitch={{ mode: "login", current: null }}
       panelHeading="Good to see you again."
       panelBody="Your campaigns, clicks and payouts are right where you left them."
     >
@@ -29,24 +30,21 @@ export default function LoginPage() {
       </Suspense>
 
       <p className="mt-6 text-center text-sm text-slate-500">
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" className={authLink}>
-          Sign up
-        </Link>
-      </p>
-      <p className="mt-2 text-center text-sm text-slate-500">
-        Log in as{" "}
-        <Link href="/creator/login" className={authLink}>
+        New here? Sign up as{" "}
+        <Link href="/creator/register" className={authLink}>
           Creator
         </Link>
         {" · "}
-        <Link href="/brand/login" className={authLink}>
-          Brand
-        </Link>
-        {" · "}
-        <Link href="/publisher/login" className={authLink}>
+        <Link href="/publisher/register" className={authLink}>
           Publisher
         </Link>
+        {" · "}
+        <Link href="/brand/register" className={authLink}>
+          Brand
+        </Link>
+      </p>
+      <p className="mt-2 text-center text-xs text-slate-400">
+        Network Member (joined via a publisher invite)? Sign in above.
       </p>
     </AuthShell>
     </GuestOnly>

@@ -28,7 +28,7 @@ export default function CreatorLayout({
     if (isPublicAuth) return;
 
     if (!getAuthToken()) {
-      router.replace("/login");
+      router.replace("/creator/login");
       return;
     }
     fetchMe()
@@ -58,7 +58,7 @@ export default function CreatorLayout({
             .catch(() => undefined);
         }
       })
-      .catch(() => router.replace("/login"));
+      .catch(() => router.replace("/creator/login"));
   }, [router, isPublicAuth]);
 
   if (isPublicAuth) {

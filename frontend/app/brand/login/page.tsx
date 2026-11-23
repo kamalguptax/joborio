@@ -21,6 +21,7 @@ export default function BrandLoginPage() {
         topPrompt="New brand?"
         topLinkLabel="Register your brand"
         topLinkHref="/brand/register"
+        roleSwitch={{ mode: "login", current: "brand" }}
         panelHeading="Your campaigns, one dashboard."
         panelBody="Track clicks, registrations and spend by creator, and pay only for results."
       >
@@ -32,16 +33,6 @@ export default function BrandLoginPage() {
           Don&apos;t have a brand account?{" "}
           <Link href="/brand/register" className={authLink}>
             Register your brand
-          </Link>
-        </p>
-        <p className="mt-2 text-center text-sm text-slate-500">
-          Not a brand?{" "}
-          <Link href="/creator/login" className={authLink}>
-            Creator login
-          </Link>
-          {" · "}
-          <Link href="/publisher/login" className={authLink}>
-            Publisher login
           </Link>
         </p>
       </AuthShell>

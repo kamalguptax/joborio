@@ -17,8 +17,9 @@ export default function SignupPage() {
       title="Sign up to start earning"
       subtitle="It's completely free. Create your creator account in a minute."
       topPrompt="Already have an account?"
-      topLinkLabel="Log in"
-      topLinkHref="/login"
+      topLinkLabel="Creator login"
+      topLinkHref="/creator/login"
+      roleSwitch={{ mode: "signup", current: "creator" }}
       wide
     >
       <Suspense fallback={null}>

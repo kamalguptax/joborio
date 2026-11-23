@@ -18,6 +18,7 @@ export default function PublisherRegisterPage() {
       topPrompt="Already approved?"
       topLinkLabel="Publisher login"
       topLinkHref="/publisher/login"
+      roleSwitch={{ mode: "signup", current: "publisher" }}
       wide
       panelHeading="Apply to run a JobOrio Publisher Network."
       panelBody="Create private communities, invite creators as Network Members, track campaign performance, and earn 10–15% of the creator pool."

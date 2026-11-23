@@ -38,7 +38,7 @@ export default function EmployerOnboardingPage() {
           navigateTo(router, homePathForUser(u, { prefer: "employer" }));
         }
       })
-      .catch(() => router.replace("/login"));
+      .catch(() => router.replace("/brand/login"));
   }, [router]);
 
   const submit = async () => {

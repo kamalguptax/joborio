@@ -63,7 +63,7 @@ export default function CreatorShell({
           /* ignore */
         }
         clearAuthToken();
-        window.location.href = "/login";
+        window.location.href = "/creator/login";
       }}
       topRight={
         <>

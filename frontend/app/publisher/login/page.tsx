@@ -17,6 +17,7 @@ export default function PublisherLoginPage() {
       topPrompt="Network Member?"
       topLinkLabel="Member sign-in"
       topLinkHref="/login"
+      roleSwitch={{ mode: "login", current: "publisher" }}
       panelHeading="Run your private creator network."
       panelBody="Create communities, invite creators, track reports, and check your 10–15% pool commission."
     >

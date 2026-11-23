@@ -13,6 +13,7 @@ const AUTH_ROUTES = new Set([
   "/reset-password",
   "/publisher/login",
   "/publisher/register",
+  "/creator/login",
   "/creator/register",
   "/brand/login",
   "/brand/register",

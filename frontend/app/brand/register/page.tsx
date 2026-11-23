@@ -18,8 +18,9 @@ export default function BrandRegisterPage() {
           title="Brand & Company Registration"
           subtitle="Amplify your brand through modern creator campaigns. Scroll down to see who JobOrio is for and how campaigns work."
           topPrompt="Already registered?"
-          topLinkLabel="Log in"
+          topLinkLabel="Brand login"
           topLinkHref="/brand/login"
+          roleSwitch={{ mode: "signup", current: "brand" }}
           wide
           panelHeading="Reach the right people through trusted creators."
           panelBody="Launch PPC, PPR, PPA or PPE campaigns. Pay for verified outcomes — traffic, sign-ups, applications, and engagement."

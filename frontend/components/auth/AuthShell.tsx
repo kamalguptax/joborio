@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import Logo from "@/components/layout/Logo";
 import AuthOrbit from "@/components/auth/AuthOrbit";
+import AuthRoleSwitch from "@/components/auth/AuthRoleSwitch";
+import type { AuthRole } from "@/lib/auth/authRoutes";
 
 type Props = {
   children: ReactNode;
@@ -16,6 +18,8 @@ type Props = {
   /** Copy on the brand panel (right side, desktop only). */
   panelHeading?: ReactNode;
   panelBody?: ReactNode;
+  /** "Log in as / Sign up as" role tabs. `current: null` = not tied to one role. */
+  roleSwitch?: { mode: "login" | "signup"; current: AuthRole | null };
 };
 
 /**
@@ -32,6 +36,7 @@ export default function AuthShell({
   wide = false,
   panelHeading = "Your audience has value. Start earning today.",
   panelBody = "Share trusted opportunities and earn USD on verified clicks and registrations.",
+  roleSwitch,
 }: Props) {
   return (
     <div className="grid min-h-svh bg-white text-slate-900 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]">
@@ -61,7 +66,12 @@ export default function AuthShell({
                 <p className="mx-auto mt-2 max-w-sm text-sm text-slate-500">{subtitle}</p>
               ) : null}
             </div>
-            <div className="mt-7">{children}</div>
+            <div className="mt-7">
+              {roleSwitch ? (
+                <AuthRoleSwitch mode={roleSwitch.mode} current={roleSwitch.current} />
+              ) : null}
+              {children}
+            </div>
           </div>
         </main>
       </div>

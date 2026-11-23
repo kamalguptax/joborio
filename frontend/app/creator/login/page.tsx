@@ -21,6 +21,7 @@ export default function CreatorLoginPage() {
         topPrompt="New creator?"
         topLinkLabel="Create an account"
         topLinkHref="/creator/register"
+        roleSwitch={{ mode: "login", current: "creator" }}
         panelHeading="Good to see you again."
         panelBody="Your links, clicks and payouts are right where you left them."
       >
@@ -32,16 +33,6 @@ export default function CreatorLoginPage() {
           Don&apos;t have an account?{" "}
           <Link href="/creator/register" className={authLink}>
             Sign up as a creator
-          </Link>
-        </p>
-        <p className="mt-2 text-center text-sm text-slate-500">
-          Not a creator?{" "}
-          <Link href="/brand/login" className={authLink}>
-            Brand login
-          </Link>
-          {" · "}
-          <Link href="/publisher/login" className={authLink}>
-            Publisher login
           </Link>
         </p>
       </AuthShell>

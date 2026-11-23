@@ -12,6 +12,7 @@ import {
 } from "react";
 import { Building2, LayoutDashboard, LogOut, Megaphone, Settings, Users } from "lucide-react";
 import { homePathForUser } from "@/lib/auth/redirect";
+import { loginPathForUser } from "@/lib/auth/authRoutes";
 import { fetchMe, logoutApi } from "@/lib/api/auth";
 import type { User } from "@/lib/api/types";
 import { clearAuthToken, getAuthToken, rememberPublicCode } from "@/lib/auth/session";
@@ -627,7 +628,7 @@ export default function Header() {
                           /* ignore */
                         }
                         clearAuthToken();
-                        window.location.href = "/login";
+                        window.location.href = loginPathForUser(user);
                       }}
                     >
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-300 transition group-hover:bg-rose-500/20">
@@ -668,7 +669,7 @@ export default function Header() {
                                 <Icon size={18} aria-hidden="true" />
                               </span>
                               <span className="min-w-0">
-                                <span className="block text-sm font-semibold text-white">Login with {label}</span>
+                                <span className="block text-sm font-semibold text-white">{label} login</span>
                                 <span className="block text-xs text-indigo-200/80">{desc}</span>
                               </span>
                             </Link>
@@ -823,7 +824,7 @@ export default function Header() {
                         /* ignore */
                       }
                       clearAuthToken();
-                      window.location.href = "/login";
+                      window.location.href = loginPathForUser(user);
                     }}
                     className="flex min-h-12 w-full items-center justify-center rounded-xl px-3 text-sm font-semibold text-rose-200"
                   >

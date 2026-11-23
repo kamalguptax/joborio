@@ -16,8 +16,9 @@ export default function CreatorRegisterPage() {
       title="Join JobOrio as a Creator"
       subtitle="Share trusted campaigns, track real results, and get paid."
       topPrompt="Already a creator?"
-      topLinkLabel="Log in"
+      topLinkLabel="Creator login"
       topLinkHref="/creator/login"
+      roleSwitch={{ mode: "signup", current: "creator" }}
       wide
       panelHeading="Your audience has value. Start earning today."
       panelBody="Share trusted campaigns and earn USD on verified clicks and registrations."

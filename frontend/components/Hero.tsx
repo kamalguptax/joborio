@@ -203,7 +203,7 @@ export default function Hero() {
               href="/hiring"
               className="btn-tap group inline-flex h-12 min-w-[150px] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-white px-5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-8 sm:text-base min-[993px]:h-[52px] min-[993px]:flex-none min-[993px]:px-10"
             >
-              Live Campaigns <Arrow />
+              Lunch Campaigns <Arrow />
             </Link>
           </div>
 
@@ -217,7 +217,7 @@ export default function Hero() {
               ))}
             </div>
             <div className="min-w-0">
-              <p className="font-semibold">12,500+ active creators</p>
+              <p className="font-semibold">12,50+ active creators</p>
               <p className="text-sm text-slate-300">Growing and earning together</p>
             </div>
           </div>
