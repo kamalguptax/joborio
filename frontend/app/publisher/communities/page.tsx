@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Copy } from "lucide-react";
 import { ApiClientError } from "@/lib/api/client";
 import { fetchNiches } from "@/lib/api/creator";
 import { fetchJobMasterFilters } from "@/lib/api/jobMasters";
@@ -120,7 +119,6 @@ export default function PublisherCommunitiesPage() {
   const [managerId, setManagerId] = useState("");
   const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
-  const [copiedId, setCopiedId] = useState<number | null>(null);
   const [highlightId, setHighlightId] = useState<number | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -449,18 +447,6 @@ export default function PublisherCommunitiesPage() {
   const selectedCount = selectedProgramIds.length + selectedXmlRefs.length;
   const listLoading = campaignsLoading || xmlLoading;
 
-  async function copyJoinLink(row: PublisherCommunity) {
-    const url = communityJoinUrl(row);
-    if (!url) return;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedId(row.id);
-      setTimeout(() => setCopiedId((id) => (id === row.id ? null : id)), 2000);
-    } catch {
-      setError("Could not copy join link.");
-    }
-  }
-
   async function openCommunityMembers(row: PublisherCommunity) {
     setMembersCommunity(row);
     setSelectedMemberId(null);
@@ -636,15 +622,27 @@ export default function PublisherCommunitiesPage() {
     <>
       <div className="mb-8">
         <BackButton href="/publisher/dashboard" label="Back to dashboard" />
-        <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-violet-600">
-          Communities
-        </p>
-        <h1 className="mt-1 text-3xl font-bold">Manage communities</h1>
-        <p className="mt-2 text-slate-500">
-          {isOwner
-            ? "Create communities, attach selected jobs or campaigns, and assign managers."
-            : "You only see communities assigned to you as manager."}
-        </p>
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
+              Communities
+            </p>
+            <h1 className="mt-1 text-3xl font-bold">Manage communities</h1>
+            <p className="mt-2 text-slate-500">
+              {isOwner
+                ? "All your communities are listed below. Create a new one anytime."
+                : "You only see communities assigned to you as manager."}
+            </p>
+          </div>
+          {isOwner ? (
+            <Link
+              href="/publisher/communities/new"
+              className="rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-5 py-2.5 text-sm font-bold text-white"
+            >
+              Create community
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       {error ? (
@@ -653,10 +651,11 @@ export default function PublisherCommunitiesPage() {
         </p>
       ) : null}
 
-      {isOwner ? (
+      {/* keep create helpers unused-safe until cleaned */}
+      {false && isOwner ? (
         <form
           onSubmit={onCreate}
-          className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="mb-8 hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
         >
           <h2 className="text-lg font-bold">Create community</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -986,6 +985,183 @@ export default function PublisherCommunitiesPage() {
         </form>
       ) : null}
 
+      <div
+        ref={listRef}
+        className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-bold">
+            {isOwner ? "Your communities" : "Assigned communities"}
+          </h2>
+          <div className="flex items-center gap-3">
+            <p className="text-xs font-semibold text-slate-400">
+              {rows.length} total
+            </p>
+            {isOwner ? (
+              <Link
+                href="/publisher/communities/new"
+                className="text-sm font-semibold text-violet-700"
+              >
+                Create community →
+              </Link>
+            ) : null}
+          </div>
+        </div>
+        <p className="mt-1 text-sm text-slate-500">
+          Each community has a join link. Anyone who opens it and accepts is
+          added as a member of that community.
+        </p>
+        {loading ? (
+          <ListSkeleton rows={3} className="mt-4" />
+        ) : rows.length === 0 ? (
+          <p className="mt-4 rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+            {isOwner ? (
+              <>
+                No communities yet.{" "}
+                <Link
+                  href="/publisher/communities/new"
+                  className="font-semibold text-violet-700"
+                >
+                  Create community
+                </Link>
+              </>
+            ) : (
+              "No communities assigned to you yet."
+            )}
+          </p>
+        ) : (
+          <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {rows.map((row) => {
+              const niches =
+                row.categories && row.categories.length > 0
+                  ? row.categories
+                  : row.category
+                    ? [row.category]
+                    : [];
+              return (
+                <li
+                  key={row.id}
+                  className={`flex h-full flex-col rounded-2xl border bg-white p-4 shadow-sm ${
+                    highlightId === row.id
+                      ? "border-violet-300 ring-2 ring-violet-200"
+                      : "border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <Link
+                      href={publisherCommunityPath(row.id, {
+                        from: "communities",
+                      })}
+                      className="line-clamp-2 font-bold text-[#172b63] hover:text-violet-700"
+                    >
+                      {row.name}
+                    </Link>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                        row.status === "active"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-amber-50 text-amber-700"
+                      }`}
+                    >
+                      {row.status}
+                    </span>
+                  </div>
+
+                  <p className="mt-1 text-xs text-slate-500">{row.code}</p>
+                  <p className="mt-1 line-clamp-2 text-xs text-slate-500">
+                    {niches.length > 0 ? niches.join(" · ") : "No niches"}
+                    {row.commission_percent != null
+                      ? ` · ${Number(row.commission_percent)}%`
+                      : ""}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {row.manager
+                      ? `Manager: ${row.manager.name}`
+                      : "No manager"}
+                    {row.xml_jobs_count
+                      ? ` · ${row.xml_jobs_count} feed jobs`
+                      : ""}
+                  </p>
+
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 px-2 py-2">
+                      <p className="text-sm font-bold text-[#172b63]">
+                        {row.members_count}
+                      </p>
+                      <p className="text-[10px] font-semibold uppercase text-slate-400">
+                        Members
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 px-2 py-2">
+                      <p className="text-sm font-bold text-[#172b63]">
+                        {row.clicks_total ?? 0}
+                      </p>
+                      <p className="text-[10px] font-semibold uppercase text-slate-400">
+                        Clicks
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void openCommunityMembers(row)}
+                      className="rounded-xl border border-violet-100 bg-violet-50 px-2 py-2 text-[10px] font-bold uppercase text-violet-700 hover:bg-violet-100"
+                    >
+                      Members
+                    </button>
+                  </div>
+
+                  <div className="mt-auto flex flex-wrap gap-2 pt-3">
+                    <Link
+                      href={`/publisher/network?community=${row.id}`}
+                      className="rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-3 py-1.5 text-xs font-bold text-white"
+                    >
+                      Invite
+                    </Link>
+                    <Link
+                      href={publisherCommunityPath(row.id, {
+                        from: "communities",
+                      })}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href={`/publisher/network?community=${row.id}`}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700"
+                    >
+                      Team
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => void toggleStatus(row)}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
+                    >
+                      {row.status === "active" ? "Pause" : "Activate"}
+                    </button>
+                  </div>
+
+                  {isOwner ? (
+                    <label className="mt-3 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Assign manager
+                      <SingleSelect
+                        options={managerSelectOptions}
+                        value={
+                          row.manager_user_id ? String(row.manager_user_id) : ""
+                        }
+                        onChange={(next) => void onAssignManager(row, next)}
+                        placeholder="Search & select manager"
+                        searchPlaceholder="Search by name or email…"
+                        emptyLabel="No managers match"
+                        clearLabel="Clear manager"
+                      />
+                    </label>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
       {canInvite ? (
         <form
           onSubmit={onInviteManager}
@@ -1026,174 +1202,6 @@ export default function PublisherCommunitiesPage() {
           </button>
         </form>
       ) : null}
-
-      <div
-        ref={listRef}
-        className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
-      >
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-lg font-bold">
-            {isOwner ? "Your communities" : "Assigned communities"}
-          </h2>
-          <p className="text-xs font-semibold text-slate-400">{rows.length} total</p>
-        </div>
-        <p className="mt-1 text-sm text-slate-500">
-          Each community has a join link. Anyone who opens it and accepts is
-          added as a member of that community.
-        </p>
-        {loading ? (
-          <ListSkeleton rows={3} className="mt-4" />
-        ) : rows.length === 0 ? (
-          <p className="mt-4 rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
-            {isOwner
-              ? "No communities yet. Create your first one above."
-              : "No communities assigned to you yet."}
-          </p>
-        ) : (
-          <ul className="mt-4 space-y-3">
-            {rows.map((row) => (
-              <li
-                key={row.id}
-                className={`rounded-2xl border px-4 py-3 ${
-                  highlightId === row.id
-                    ? "border-violet-300 bg-violet-50/60 ring-2 ring-violet-200"
-                    : "border-slate-100 bg-slate-50"
-                }`}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <Link
-                      href={publisherCommunityPath(row.id, { from: "communities" })}
-                      className="font-bold text-[#172b63] hover:text-violet-700"
-                    >
-                      {row.name}
-                    </Link>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {row.code}
-                      {row.categories && row.categories.length > 0
-                        ? ` · ${row.categories.join(" · ")}`
-                        : row.category
-                          ? ` · ${row.category}`
-                          : ""}
-                      {row.commission_percent != null
-                        ? ` · ${Number(row.commission_percent)}% commission`
-                        : ""}
-                      {" · "}
-                      Selected campaigns
-                      {row.xml_jobs_count
-                        ? ` · ${row.xml_jobs_count} feed jobs`
-                        : ""}
-                      {row.manager
-                        ? ` · Manager: ${row.manager.name}`
-                        : " · No manager"}
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <Link
-                        href={publisherCommunityPath(row.id, { from: "communities" })}
-                        className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-bold text-violet-800 hover:bg-violet-100"
-                      >
-                        {row.members_count} member
-                        {row.members_count === 1 ? "" : "s"} · dashboard
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => void openCommunityMembers(row)}
-                        className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700 hover:border-violet-200"
-                      >
-                        Quick members
-                      </button>
-                      <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700">
-                        {row.clicks_total ?? 0} clicks
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                      href={publisherCommunityPath(row.id, { from: "communities" })}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700"
-                    >
-                      Dashboard
-                    </Link>
-                    <Link
-                      href={`/publisher/network?community=${row.id}`}
-                      className="rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-3 py-1.5 text-xs font-bold text-white"
-                    >
-                      Performance Team
-                    </Link>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
-                        row.status === "active"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-amber-50 text-amber-700"
-                      }`}
-                    >
-                      {row.status}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => void toggleStatus(row)}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
-                    >
-                      {row.status === "active" ? "Pause" : "Activate"}
-                    </button>
-                  </div>
-                </div>
-
-                {communityJoinUrl(row) || row.join_path ? (
-                  <div className="mt-3 rounded-xl border border-emerald-100 bg-white px-3 py-2">
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-                      Community join link
-                    </p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <p className="min-w-0 flex-1 break-all text-xs font-medium text-[#172b63]">
-                        {communityJoinUrl(row)}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => void copyJoinLink(row)}
-                        className="inline-flex items-center gap-1 rounded-full bg-[#172b63] px-3 py-1.5 text-xs font-bold text-white"
-                      >
-                        {copiedId === row.id ? (
-                          <>
-                            <Check size={14} /> Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={14} /> Copy link
-                          </>
-                        )}
-                      </button>
-                      <a
-                        href={communityJoinUrl(row)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700"
-                      >
-                        Open
-                      </a>
-                    </div>
-                  </div>
-                ) : null}
-
-                {isOwner ? (
-                  <label className="mt-3 block max-w-sm text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Assign manager
-                    <SingleSelect
-                      options={managerSelectOptions}
-                      value={row.manager_user_id ? String(row.manager_user_id) : ""}
-                      onChange={(next) => void onAssignManager(row, next)}
-                      placeholder="Search & select manager"
-                      searchPlaceholder="Search by name or email…"
-                      emptyLabel="No managers match"
-                      clearLabel="Clear manager"
-                    />
-                  </label>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
 
       {membersCommunity ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-4 sm:items-center">

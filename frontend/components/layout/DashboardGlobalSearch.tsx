@@ -141,6 +141,13 @@ const PUBLISHER_EXTRAS: DashboardSearchItem[] = [
     id: "p-communities",
     title: "Communities",
     href: "/publisher/communities",
+    keywords: ["community", "list"],
+    group: "Publisher",
+  },
+  {
+    id: "p-communities-new",
+    title: "Create community",
+    href: "/publisher/communities/new",
     keywords: ["niche", "xml", "feeds"],
     group: "Network",
   },

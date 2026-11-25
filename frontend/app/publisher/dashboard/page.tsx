@@ -174,7 +174,7 @@ export default function PublisherDashboardPage() {
         <div className="flex flex-col items-end gap-2">
           <div className="flex flex-wrap justify-end gap-2">
             <Link
-              href="/publisher/communities"
+              href="/publisher/communities/new"
               className="rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2 text-sm font-bold text-white"
             >
               Create community
@@ -448,22 +448,30 @@ export default function PublisherDashboardPage() {
               each community.
             </p>
           </div>
-          <Link
-            href="/publisher/communities"
-            className="text-sm font-semibold text-violet-700"
-          >
-            Manage communities →
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/publisher/communities/new"
+              className="rounded-full bg-violet-600 px-4 py-2 text-sm font-bold text-white"
+            >
+              Create community
+            </Link>
+            <Link
+              href="/publisher/communities"
+              className="text-sm font-semibold text-violet-700 self-center"
+            >
+              View all →
+            </Link>
+          </div>
         </div>
 
         {communityList.length === 0 ? (
           <p className="mt-4 text-sm text-slate-500">
             No communities yet.{" "}
             <Link
-              href="/publisher/communities"
+              href="/publisher/communities/new"
               className="font-semibold text-violet-700"
             >
-              Create one
+              Create community
             </Link>
           </p>
         ) : (
