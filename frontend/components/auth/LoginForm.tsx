@@ -6,10 +6,9 @@ import { FormEvent, useCallback, useRef, useState } from "react";
 import { sanitizeNextParam } from "@/lib/auth/safeRedirect";
 import { login, fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
-import { clearAuthToken, getAuthToken, rememberPublicCode, setAuthToken } from "@/lib/auth/session";
+import { getAuthToken, rememberPublicCode, setAuthToken } from "@/lib/auth/session";
 import { cacheUser } from "@/lib/auth/userCache";
-import { canVisit, homePathForUser, navigateTo, roleFlags } from "@/lib/auth/redirect";
-import { ADMIN_LOGIN_URL } from "@/lib/siteUrls";
+import { canVisit, homePathForUser, navigateTo } from "@/lib/auth/redirect";
 import MathCaptcha, { isCaptchaFailureMessage } from "@/components/auth/MathCaptcha";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import AuthDivider from "@/components/auth/AuthDivider";
@@ -94,15 +93,9 @@ export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
       rememberPublicCode(me);
       cacheUser(me, getAuthToken()); // header shows the avatar instantly
 
-      // Admin accounts use the separate admin app (own login).
-      if (roleFlags(me).isAdmin) {
-        clearAuthToken();
-        window.location.href = ADMIN_LOGIN_URL;
-        return;
-      }
-
       // ?next= is honoured only if it belongs to THIS account type;
-      // otherwise the user goes to their own dashboard / onboarding.
+      // otherwise the user goes to their own dashboard / onboarding
+      // (admin → /admin/dashboard on this site).
       const target =
         nextAfterLogin && canVisit(nextAfterLogin, me)
           ? nextAfterLogin

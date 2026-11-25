@@ -20,6 +20,13 @@ class MemberSettlementRecord extends Model
         'settled_at',
         'notes',
         'created_by_user_id',
+        'evidence_path',
+        'evidence_original_name',
+        'evidence_mime',
+        'evidence_size',
+        'evidence_note',
+        'evidence_uploaded_at',
+        'settled_by_user_id',
     ];
 
     protected function casts(): array
@@ -29,6 +36,8 @@ class MemberSettlementRecord extends Model
             'period_start' => 'datetime',
             'period_end' => 'datetime',
             'settled_at' => 'datetime',
+            'evidence_uploaded_at' => 'datetime',
+            'evidence_size' => 'integer',
         ];
     }
 

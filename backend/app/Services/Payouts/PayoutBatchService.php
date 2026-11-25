@@ -10,9 +10,12 @@ use App\Models\User;
 use App\Services\Creators\TrustTierService;
 use App\Services\Earnings\EarningLedgerService;
 use App\Services\Notifications\UserNotificationService;
+use App\Services\Payments\PaymentEvidenceService;
 use App\Services\Platform\PlatformSettingsService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 class PayoutBatchService
 {
@@ -21,6 +24,7 @@ class PayoutBatchService
         private TrustTierService $trustTiers,
         private UserNotificationService $notifications,
         private PlatformSettingsService $settings,
+        private PaymentEvidenceService $evidence,
     ) {}
 
     /**
@@ -103,9 +107,25 @@ class PayoutBatchService
         return $this->createBatch('auto');
     }
 
-    public function completeBatch(PayoutBatch $batch): PayoutBatch
-    {
-        return DB::transaction(function () use ($batch) {
+    /**
+     * @param  array{evidence_note?: string|null, external_reference?: string|null}  $meta
+     */
+    public function completeBatch(
+        PayoutBatch $batch,
+        UploadedFile $evidenceFile,
+        ?User $releasedBy = null,
+        array $meta = [],
+    ): PayoutBatch {
+        if ($batch->status === 'completed') {
+            throw new InvalidArgumentException('Batch already completed.');
+        }
+
+        $stored = $this->evidence->store(
+            $evidenceFile,
+            'payment-evidence/payout-batches/'.$batch->id,
+        );
+
+        return DB::transaction(function () use ($batch, $stored, $releasedBy, $meta) {
             $batch->load('lines.creator.user');
 
             foreach ($batch->lines as $line) {
@@ -117,7 +137,11 @@ class PayoutBatchService
                         'paid_at' => now(),
                     ]);
 
-                $line->update(['status' => 'paid']);
+                $lineUpdate = ['status' => 'paid'];
+                if (! empty($meta['external_reference'])) {
+                    $lineUpdate['external_reference'] = (string) $meta['external_reference'];
+                }
+                $line->update($lineUpdate);
 
                 $creator = $line->creator;
                 if ($creator?->user) {
@@ -132,7 +156,17 @@ class PayoutBatchService
                 }
             }
 
-            $batch->update(['status' => 'completed']);
+            $batch->update([
+                'status' => 'completed',
+                'processed_at' => $batch->processed_at ?? now(),
+                'evidence_path' => $stored['evidence_path'],
+                'evidence_original_name' => $stored['evidence_original_name'],
+                'evidence_mime' => $stored['evidence_mime'],
+                'evidence_size' => $stored['evidence_size'],
+                'evidence_uploaded_at' => $stored['evidence_uploaded_at'],
+                'evidence_note' => $meta['evidence_note'] ?? null,
+                'released_by_user_id' => $releasedBy?->id,
+            ]);
 
             return $batch->fresh('lines');
         });

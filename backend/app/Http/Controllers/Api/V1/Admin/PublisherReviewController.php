@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Publisher;
+use App\Models\PublisherUser;
+use App\Services\Publishers\PublisherLedgerService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,27 +14,81 @@ class PublisherReviewController extends Controller
 {
     use ApiResponse;
 
+    public function __construct(private PublisherLedgerService $ledger) {}
+
     public function index(Request $request): JsonResponse
     {
         $status = $request->query('status');
-        $query = Publisher::query()->latest();
+        $search = trim((string) $request->query('search', ''));
+        $query = Publisher::query()
+            ->withCount([
+                'communities as communities_count',
+                'networkMembers as members_count' => fn ($q) => $q->where('status', 'active'),
+            ])
+            ->latest();
+
         if (is_string($status) && $status !== '' && $status !== 'all') {
-            $query->where('status', $status);
+            if ($status === 'under_review') {
+                $query->whereIn('status', [
+                    Publisher::STATUS_SUBMITTED,
+                    Publisher::STATUS_EMAIL_VERIFIED,
+                    Publisher::STATUS_SOCIAL_REVIEWED,
+                    Publisher::STATUS_COMMERCIAL_APPROVED,
+                ]);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
-        $rows = $query->limit(100)->get()->map(fn (Publisher $p) => [
-            'id' => $p->id,
-            'code' => $p->code,
-            'username' => $p->username,
-            'display_name' => $p->display_name,
-            'country_code' => $p->country_code,
-            'network_type' => $p->network_type,
-            'status' => $p->status,
-            'status_label' => $p->statusLabel(),
-            'created_at' => optional($p->created_at)?->toIso8601String(),
-        ]);
+        if ($search !== '') {
+            $term = '%'.$search.'%';
+            $query->where(function ($q) use ($term) {
+                $q->where('display_name', 'like', $term)
+                    ->orWhere('username', 'like', $term)
+                    ->orWhere('code', 'like', $term);
+            });
+        }
 
-        return $this->success(['publishers' => $rows]);
+        $rows = $query->limit(150)->get()->map(function (Publisher $p) {
+            $owner = PublisherUser::query()
+                ->where('publisher_id', $p->id)
+                ->where('role', 'owner')
+                ->where('is_active', true)
+                ->with('user:id,name,email')
+                ->first();
+
+            $balances = $this->ledger->balances($p);
+
+            return [
+                'id' => $p->id,
+                'code' => $p->code,
+                'username' => $p->username,
+                'display_name' => $p->display_name,
+                'country_code' => $p->country_code,
+                'network_type' => $p->network_type,
+                'status' => $p->status,
+                'status_label' => $p->statusLabel(),
+                'social_url' => $p->social_url,
+                'website_url' => $p->website_url,
+                'communities_count' => (int) ($p->communities_count ?? 0),
+                'members_count' => (int) ($p->members_count ?? 0),
+                'payable_usd' => round((float) ($balances['payable_usd'] ?? 0), 4),
+                'paid_usd' => round((float) ($balances['paid_usd'] ?? 0), 4),
+                'lifetime_net_usd' => round((float) ($balances['lifetime_net_usd'] ?? 0), 4),
+                'owner' => $owner?->user ? [
+                    'id' => $owner->user->id,
+                    'name' => $owner->user->name,
+                    'email' => $owner->user->email,
+                ] : null,
+                'created_at' => optional($p->created_at)?->toIso8601String(),
+                'activated_at' => optional($p->activated_at)?->toIso8601String(),
+            ];
+        });
+
+        return $this->success([
+            'publishers' => $rows,
+            'total' => $rows->count(),
+        ]);
     }
 
     public function activate(Publisher $publisher): JsonResponse

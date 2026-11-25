@@ -578,6 +578,32 @@ body {
   display: none;
 }
 
+/* Visible thin scrollbar for the left sidebar menu */
+.dash-scroll-visible {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #c4b5fd transparent;
+  -ms-overflow-style: auto;
+}
+.dash-scroll-visible::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.dash-scroll-visible::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 4px;
+}
+.dash-scroll-visible::-webkit-scrollbar-thumb {
+  background: #c4b5fd;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.dash-scroll-visible::-webkit-scrollbar-thumb:hover {
+  background: #a78bfa;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
 /* ——— Dashboard content polish (scoped to DashboardShell's <main>) ——— */
 .dash-content {
   font-size: 0.9375rem;

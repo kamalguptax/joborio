@@ -28,6 +28,6 @@ class CommunityMember extends Model
 
     public function networkMember(): BelongsTo
     {
-        return $this->belongsTo(NetworkMember::class);
+        return $this->belongsTo(NetworkMember::class, 'network_member_id');
     }
 }

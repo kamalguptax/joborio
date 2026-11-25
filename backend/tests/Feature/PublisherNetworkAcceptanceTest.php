@@ -96,7 +96,7 @@ class PublisherNetworkAcceptanceTest extends TestCase
             ])
             ->assertCreated();
 
-        $this->assertStringContainsString('/join/', $invite->json('data.invite_url'));
+        $this->assertStringContainsString('/join/static/static/', $invite->json('data.invite_url'));
         $this->assertDatabaseHas('publisher_invitations', [
             'publisher_id' => $publisher->id,
             'email' => 'member1@example.com',
@@ -175,6 +175,71 @@ class PublisherNetworkAcceptanceTest extends TestCase
 
         $memberUserId = NetworkMember::query()->where('publisher_id', $publisher->id)->value('user_id');
         $this->assertFalse(Creator::query()->where('user_id', $memberUserId)->exists());
+    }
+
+    public function test_network_member_can_join_multiple_communities_via_invites(): void
+    {
+        ['user' => $owner, 'publisher' => $publisher] = $this->makePublisherOwner();
+        $c1 = $this->makeCommunity($publisher, ['code' => 'COMONE1', 'name' => 'One']);
+        $c2 = $this->makeCommunity($publisher, ['code' => 'COMTWO2', 'name' => 'Two']);
+
+        $invite1 = PublisherInvitation::create([
+            'publisher_id' => $publisher->id,
+            'community_id' => $c1->id,
+            'token' => PublisherInvitation::makeToken(),
+            'email' => 'multi@example.com',
+            'channel' => 'link',
+            'status' => 'pending',
+            'created_by_user_id' => $owner->id,
+            'expires_at' => now()->addDays(7),
+        ]);
+
+        $captcha = $this->mathCaptcha();
+        $first = $this->postJson('/api/v1/join/invitation/accept', array_merge([
+            'token' => $invite1->token,
+            'name' => 'Multi Member',
+            'email' => 'multi@example.com',
+            'password' => 'Password1!',
+            'password_confirmation' => 'Password1!',
+        ], $captcha));
+
+        $first->assertOk()
+            ->assertJsonPath('data.join.communities_count', 1)
+            ->assertJsonPath('data.join.is_returning_member', false);
+
+        $memberUser = \App\Models\User::query()->where('email', 'multi@example.com')->firstOrFail();
+
+        $invite2 = PublisherInvitation::create([
+            'publisher_id' => $publisher->id,
+            'community_id' => $c2->id,
+            'token' => PublisherInvitation::makeToken(),
+            'channel' => 'community_link',
+            'status' => 'pending',
+            'created_by_user_id' => $owner->id,
+            'expires_at' => now()->addDays(30),
+        ]);
+
+        $second = $this->actingAs($memberUser, 'sanctum')
+            ->postJson('/api/v1/join/invitation/accept', [
+                'token' => $invite2->token,
+            ]);
+
+        $second->assertOk()
+            ->assertJsonPath('data.join.added_community', true)
+            ->assertJsonPath('data.join.is_returning_member', true)
+            ->assertJsonPath('data.join.communities_count', 2)
+            ->assertJsonPath('data.redirect', '/network/dashboard');
+
+        $this->assertDatabaseHas('community_members', [
+            'network_member_id' => $second->json('data.member.id'),
+            'community_id' => $c1->id,
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('community_members', [
+            'network_member_id' => $second->json('data.member.id'),
+            'community_id' => $c2->id,
+            'status' => 'active',
+        ]);
     }
 
     public function test_active_and_removed_members_cannot_create_creator_until_release(): void

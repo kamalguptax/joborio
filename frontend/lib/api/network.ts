@@ -14,11 +14,53 @@ export type JoinInvitation = {
   community?: { code?: string | null; name?: string | null } | null;
 };
 
+export type NetworkActivitySummary = {
+  clicks_total: number;
+  clicks_valid: number;
+  signups: number;
+  applications: number;
+  leads: number;
+  conversions: number;
+  actions_approved: number;
+  actions_pending: number;
+};
+
+export type NetworkActivityEvent = {
+  id: number;
+  activity_type: string;
+  status?: string | null;
+  title?: string | null;
+  reference_id?: string | null;
+  occurred_at?: string | null;
+};
+
+export type NetworkCommunityRow = {
+  id?: number | null;
+  code?: string | null;
+  name?: string | null;
+  status?: string | null;
+  joined_at?: string | null;
+  clicks_total?: number;
+  ppr?: number;
+  earning?: {
+    settled_usd: number;
+    pending_usd: number;
+    total_usd: number;
+    currency: string;
+  };
+  campaigns?: Array<{
+    name?: string | null;
+    status?: string | null;
+    scope?: string | null;
+  }>;
+};
+
 export type NetworkDashboard = {
   member: {
     name: string;
     status: string;
     status_code?: string;
+    public_code?: string | null;
     joined_at?: string | null;
     left_at?: string | null;
     released_at?: string | null;
@@ -27,30 +69,51 @@ export type NetworkDashboard = {
     name?: string | null;
     code?: string | null;
   };
-  communities: Array<{
-    code?: string | null;
-    name?: string | null;
-    status?: string | null;
-  }>;
-  activity: {
-    clicks_total: number;
-    clicks_valid: number;
-    signups: number;
-    applications: number;
-    leads: number;
-    conversions: number;
-    actions_approved: number;
-    actions_pending: number;
+  communities: NetworkCommunityRow[];
+  earning_total?: {
+    settled_usd: number;
+    pending_usd: number;
+    total_usd: number;
+    currency: string;
   };
+  activity: NetworkActivitySummary;
+  recent_activity?: NetworkActivityEvent[];
   assigned_campaigns: Array<{
     name?: string;
     status?: string;
+    community_id?: number | null;
+    community_name?: string | null;
   }>;
   lifecycle?: {
     can_leave: boolean;
     creator_eligible: boolean;
     message?: string | null;
   };
+};
+
+export type NetworkOpportunityCampaign = {
+  assignment_id: number;
+  program_id: number;
+  title: string;
+  status?: string | null;
+  pricing_model?: string | null;
+  promotion_type?: string | null;
+  company?: string | null;
+  location?: string | null;
+  destination_url?: string | null;
+  reference_id: string;
+  share_code: string;
+  can_share: boolean;
+};
+
+export type NetworkOpportunities = {
+  member: {
+    name: string;
+    public_code: string;
+  };
+  campaigns: NetworkOpportunityCampaign[];
+  xml_job_refs: string[];
+  note?: string;
 };
 
 export function fetchJoinInvitation(token: string) {
@@ -77,6 +140,20 @@ export function acceptJoinInvitation(input: {
       id: number;
       status: string;
       publisher: { code?: string | null; name?: string | null };
+      communities?: Array<{
+        id: number;
+        code?: string | null;
+        name?: string | null;
+        status?: string | null;
+        joined_at?: string | null;
+      }>;
+    };
+    join?: {
+      added_community: boolean;
+      already_in_community: boolean;
+      is_returning_member: boolean;
+      communities_count: number;
+      community?: { code?: string | null; name?: string | null } | null;
     };
     redirect: string;
   }>("/api/v1/join/invitation/accept", {
@@ -91,6 +168,19 @@ export function acceptJoinInvitation(input: {
 
 export function fetchNetworkDashboard() {
   return apiFetch<NetworkDashboard>("/api/v1/network/dashboard", {
+    auth: true,
+  });
+}
+
+export function fetchNetworkWallet() {
+  return apiFetch<import("@/lib/api/wallet").AccountWallet>(
+    "/api/v1/network/wallet",
+    { auth: true },
+  );
+}
+
+export function fetchNetworkOpportunities() {
+  return apiFetch<NetworkOpportunities>("/api/v1/network/opportunities", {
     auth: true,
   });
 }

@@ -44,6 +44,13 @@ class Publisher extends Model
         'activated_at',
         'review_notes',
         'notification_preferences',
+        'payout_method',
+        'payout_holder_name',
+        'payout_upi_id',
+        'payout_paypal_email',
+        'payout_bank_name',
+        'payout_account_number',
+        'payout_ifsc',
     ];
 
     protected function casts(): array

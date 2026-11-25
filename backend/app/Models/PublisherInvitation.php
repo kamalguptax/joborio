@@ -58,12 +58,17 @@ class PublisherInvitation extends Model
 
     public function invitePath(): string
     {
-        $pub = rawurlencode((string) ($this->publisher?->code ?? 'PUB'));
-        $com = rawurlencode((string) ($this->community?->code ?? 'ALL'));
-        // Pretty /join/{pub}/{com}/ — Apache rewrites to /join/static/static/index.html
-        // (see frontend/public/_hostinger.htaccess). Token alone is enough to load the invite.
-        $q = http_build_query(['token' => $this->token]);
+        $pub = (string) ($this->publisher?->code ?? 'PUB');
+        $com = (string) ($this->community?->code ?? 'ALL');
+        // Static-export hosts only ship /join/static/static/. Pretty /join/{pub}/{com}/
+        // needs Apache rewrite; joborio.com currently 404s those without .htaccess.
+        // Token alone loads the invite; pub/com are display fallbacks.
+        $q = http_build_query([
+            'token' => $this->token,
+            'pub' => $pub,
+            'com' => $com,
+        ]);
 
-        return '/join/'.$pub.'/'.$com.'/?'.$q;
+        return '/join/static/static/?'.$q;
     }
 }

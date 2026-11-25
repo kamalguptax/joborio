@@ -88,7 +88,7 @@ export default function Header({ authPage = false }: { authPage?: boolean }) {
               </Link>
             )}
             <Link
-              href={loggedIn ? "/creator/opportunities" : "/signup"}
+              href={loggedIn ? "/creator/campaigns" : "/signup"}
               className="font-ui inline-flex items-center gap-1.5 rounded-full bg-[#7030A0] px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-[#7030A0]/25 transition hover:bg-[#5c2890] sm:px-5"
             >
               Get Started

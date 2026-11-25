@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SyndicationFeed;
+use App\Services\Publishers\CommunityXmlFeedSyncService;
 use App\Services\Syndication\JobrapidoFeedService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +16,10 @@ class AdminSyndicationFeedController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private readonly JobrapidoFeedService $syndication) {}
+    public function __construct(
+        private readonly JobrapidoFeedService $syndication,
+        private readonly CommunityXmlFeedSyncService $communityFeeds,
+    ) {}
 
     public function index(): JsonResponse
     {
@@ -56,11 +60,13 @@ class AdminSyndicationFeedController extends Controller
     public function refresh(SyndicationFeed $syndicationFeed): JsonResponse
     {
         $payload = $this->syndication->refreshFeed($syndicationFeed);
+        $sync = $this->communityFeeds->syncAllCommunities();
 
         return $this->success([
             'feed' => $syndicationFeed->fresh(),
             'job_count' => count($payload['jobs']),
             'source' => $payload['source'],
+            'community_feed_sync' => $sync,
         ]);
     }
 
@@ -68,11 +74,13 @@ class AdminSyndicationFeedController extends Controller
     {
         $this->syndication->clearCache();
         $merged = $this->syndication->loadFeed();
+        $sync = $this->communityFeeds->syncAllCommunities();
 
         return $this->success([
             'total_in_feed' => count($merged['jobs']),
             'sources' => $merged['source']['feeds'] ?? [],
             'source' => $merged['source'],
+            'community_feed_sync' => $sync,
         ]);
     }
 

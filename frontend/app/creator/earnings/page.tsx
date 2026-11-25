@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Briefcase, Landmark, Shield } from "lucide-react";
 import {
   fetchCreatorClicks,
@@ -101,7 +101,21 @@ export default function CreatorEarningsPage() {
   const [clickDuplicates, setClickDuplicates] = useState(0);
   const [clickJobs, setClickJobs] = useState(0);
   const [pricingByJob, setPricingByJob] = useState<Record<string, string>>({});
-  const [selectedModel, setSelectedModel] = useState<PricingModel | null>(null);
+  const [campaignFilter, setCampaignFilter] = useState<"all" | PricingModel>(
+    "all",
+  );
+  const [dateFilter, setDateFilter] = useState<
+    "all" | "1d" | "7d" | "30d" | "90d"
+  >("all");
+  const [trafficFilter, setTrafficFilter] = useState<
+    "all" | "has_traffic" | "has_counted" | "has_duplicate" | "no_traffic"
+  >("all");
+  const [earningFilter, setEarningFilter] = useState<
+    "all" | "has_earning" | "on_hold" | "payable" | "zero"
+  >("all");
+  const [sortBy, setSortBy] = useState<"recent" | "traffic" | "earning">(
+    "recent",
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -181,23 +195,100 @@ export default function CreatorEarningsPage() {
     (type) => byType[type] != null,
   );
   const shownTypes =
-    typeKeys.length > 0 ? typeKeys : (["ppc", "ppr", "ppa"] as const);
+    typeKeys.length > 0 ? typeKeys : (["ppc", "ppr", "ppa", "ppe"] as const);
 
-  const filteredJobs = selectedModel
-    ? byJob.filter(
-        (job) => resolveJobModel(job, pricingByJob) === selectedModel,
-      )
-    : byJob;
+  const filteredJobs = useMemo(() => {
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const cutoff =
+      dateFilter === "1d"
+        ? now - dayMs
+        : dateFilter === "7d"
+          ? now - 7 * dayMs
+          : dateFilter === "30d"
+            ? now - 30 * dayMs
+            : dateFilter === "90d"
+              ? now - 90 * dayMs
+              : null;
+
+    const rows = byJob.filter((job) => {
+      const model = resolveJobModel(job, pricingByJob);
+      if (campaignFilter !== "all" && model !== campaignFilter) return false;
+
+      if (cutoff != null) {
+        const ts = Date.parse(String(job.last_at ?? ""));
+        if (!Number.isFinite(ts) || ts < cutoff) return false;
+      }
+
+      const clicks = Number(job.click_count ?? 0);
+      const counted = Number(job.counted_count ?? 0);
+      const dups = Number(job.duplicate_count ?? 0);
+      if (trafficFilter === "has_traffic" && clicks <= 0) return false;
+      if (trafficFilter === "has_counted" && counted <= 0) return false;
+      if (trafficFilter === "has_duplicate" && dups <= 0) return false;
+      if (trafficFilter === "no_traffic" && clicks > 0) return false;
+
+      const net = Number(job.net_usd ?? 0);
+      const pending = Number(job.pending_usd ?? 0);
+      const payable = Number(job.payable_usd ?? 0);
+      if (earningFilter === "has_earning" && net <= 0) return false;
+      if (earningFilter === "on_hold" && pending <= 0) return false;
+      if (earningFilter === "payable" && payable <= 0) return false;
+      if (earningFilter === "zero" && net > 0) return false;
+
+      return true;
+    });
+
+    rows.sort((a, b) => {
+      if (sortBy === "traffic") {
+        return Number(b.click_count ?? 0) - Number(a.click_count ?? 0);
+      }
+      if (sortBy === "earning") {
+        return Number(b.net_usd ?? 0) - Number(a.net_usd ?? 0);
+      }
+      const aTs = Date.parse(String(a.last_at ?? ""));
+      const bTs = Date.parse(String(b.last_at ?? ""));
+      return (Number.isFinite(bTs) ? bTs : 0) - (Number.isFinite(aTs) ? aTs : 0);
+    });
+
+    return rows;
+  }, [
+    byJob,
+    pricingByJob,
+    campaignFilter,
+    dateFilter,
+    trafficFilter,
+    earningFilter,
+    sortBy,
+  ]);
+
+  const filtersActive =
+    campaignFilter !== "all" ||
+    dateFilter !== "all" ||
+    trafficFilter !== "all" ||
+    earningFilter !== "all" ||
+    sortBy !== "recent";
+
+  function clearFilters() {
+    setCampaignFilter("all");
+    setDateFilter("all");
+    setTrafficFilter("all");
+    setEarningFilter("all");
+    setSortBy("recent");
+  }
 
   function toggleModel(type: PricingModel) {
-    setSelectedModel((prev) => (prev === type ? null : type));
+    setCampaignFilter((prev) => (prev === type ? "all" : type));
     requestAnimationFrame(() => {
-      document.getElementById("earnings-by-job")?.scrollIntoView({
+      document.getElementById("earnings-by-campaign")?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
     });
   }
+
+  const filterField =
+    "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
 
   return (
     <>
@@ -311,7 +402,7 @@ export default function CreatorEarningsPage() {
               Number(b.approved_usd ?? 0) +
               Number(b.payable_usd ?? 0) +
               Number(b.paid_usd ?? 0);
-            const active = selectedModel === type;
+            const active = campaignFilter === type;
             return (
               <button
                 key={type}
@@ -332,7 +423,7 @@ export default function CreatorEarningsPage() {
                   Pending {formatMoney(Number(b.pending_usd ?? 0), currency)}
                 </p>
                 <p className="mt-2 text-[11px] font-semibold text-purple-700">
-                  {active ? "Showing these jobs · click to clear" : "Click to see jobs"}
+                  {active ? "Filtered · click to clear" : "Filter campaigns"}
                 </p>
               </button>
             );
@@ -340,42 +431,143 @@ export default function CreatorEarningsPage() {
         </div>
       ) : null}
 
-      <section id="earnings-by-job">
+      <section id="earnings-by-campaign">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
             <h2 className="text-lg font-bold text-[#172b63]">
-              {selectedModel
-                ? `Earned via ${selectedModel.toUpperCase()}`
-                : "Earnings by job"}
+              {campaignFilter === "all"
+                ? "Earnings as per Campaign"
+                : `Earnings as per ${campaignFilter.toUpperCase()}`}
             </h2>
             <p className="text-sm text-slate-500">
-              {selectedModel
-                ? `Jobs that earned through ${selectedModel.toUpperCase()}.`
-                : "Click PPC / PPR / PPA / PPE above to see which jobs paid that way."}
+              Filter by campaign type, date, traffic, and earning.
             </p>
           </div>
-          {selectedModel ? (
+          {filtersActive ? (
             <button
               type="button"
-              onClick={() => setSelectedModel(null)}
+              onClick={clearFilters}
               className="text-sm font-semibold text-purple-700 hover:text-purple-900"
             >
-              Show all
+              Clear filters
             </button>
           ) : null}
         </div>
 
+        <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Campaigns
+            <select
+              value={campaignFilter}
+              onChange={(e) =>
+                setCampaignFilter(e.target.value as "all" | PricingModel)
+              }
+              className={filterField}
+            >
+              <option value="all">All campaigns</option>
+              <option value="ppc">PPC</option>
+              <option value="ppr">PPR</option>
+              <option value="ppa">PPA</option>
+              <option value="ppe">PPE</option>
+            </select>
+          </label>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Date
+            <select
+              value={dateFilter}
+              onChange={(e) =>
+                setDateFilter(
+                  e.target.value as "all" | "1d" | "7d" | "30d" | "90d",
+                )
+              }
+              className={filterField}
+            >
+              <option value="all">All time</option>
+              <option value="1d">Last 24 hours</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+            </select>
+          </label>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Traffic
+            <select
+              value={trafficFilter}
+              onChange={(e) =>
+                setTrafficFilter(
+                  e.target.value as
+                    | "all"
+                    | "has_traffic"
+                    | "has_counted"
+                    | "has_duplicate"
+                    | "no_traffic",
+                )
+              }
+              className={filterField}
+            >
+              <option value="all">All traffic</option>
+              <option value="has_traffic">Has clicks</option>
+              <option value="has_counted">Has counted</option>
+              <option value="has_duplicate">Has duplicates</option>
+              <option value="no_traffic">No traffic</option>
+            </select>
+          </label>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Earning
+            <select
+              value={earningFilter}
+              onChange={(e) =>
+                setEarningFilter(
+                  e.target.value as
+                    | "all"
+                    | "has_earning"
+                    | "on_hold"
+                    | "payable"
+                    | "zero",
+                )
+              }
+              className={filterField}
+            >
+              <option value="all">All earnings</option>
+              <option value="has_earning">Has earning</option>
+              <option value="on_hold">On hold</option>
+              <option value="payable">Has payable</option>
+              <option value="zero">Zero earning</option>
+            </select>
+          </label>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Sort
+            <select
+              value={sortBy}
+              onChange={(e) =>
+                setSortBy(e.target.value as "recent" | "traffic" | "earning")
+              }
+              className={filterField}
+            >
+              <option value="recent">Most recent</option>
+              <option value="traffic">As per traffic</option>
+              <option value="earning">As per earning</option>
+            </select>
+          </label>
+        </div>
+
+        {filtersActive ? (
+          <p className="mb-3 text-xs text-slate-500">
+            Showing {filteredJobs.length} of {byJob.length} campaigns
+          </p>
+        ) : null}
+
         {byJob.length === 0 && !error ? (
           <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500">
-            No clicked jobs yet. Share a live job from{" "}
-            <Link href="/creator/opportunities" className="font-semibold text-purple-700">
-              Opportunities
+            No clicked campaigns yet. Share a live job from{" "}
+            <Link href="/creator/campaigns" className="font-semibold text-purple-700">
+              Campaigns
             </Link>{" "}
             to start earning.
           </p>
         ) : filteredJobs.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500">
-            No jobs earned via {selectedModel?.toUpperCase()} yet.
+            No campaigns match these filters.
           </p>
         ) : (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

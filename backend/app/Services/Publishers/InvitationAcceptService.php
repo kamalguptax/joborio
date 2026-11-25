@@ -39,6 +39,16 @@ class InvitationAcceptService
 
     /**
      * Accept invite as a private network member (not a public creator).
+     * Members may join multiple communities under the same publisher via separate invites.
+     *
+     * @return array{
+     *   member: NetworkMember,
+     *   invitation: PublisherInvitation,
+     *   added_community: bool,
+     *   already_in_community: bool,
+     *   is_returning_member: bool,
+     *   communities_count: int
+     * }
      */
     public function accept(User $user, string $token): array
     {
@@ -73,7 +83,15 @@ class InvitationAcceptService
                 ]);
             }
 
-            $member = NetworkMember::query()->firstOrNew([
+            $existingMember = NetworkMember::query()
+                ->where('user_id', $user->id)
+                ->where('publisher_id', $invite->publisher_id)
+                ->first();
+
+            $isReturningMember = $existingMember !== null
+                && $existingMember->status === 'active';
+
+            $member = $existingMember ?? new NetworkMember([
                 'user_id' => $user->id,
                 'publisher_id' => $invite->publisher_id,
             ]);
@@ -86,17 +104,31 @@ class InvitationAcceptService
                 'released_at' => null,
             ])->save();
 
+            $addedCommunity = false;
+            $alreadyInCommunity = false;
+
             if ($invite->community_id) {
-                CommunityMember::query()->updateOrCreate(
-                    [
-                        'community_id' => $invite->community_id,
-                        'network_member_id' => $member->id,
-                    ],
-                    [
-                        'status' => 'active',
-                        'joined_at' => now(),
-                    ],
-                );
+                $cm = CommunityMember::query()
+                    ->where('community_id', $invite->community_id)
+                    ->where('network_member_id', $member->id)
+                    ->first();
+
+                if ($cm && $cm->status === 'active') {
+                    $alreadyInCommunity = true;
+                } else {
+                    CommunityMember::query()->updateOrCreate(
+                        [
+                            'community_id' => $invite->community_id,
+                            'network_member_id' => $member->id,
+                        ],
+                        [
+                            'status' => 'active',
+                            // Keep original join date when reactivating the same community.
+                            'joined_at' => $cm?->joined_at ?? now(),
+                        ],
+                    );
+                    $addedCommunity = true;
+                }
             }
 
             if (! $user->hasRole('network_member')) {
@@ -119,12 +151,17 @@ class InvitationAcceptService
 
             $member->load([
                 'publisher:id,code,display_name,username',
+                'communityMemberships' => fn ($q) => $q->where('status', 'active'),
                 'communityMemberships.community:id,code,name,status',
             ]);
 
             return [
                 'member' => $member,
                 'invitation' => $invite->fresh(['community:id,code,name', 'publisher:id,code']),
+                'added_community' => $addedCommunity,
+                'already_in_community' => $alreadyInCommunity,
+                'is_returning_member' => $isReturningMember,
+                'communities_count' => $member->communityMemberships->count(),
             ];
         });
     }

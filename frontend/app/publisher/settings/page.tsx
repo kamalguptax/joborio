@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import PasswordInput from "@/components/auth/PasswordInput";
 import MultiSelect from "@/components/ui/MultiSelect";
 import { ApiClientError } from "@/lib/api/client";
 import { fetchNiches } from "@/lib/api/creator";
@@ -389,8 +390,7 @@ export default function PublisherSettingsPage() {
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Current password
-                <input
-                  type="password"
+                <PasswordInput
                   required
                   autoComplete="current-password"
                   className={field}
@@ -400,8 +400,7 @@ export default function PublisherSettingsPage() {
               </label>
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
                 New password
-                <input
-                  type="password"
+                <PasswordInput
                   required
                   autoComplete="new-password"
                   className={field}
@@ -411,8 +410,7 @@ export default function PublisherSettingsPage() {
               </label>
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Confirm new password
-                <input
-                  type="password"
+                <PasswordInput
                   required
                   autoComplete="new-password"
                   className={field}

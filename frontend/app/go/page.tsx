@@ -9,13 +9,14 @@ export default function GoPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code = (params.get("code") || "").trim();
+    // Member / creator reference — prefer `code`, fall back to `subid`.
+    const code = (params.get("code") || params.get("subid") || "").trim();
     const ref = (params.get("ref") || "").trim();
     const to = (params.get("to") || "").trim();
     const title = (params.get("title") || "").trim();
 
     if (!code || (!ref && !to.startsWith("https://"))) {
-      setMessage("This link is missing the job.");
+      setMessage("This link is missing the member reference or job.");
       return;
     }
 

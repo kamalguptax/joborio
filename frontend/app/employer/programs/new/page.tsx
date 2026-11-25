@@ -328,6 +328,15 @@ function NewEmployerProgramForm() {
                 onChange={(e) => setUrl(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3"
               />
+              {selected.pricing_model === "ppr" ? (
+                <span className="mt-2 block text-xs font-normal text-slate-500">
+                  PPR tracking: JobOrio appends{" "}
+                  <code className="rounded bg-slate-100 px-1">joborio_token</code>{" "}
+                  to this URL. Store it on signup, then{" "}
+                  <code className="rounded bg-slate-100 px-1">POST /api/v1/webhooks/ppr</code>{" "}
+                  with that token + email after registration.
+                </span>
+              ) : null}
             </label>
           )}
 

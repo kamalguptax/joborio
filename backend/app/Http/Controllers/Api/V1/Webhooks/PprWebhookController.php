@@ -21,14 +21,25 @@ class PprWebhookController extends Controller
         }
 
         $data = $request->validate([
-            'token' => ['required', 'string', 'max:64'],
+            // Prefer joborio_token from the landing URL query; `token` kept for older integrations.
+            'joborio_token' => ['nullable', 'string', 'max:64'],
+            'token' => ['nullable', 'string', 'max:64'],
             'email' => ['required', 'email', 'max:255'],
             'meta' => ['nullable', 'array'],
         ]);
 
+        $trackingToken = trim((string) ($data['joborio_token'] ?? $data['token'] ?? ''));
+        if ($trackingToken === '') {
+            return $this->error(
+                'TOKEN_REQUIRED',
+                'Send joborio_token (from the landing URL) or token.',
+                422,
+            );
+        }
+
         try {
             $result = $this->ppr->recordFromWebhook(
-                $data['token'],
+                $trackingToken,
                 $data['email'],
                 $request,
                 $data['meta'] ?? []

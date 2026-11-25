@@ -16,6 +16,13 @@ class NetworkMember extends Model
         'joined_at',
         'left_at',
         'released_at',
+        'payout_method',
+        'payout_holder_name',
+        'payout_upi_id',
+        'payout_paypal_email',
+        'payout_bank_name',
+        'payout_account_number',
+        'payout_ifsc',
     ];
 
     protected function casts(): array

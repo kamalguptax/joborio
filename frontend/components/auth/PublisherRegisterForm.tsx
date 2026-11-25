@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import MathCaptcha from "@/components/auth/MathCaptcha";
+import PasswordInput from "@/components/auth/PasswordInput";
 import MultiSelect from "@/components/ui/MultiSelect";
 import {
   authAlertError,

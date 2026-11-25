@@ -6,6 +6,7 @@ use App\Jobs\IngestListingsJob;
 use App\Jobs\ProcessEarningHoldsJob;
 use App\Jobs\ProcessReferralRewardsJob;
 use App\Jobs\RunAutoPayoutBatchJob;
+use App\Jobs\SyncCommunityXmlFeedsJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -18,6 +19,7 @@ Schedule::job(new ProcessEarningHoldsJob)->hourly();
 Schedule::job(new ProcessReferralRewardsJob)->hourly();
 Schedule::job(new ExpireUnverifiedPprJob)->hourly();
 Schedule::job(new EvaluateTrustTiersJob)->daily();
+Schedule::job(new SyncCommunityXmlFeedsJob)->hourly();
 
 if (config('joborio.auto_payout_enabled', true)) {
     Schedule::job(new RunAutoPayoutBatchJob)->weeklyOn(1, '06:00');

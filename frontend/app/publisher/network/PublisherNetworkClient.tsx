@@ -16,15 +16,47 @@ import {
   releasePublisherMember,
   removePublisherMember,
   type CsvImportResult,
+  type MemberActivityRecent,
   type NetworkMemberRow,
   type PublisherCommunity,
   type PublisherInvitation,
+  type PublisherMemberDashboard,
 } from "@/lib/api/publisher";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
+import BackButton from "@/components/ui/BackButton";
 
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
+
+function formatMemberDate(iso?: string | null) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatMemberDateTime(iso?: string | null) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+/** Membership table shows only Active / Deactive (not released/payment states). */
+function memberDisplayStatus(status?: string | null): "Active" | "Deactive" {
+  return String(status || "").toLowerCase() === "active" ? "Active" : "Deactive";
+}
 
 export default function PublisherNetworkClient() {
   const search = useSearchParams();
@@ -58,12 +90,77 @@ export default function PublisherNetworkClient() {
       }
     >
   >({});
+  const [recentById, setRecentById] = useState<
+    Record<number, MemberActivityRecent[]>
+  >({});
+  const [dashboardById, setDashboardById] = useState<
+    Record<number, PublisherMemberDashboard>
+  >({});
+  const [openDashboardId, setOpenDashboardId] = useState<number | null>(null);
+  const [memberQuery, setMemberQuery] = useState("");
+  /** Client-side filters (community still reloads from API via communityId). */
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "deactive">(
+    "all",
+  );
+  const [earningsFilter, setEarningsFilter] = useState<
+    "all" | "has_pending" | "has_settled" | "has_any" | "zero" | "has_activity" | "no_activity"
+  >("all");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const selectedCommunity = useMemo(
     () => communities.find((c) => String(c.id) === communityId) ?? null,
     [communities, communityId],
   );
+
+  const filteredMembers = useMemo(() => {
+    const q = memberQuery.trim().toLowerCase();
+    return members.filter((m) => {
+      const display = memberDisplayStatus(m.status);
+      if (statusFilter === "active" && display !== "Active") return false;
+      if (statusFilter === "deactive" && display !== "Deactive") return false;
+
+      const settled = Number(m.earnings?.settled_usd ?? 0);
+      const pending = Number(m.earnings?.pending_usd ?? 0);
+      const total = Number(m.earnings?.total_usd ?? settled + pending);
+      const hasActivity = Boolean(m.last_activity_at);
+
+      switch (earningsFilter) {
+        case "has_pending":
+          if (!(pending > 0)) return false;
+          break;
+        case "has_settled":
+          if (!(settled > 0)) return false;
+          break;
+        case "has_any":
+          if (!(total > 0)) return false;
+          break;
+        case "zero":
+          if (total > 0) return false;
+          break;
+        case "has_activity":
+          if (!hasActivity) return false;
+          break;
+        case "no_activity":
+          if (hasActivity) return false;
+          break;
+        default:
+          break;
+      }
+
+      if (!q) return true;
+      const hay = [
+        m.display_name,
+        m.email,
+        display,
+        ...(m.communities ?? []).map((c) => c.name),
+        ...(m.communities ?? []).map((c) => c.code),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [members, memberQuery, statusFilter, earningsFilter]);
 
   const loadCommunities = () =>
     fetchPublisherCommunities().then((c) => {
@@ -118,6 +215,12 @@ export default function PublisherNetworkClient() {
     setInviteUrl(null);
     setCsvResult(null);
     setActivityById({});
+    setRecentById({});
+    setDashboardById({});
+    setOpenDashboardId(null);
+    setMemberQuery("");
+    setStatusFilter("all");
+    setEarningsFilter("all");
     loadNetwork(communityId);
   }, [communityId]);
 
@@ -154,29 +257,54 @@ export default function PublisherNetworkClient() {
     }
   }
 
+  async function loadMemberDashboard(id: number) {
+    setMemberBusyId(id);
+    setError(null);
+    try {
+      const res = await fetchPublisherMemberActivity(id);
+      setActivityById((prev) => ({ ...prev, [id]: res.activity }));
+      setRecentById((prev) => ({ ...prev, [id]: res.recent ?? [] }));
+      setDashboardById((prev) => ({ ...prev, [id]: res }));
+      return res;
+    } catch (err) {
+      setError(
+        err instanceof ApiClientError
+          ? err.message
+          : "Could not load member dashboard.",
+      );
+      return null;
+    } finally {
+      setMemberBusyId(null);
+    }
+  }
+
+  async function onOpenMemberDashboard(id: number) {
+    if (openDashboardId === id) {
+      setOpenDashboardId(null);
+      return;
+    }
+    if (!dashboardById[id]) {
+      const res = await loadMemberDashboard(id);
+      if (!res) return;
+    }
+    setOpenDashboardId(id);
+  }
+
   async function onShowActivity(id: number) {
-    if (activityById[id]) {
+    if (activityById[id] && openDashboardId !== id) {
       setActivityById((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setRecentById((prev) => {
         const next = { ...prev };
         delete next[id];
         return next;
       });
       return;
     }
-    setMemberBusyId(id);
-    setError(null);
-    try {
-      const res = await fetchPublisherMemberActivity(id);
-      setActivityById((prev) => ({ ...prev, [id]: res.activity }));
-    } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : "Could not load member activity.",
-      );
-    } finally {
-      setMemberBusyId(null);
-    }
+    await loadMemberDashboard(id);
   }
 
   async function onRemoveMember(id: number) {
@@ -205,7 +333,7 @@ export default function PublisherNetworkClient() {
   async function onReleaseMember(id: number) {
     if (
       !window.confirm(
-        "Formally release this membership? Pending settlements will be marked settled if needed.",
+        "Formally release this membership? Pending payments must already be released with evidence on Payout status.",
       )
     ) {
       return;
@@ -213,7 +341,7 @@ export default function PublisherNetworkClient() {
     setMemberBusyId(id);
     setError(null);
     try {
-      await releasePublisherMember(id, { settle_pending: true });
+      await releasePublisherMember(id);
       toast.success("Membership released.");
       loadNetwork(communityId);
     } catch (err) {
@@ -266,7 +394,7 @@ export default function PublisherNetworkClient() {
     <>
       <div className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-          Invite Team
+          Performance Team
         </p>
         <h1 className="mt-1 text-3xl font-bold">Invite creators to your community</h1>
         <p className="mt-2 text-slate-500">
@@ -283,21 +411,102 @@ export default function PublisherNetworkClient() {
       ) : null}
 
       <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Community filter
-          <select
-            className={field}
-            value={communityId}
-            onChange={(e) => setCommunityId(e.target.value)}
-          >
-            <option value="">All communities</option>
-            {communities.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.code}) · {c.members_count} members
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Filters
+            </p>
+            <p className="mt-1 text-sm text-slate-500">
+              Use the three dropdowns to narrow the member list.
+            </p>
+          </div>
+          {(communityId ||
+            statusFilter !== "all" ||
+            earningsFilter !== "all") && (
+            <button
+              type="button"
+              onClick={() => {
+                setCommunityId("");
+                setStatusFilter("all");
+                setEarningsFilter("all");
+                setMemberQuery("");
+              }}
+              className="text-xs font-semibold text-violet-700 hover:underline"
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+            1 · Community
+            <select
+              className={field}
+              value={communityId}
+              onChange={(e) => setCommunityId(e.target.value)}
+            >
+              <option value="">All communities</option>
+              {communities.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.code}) · {c.members_count} members
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+            2 · Status
+            <select
+              className={field}
+              value={statusFilter}
+              onChange={(e) =>
+                setStatusFilter(e.target.value as "all" | "active" | "deactive")
+              }
+            >
+              <option value="all">All statuses</option>
+              <option value="active">Active</option>
+              <option value="deactive">Deactive</option>
+            </select>
+          </label>
+
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+            3 · {canViewEarnings ? "Earnings" : "Activity"}
+            <select
+              className={field}
+              value={earningsFilter}
+              onChange={(e) =>
+                setEarningsFilter(
+                  e.target.value as
+                    | "all"
+                    | "has_pending"
+                    | "has_settled"
+                    | "has_any"
+                    | "zero"
+                    | "has_activity"
+                    | "no_activity",
+                )
+              }
+            >
+              {canViewEarnings ? (
+                <>
+                  <option value="all">All earnings</option>
+                  <option value="has_any">Has any earnings</option>
+                  <option value="has_pending">Has pending</option>
+                  <option value="has_settled">Has settled</option>
+                  <option value="zero">Zero earnings</option>
+                </>
+              ) : (
+                <>
+                  <option value="all">All activity</option>
+                  <option value="has_activity">Has activity</option>
+                  <option value="no_activity">No activity yet</option>
+                </>
+              )}
+            </select>
+          </label>
+        </div>
+
         {communities.length === 0 ? (
           <p className="mt-3 text-sm text-slate-500">
             No communities yet.{" "}
@@ -484,20 +693,25 @@ export default function PublisherNetworkClient() {
       ) : null}
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h2 className="text-lg font-bold">
-              Members
-              {selectedCommunity ? ` · ${selectedCommunity.name}` : " · all communities"}
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-bold">
+                Members
+                {selectedCommunity ? ` · ${selectedCommunity.name}` : " · all communities"}
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
               {canViewEarnings
                 ? "Member settlement earnings (publisher reconciliation)."
                 : "Member list for your assigned communities."}
             </p>
           </div>
           <p className="text-xs font-semibold text-slate-400">
-            {members.length} member{members.length === 1 ? "" : "s"}
+            {filteredMembers.length}
+            {filteredMembers.length !== members.length
+              ? ` of ${members.length}`
+              : ""}{" "}
+            member
+            {filteredMembers.length === 1 ? "" : "s"}
           </p>
         </div>
 
@@ -509,11 +723,41 @@ export default function PublisherNetworkClient() {
           </p>
         ) : (
           <div className="mt-4 overflow-x-auto">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-slate-500">
+                Click a member name to open their earning dashboard.
+              </p>
+              <label className="block min-w-[14rem] flex-1 sm:max-w-xs">
+                <span className="sr-only">Search members</span>
+                <input
+                  type="search"
+                  value={memberQuery}
+                  onChange={(e) => setMemberQuery(e.target.value)}
+                  placeholder="Search name, email, community…"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10"
+                />
+              </label>
+            </div>
+            {openDashboardId && dashboardById[openDashboardId] ? (
+              <MemberEarningDashboard
+                data={dashboardById[openDashboardId]}
+                canViewEarnings={canViewEarnings}
+                onClose={() => setOpenDashboardId(null)}
+              />
+            ) : null}
+            {filteredMembers.length === 0 ? (
+              <p className="mb-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                No members match the current filters
+                {memberQuery.trim() ? ` or “${memberQuery.trim()}”` : ""}.
+              </p>
+            ) : null}
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
                   <th className="px-2 py-2 font-semibold">Member</th>
                   <th className="px-2 py-2 font-semibold">Community</th>
+                  <th className="px-2 py-2 font-semibold">Registered</th>
+                  <th className="px-2 py-2 font-semibold">Last activity</th>
                   <th className="px-2 py-2 font-semibold">Status</th>
                   {canViewEarnings ? (
                     <>
@@ -526,13 +770,30 @@ export default function PublisherNetworkClient() {
                 </tr>
               </thead>
               <tbody>
-                {members.map((m) => (
-                  <tr key={m.id} className="border-b border-slate-100 align-top">
+                {filteredMembers.map((m) => (
+                  <tr
+                    key={m.id}
+                    className={`border-b border-slate-100 align-top ${
+                      openDashboardId === m.id ? "bg-violet-50/40" : ""
+                    }`}
+                  >
                     <td className="px-2 py-3">
-                      <p className="font-semibold text-[#172b63]">
-                        {m.display_name ?? "Member"}
-                      </p>
-                      <p className="text-xs text-slate-500">{m.email}</p>
+                      <button
+                        type="button"
+                        disabled={memberBusyId === m.id}
+                        onClick={() => void onOpenMemberDashboard(m.id)}
+                        className="text-left disabled:opacity-60"
+                      >
+                        <p className="font-semibold text-violet-700 underline-offset-2 hover:underline">
+                          {m.display_name ?? "Member"}
+                        </p>
+                        <p className="text-xs text-slate-500">{m.email}</p>
+                        <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-600">
+                          {openDashboardId === m.id
+                            ? "Dashboard open"
+                            : "Open earning dashboard"}
+                        </p>
+                      </button>
                     </td>
                     <td className="px-2 py-3 text-xs text-slate-600">
                       {(m.communities ?? []).length > 0
@@ -541,17 +802,21 @@ export default function PublisherNetworkClient() {
                             .join(", ")
                         : "—"}
                     </td>
+                    <td className="px-2 py-3 text-xs text-slate-600 whitespace-nowrap">
+                      {formatMemberDate(m.registered_at ?? m.joined_at)}
+                    </td>
+                    <td className="px-2 py-3 text-xs text-slate-600 whitespace-nowrap">
+                      {formatMemberDateTime(m.last_activity_at)}
+                    </td>
                     <td className="px-2 py-3">
                       <span
                         className={`text-xs font-bold uppercase ${
-                          m.status === "active"
+                          memberDisplayStatus(m.status) === "Active"
                             ? "text-emerald-700"
-                            : m.status === "released"
-                              ? "text-slate-400"
-                              : "text-amber-700"
+                            : "text-slate-400"
                         }`}
                       >
-                        {m.status}
+                        {memberDisplayStatus(m.status)}
                       </span>
                     </td>
                     {canViewEarnings ? (
@@ -572,10 +837,20 @@ export default function PublisherNetworkClient() {
                         <button
                           type="button"
                           disabled={memberBusyId === m.id}
+                          onClick={() => void onOpenMemberDashboard(m.id)}
+                          className="rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-800 disabled:opacity-60"
+                        >
+                          {openDashboardId === m.id ? "Hide dashboard" : "Dashboard"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={memberBusyId === m.id}
                           onClick={() => void onShowActivity(m.id)}
                           className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 disabled:opacity-60"
                         >
-                          {activityById[m.id] ? "Hide" : "Activity"}
+                          {activityById[m.id] && openDashboardId !== m.id
+                            ? "Hide"
+                            : "Activity"}
                         </button>
                         {m.status === "active" ? (
                           <button
@@ -599,14 +874,37 @@ export default function PublisherNetworkClient() {
                         ) : null}
                       </div>
                       {activityById[m.id] ? (
-                        <p className="mt-2 text-xs text-slate-500">
-                          clicks {activityById[m.id].clicks_total}/
-                          {activityById[m.id].clicks_valid} · signups{" "}
-                          {activityById[m.id].signups} · apps{" "}
-                          {activityById[m.id].applications} · leads{" "}
-                          {activityById[m.id].leads} · conv{" "}
-                          {activityById[m.id].conversions}
-                        </p>
+                        <div className="mt-2 space-y-2">
+                          <p className="text-xs text-slate-500">
+                            clicks {activityById[m.id].clicks_total}/
+                            {activityById[m.id].clicks_valid} · signups{" "}
+                            {activityById[m.id].signups} · apps{" "}
+                            {activityById[m.id].applications} · leads{" "}
+                            {activityById[m.id].leads} · conv{" "}
+                            {activityById[m.id].conversions}
+                          </p>
+                          {(recentById[m.id] ?? []).length > 0 ? (
+                            <ul className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-slate-100 bg-slate-50 p-2 text-[11px] text-slate-600">
+                              {(recentById[m.id] ?? []).slice(0, 12).map((ev) => (
+                                <li key={ev.id} className="flex justify-between gap-2">
+                                  <span className="truncate font-semibold">
+                                    {ev.activity_type}
+                                    {ev.title ? ` · ${ev.title}` : ""}
+                                  </span>
+                                  <span className="shrink-0 text-slate-400">
+                                    {ev.occurred_at
+                                      ? new Date(ev.occurred_at).toLocaleString()
+                                      : ""}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-[11px] text-slate-400">
+                              No click trail yet. Member shares will appear here.
+                            </p>
+                          )}
+                        </div>
                       ) : null}
                     </td>
                   </tr>
@@ -626,4 +924,186 @@ function money(n: number | null | undefined) {
     currency: "USD",
     maximumFractionDigits: 2,
   }).format(Number(n) || 0);
+}
+
+function MemberEarningDashboard({
+  data,
+  canViewEarnings,
+  onClose,
+}: {
+  data: PublisherMemberDashboard;
+  canViewEarnings: boolean;
+  onClose: () => void;
+}) {
+  const dash = data.dashboard;
+  const earnings = data.earnings;
+  const communities = data.by_community ?? [];
+  const settlements = data.settlements ?? [];
+  const recent = data.recent ?? [];
+
+  return (
+    <div className="mb-5 rounded-3xl border border-violet-200 bg-white p-5 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <BackButton label="Back to members" onClick={onClose} />
+          <p className="mt-3 text-xs font-bold uppercase tracking-wide text-violet-600">
+            Member earning dashboard
+          </p>
+          <h3 className="mt-1 text-xl font-bold text-[#172b63]">
+            {data.member.display_name ?? "Member"}
+          </h3>
+          <p className="text-sm text-slate-500">
+            {data.member.email} · {memberDisplayStatus(data.member.status)}
+          </p>
+          {data.note ? (
+            <p className="mt-1 text-xs text-slate-400">{data.note}</p>
+          ) : null}
+        </div>
+        {canViewEarnings && earnings ? (
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-right">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+              Total earning
+            </p>
+            <p className="text-2xl font-bold text-emerald-900">
+              {money(earnings.total_usd)}
+            </p>
+            <p className="text-xs text-emerald-800">
+              Settled {money(earnings.settled_usd)} · Pending{" "}
+              {money(earnings.pending_usd)}
+            </p>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["Clicks", dash?.total_clicks ?? data.activity.clicks_total],
+          ["Valid clicks", dash?.valid_clicks ?? data.activity.clicks_valid],
+          ["PPR / signups", dash?.ppr ?? data.activity.signups],
+          ["Applications", dash?.applications ?? data.activity.applications],
+          ["Leads", dash?.leads ?? data.activity.leads],
+          ["Conversions", dash?.conversions ?? data.activity.conversions],
+          ["Approved actions", dash?.actions_approved ?? data.activity.actions_approved],
+          ["Pending actions", dash?.actions_pending ?? data.activity.actions_pending],
+        ].map(([label, value]) => (
+          <div
+            key={String(label)}
+            className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
+          >
+            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+              {label}
+            </p>
+            <p className="mt-0.5 text-lg font-bold text-[#172b63]">{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {canViewEarnings ? (
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+            <h4 className="text-sm font-bold text-[#172b63]">
+              Earnings by community
+            </h4>
+            {communities.length === 0 ? (
+              <p className="mt-2 text-xs text-slate-500">No communities linked.</p>
+            ) : (
+              <ul className="mt-3 space-y-2 text-sm">
+                {communities.map((c) => (
+                  <li
+                    key={c.id}
+                    className="flex items-start justify-between gap-2 rounded-xl border border-white bg-white px-3 py-2"
+                  >
+                    <div>
+                      <p className="font-semibold text-[#172b63]">{c.name}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {c.code} · {c.status}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-emerald-700">
+                        {money(c.total_usd)}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        Settled {money(c.settled_usd)} · Pending{" "}
+                        {money(c.pending_usd)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+            <h4 className="text-sm font-bold text-[#172b63]">Settlements</h4>
+            {settlements.length === 0 ? (
+              <p className="mt-2 text-xs text-slate-500">
+                No settlement rows yet. Pending totals appear after campaigns
+                credit this member.
+              </p>
+            ) : (
+              <ul className="mt-3 max-h-56 space-y-2 overflow-y-auto text-sm">
+                {settlements.map((s) => (
+                  <li
+                    key={s.id}
+                    className="rounded-xl border border-white bg-white px-3 py-2"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold capitalize text-[#172b63]">
+                          {s.status}
+                          {s.period_label ? ` · ${s.period_label}` : ""}
+                        </p>
+                        <p className="text-[11px] text-slate-500">
+                          {s.community_name || "Community"}
+                          {" · "}
+                          {s.settled_at
+                            ? `Settled ${formatMemberDateTime(s.settled_at)}`
+                            : `Created ${formatMemberDateTime(s.created_at)}`}
+                        </p>
+                      </div>
+                      <p className="font-bold text-violet-700">
+                        {money(s.amount_usd)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link
+              href="/publisher/payments"
+              className="mt-3 inline-block text-xs font-semibold text-violet-700 hover:underline"
+            >
+              Open payment release →
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+        <h4 className="text-sm font-bold text-[#172b63]">Recent activity</h4>
+        {recent.length === 0 ? (
+          <p className="mt-2 text-xs text-slate-500">
+            No click trail yet. Member shares will appear here.
+          </p>
+        ) : (
+          <ul className="mt-3 max-h-48 space-y-1 overflow-y-auto text-xs text-slate-600">
+            {recent.slice(0, 20).map((ev) => (
+              <li key={ev.id} className="flex justify-between gap-2 py-1">
+                <span className="truncate font-semibold">
+                  {ev.activity_type}
+                  {ev.title ? ` · ${ev.title}` : ""}
+                </span>
+                <span className="shrink-0 text-slate-400">
+                  {ev.occurred_at
+                    ? new Date(ev.occurred_at).toLocaleString()
+                    : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
 }

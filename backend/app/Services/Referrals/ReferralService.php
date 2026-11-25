@@ -5,12 +5,16 @@ namespace App\Services\Referrals;
 use App\Models\Creator;
 use App\Models\EarningLedger;
 use App\Models\ReferralReward;
+use App\Services\Notifications\UserNotificationService;
 use App\Services\Platform\PlatformSettingsService;
 use Illuminate\Support\Facades\DB;
 
 class ReferralService
 {
-    public function __construct(private PlatformSettingsService $settings) {}
+    public function __construct(
+        private PlatformSettingsService $settings,
+        private UserNotificationService $notifications,
+    ) {}
 
     public function attachReferrerOnSignup(Creator $creator, ?string $referralCode): void
     {
@@ -259,6 +263,12 @@ class ReferralService
             'currency_symbol' => $money['symbol'],
             'terms' => $this->settings->referralTerms(),
             'stats' => [
+                'shares' => \Illuminate\Support\Facades\Schema::hasColumn('creators', 'referral_share_count')
+                    ? (int) ($referrer->referral_share_count ?? 0)
+                    : 0,
+                'onboarding' => $referred->filter(
+                    fn (Creator $c): bool => $c->onboarding_completed_at !== null
+                )->count(),
                 'signups' => $referred->count(),
                 'active_referrals' => $referredRows->where('is_active', true)->count(),
                 'bonus_earned_usd' => $bonusTotal,
@@ -267,6 +277,75 @@ class ReferralService
             ],
             'referred_creators' => $referredRows->values(),
         ];
+    }
+
+    public function recordShare(Creator $referrer): int
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('creators', 'referral_share_count')) {
+            return 0;
+        }
+
+        $referrer->increment('referral_share_count');
+        $referrer->refresh();
+
+        return (int) $referrer->referral_share_count;
+    }
+
+    /**
+     * Notify referred creators owned by this referrer.
+     *
+     * @param  list<int>  $creatorIds
+     * @return array{sent: int, skipped: int}
+     */
+    public function notifyReferred(
+        Creator $referrer,
+        array $creatorIds,
+        ?string $message = null,
+    ): array {
+        $ids = array_values(array_unique(array_filter(
+            array_map('intval', $creatorIds),
+            fn (int $id): bool => $id > 0,
+        )));
+
+        if ($ids === []) {
+            return ['sent' => 0, 'skipped' => 0];
+        }
+
+        $targets = Creator::query()
+            ->with('user')
+            ->where('referred_by_creator_id', $referrer->id)
+            ->whereIn('id', $ids)
+            ->get();
+
+        $title = 'Message from your referrer';
+        $body = trim((string) $message);
+        if ($body === '') {
+            $body = '@'.$referrer->handle.' sent you a nudge on JobOrio. Keep promoting to unlock referral rewards together.';
+        }
+
+        $sent = 0;
+        $skipped = 0;
+        foreach ($targets as $target) {
+            $row = $this->notifications->notifyCreatorUser(
+                $target,
+                'referral_nudge',
+                $title,
+                $body,
+                [
+                    'from_creator_id' => $referrer->id,
+                    'from_handle' => $referrer->handle,
+                ],
+            );
+            if ($row) {
+                $sent++;
+            } else {
+                $skipped++;
+            }
+        }
+
+        $skipped += count($ids) - $targets->count();
+
+        return ['sent' => $sent, 'skipped' => $skipped];
     }
 
     private function inviteBaseUrl(): string

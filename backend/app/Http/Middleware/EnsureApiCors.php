@@ -27,7 +27,10 @@ class EnsureApiCors
         $response->headers->set('Access-Control-Allow-Origin', $origin);
         $response->headers->set('Vary', 'Origin');
         $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        $response->headers->set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept, X-Requested-With');
+        $response->headers->set(
+            'Access-Control-Allow-Headers',
+            'Authorization, Content-Type, Accept, X-Requested-With, X-XSRF-TOKEN',
+        );
         $response->headers->set('Access-Control-Max-Age', '86400');
 
         return $response;
@@ -45,6 +48,15 @@ class EnsureApiCors
         }
 
         if (str_ends_with($host, '.joborio.com') || $host === 'joborio.sevenapps.in' || str_ends_with($host, '.joborio.sevenapps.in')) {
+            return true;
+        }
+
+        // Private LAN hosts (Next.js “Network” URL during local testing).
+        if (
+            preg_match('/^192\.168\.\d{1,3}\.\d{1,3}$/', $host) === 1
+            || preg_match('/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $host) === 1
+            || preg_match('/^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/', $host) === 1
+        ) {
             return true;
         }
 

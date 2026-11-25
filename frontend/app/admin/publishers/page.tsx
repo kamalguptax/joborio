@@ -1,25 +1,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ApiClientError } from "@/lib/api/client";
 import {
   adminActivatePublisher,
   adminListPublishers,
   type AdminPublisherRow,
 } from "@/lib/api/admin";
+import {
+  AdminAlert,
+  AdminButton,
+  AdminInput,
+  AdminPageHeader,
+  AdminSelect,
+  AdminTableWrap,
+} from "@/components/admin/admin-ui";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
+import { adminPath } from "@/lib/adminNav";
+
+function money(n: number | null | undefined) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(Number(n) || 0);
+}
 
 export default function AdminPublishersPage() {
   const [rows, setRows] = useState<AdminPublisherRow[]>([]);
   const [status, setStatus] = useState("all");
+  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const load = (nextStatus = status) => {
+  const load = (nextStatus = status, nextSearch = query) => {
     setLoading(true);
-    adminListPublishers(nextStatus)
+    setError(null);
+    adminListPublishers(nextStatus, nextSearch || undefined)
       .then(setRows)
       .catch((err) =>
         setError(
@@ -56,74 +77,146 @@ export default function AdminPublishersPage() {
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">Publisher applications</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Review and activate publisher network accounts.
-          </p>
-        </div>
-        <select
+      <AdminPageHeader
+        title="Publishers"
+        description="All publisher network accounts, wallet balances, and community counts."
+        actions={
+          <Link
+            href={adminPath("/admin/communities")}
+            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3.5 py-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-700"
+          >
+            Communities
+          </Link>
+        }
+      />
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <AdminSelect
           value={status}
           onChange={(e) => {
             setStatus(e.target.value);
-            load(e.target.value);
+            load(e.target.value, query);
           }}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold"
         >
-          <option value="all">All</option>
-          <option value="email_verified">Under review</option>
+          <option value="all">All statuses</option>
+          <option value="under_review">Under review</option>
+          <option value="email_verified">Email verified</option>
           <option value="activated">Activated</option>
           <option value="rejected">Rejected</option>
-        </select>
+          <option value="submitted">Submitted</option>
+        </AdminSelect>
+        <form
+          className="flex flex-wrap gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setQuery(search.trim());
+            load(status, search.trim());
+          }}
+        >
+          <div className="min-w-[220px]">
+            <AdminInput
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name, username, code"
+            />
+          </div>
+          <AdminButton type="submit" variant="secondary">
+            Search
+          </AdminButton>
+        </form>
       </div>
 
       {error ? (
-        <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </p>
+        <div className="mt-4">
+          <AdminAlert tone="error">{error}</AdminAlert>
+        </div>
       ) : null}
 
-      {loading ? (
-        <TableSkeleton rows={6} cols={5} />
-      ) : rows.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
-          No publishers found.
-        </p>
-      ) : (
-        <ul className="space-y-2">
-          {rows.map((p) => (
-            <li
-              key={p.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
-            >
-              <div>
-                <p className="font-bold text-[#172b63]">
-                  {p.display_name}{" "}
-                  <span className="font-semibold text-slate-400">@{p.username}</span>
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {p.code} · {p.country_code} · {p.network_type} · {p.status_label}
-                </p>
-              </div>
-              {p.status !== "activated" ? (
-                <button
-                  type="button"
-                  disabled={busyId === p.id}
-                  onClick={() => void activate(p.id)}
-                  className="rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-60"
-                >
-                  {busyId === p.id ? "Activating…" : "Activate"}
-                </button>
-              ) : (
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase text-emerald-700">
-                  Active
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="mt-6">
+        {loading ? (
+          <TableSkeleton rows={6} cols={6} />
+        ) : rows.length === 0 ? (
+          <AdminAlert tone="info">No publishers found for this filter.</AdminAlert>
+        ) : (
+          <AdminTableWrap>
+            <thead className="border-b border-zinc-800 text-[11px] uppercase tracking-wide text-zinc-500">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Publisher</th>
+                <th className="px-4 py-3 font-semibold">Owner</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Network</th>
+                <th className="px-4 py-3 font-semibold">Wallet</th>
+                <th className="px-4 py-3 font-semibold" />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((p) => (
+                <tr key={p.id} className="border-t border-zinc-800/80">
+                  <td className="px-4 py-3">
+                    <p className="font-semibold text-zinc-100">
+                      {p.display_name}{" "}
+                      <span className="font-medium text-zinc-500">
+                        @{p.username}
+                      </span>
+                    </p>
+                    <p className="mt-0.5 text-xs text-zinc-500">
+                      {p.code} · {p.country_code} · {p.communities_count ?? 0}{" "}
+                      communities · {p.members_count ?? 0} members
+                    </p>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <p className="text-zinc-200">{p.owner?.name || "—"}</p>
+                    <p className="text-xs text-zinc-500">{p.owner?.email}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
+                        p.status === "activated"
+                          ? "bg-emerald-500/15 text-emerald-300"
+                          : p.status === "rejected"
+                            ? "bg-red-500/15 text-red-300"
+                            : "bg-amber-500/15 text-amber-300"
+                      }`}
+                    >
+                      {p.status_label || p.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm capitalize text-zinc-300">
+                    {p.network_type}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <p className="font-semibold text-zinc-100">
+                      {money(p.payable_usd)} payable
+                    </p>
+                    <p className="text-xs text-zinc-500">
+                      {money(p.lifetime_net_usd)} lifetime · {money(p.paid_usd)} paid
+                    </p>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {p.status !== "activated" && p.status !== "rejected" ? (
+                      <AdminButton
+                        type="button"
+                        disabled={busyId === p.id}
+                        onClick={() => void activate(p.id)}
+                      >
+                        {busyId === p.id ? "Activating…" : "Activate"}
+                      </AdminButton>
+                    ) : p.status === "activated" ? (
+                      <span className="text-xs font-semibold text-emerald-400">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-red-400">
+                        Rejected
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </AdminTableWrap>
+        )}
+      </div>
     </>
   );
 }

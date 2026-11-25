@@ -1,15 +1,17 @@
 /**
- * The admin panel is a SEPARATE app (see ../admin).
- * Set NEXT_PUBLIC_ADMIN_URL in .env.local / .env.production
- *   dev  : http://localhost:3001
- *   prod : https://admin.joborio.com
+ * Legacy separate admin host (optional).
+ * Admin now lives on this site at `/admin`.
+ * Keep NEXT_PUBLIC_ADMIN_URL only if an external admin deploy still exists.
  */
 export const ADMIN_URL = (
-  process.env.NEXT_PUBLIC_ADMIN_URL ||
-  (process.env.NODE_ENV === "production"
-    ? "https://admin.joborio.com"
-    : "http://localhost:3001")
+  process.env.NEXT_PUBLIC_ADMIN_URL || ""
 ).replace(/\/$/, "");
 
-/** Admin login page (admin accounts cannot use the website dashboards). */
-export const ADMIN_LOGIN_URL = `${ADMIN_URL}/login`;
+/** Prefer same-site admin; fall back to external host only when configured. */
+export const ADMIN_LOGIN_URL = ADMIN_URL
+  ? `${ADMIN_URL}/login`
+  : "/login";
+
+export const ADMIN_HOME_URL = ADMIN_URL
+  ? `${ADMIN_URL}/`
+  : "/admin/dashboard";

@@ -7,7 +7,6 @@ import {
   MousePointerClick,
   UserPlus,
   TrendingUp,
-  Trophy,
   Wallet,
 } from "lucide-react";
 import LiveCampaignsPanel from "@/components/creator/LiveCampaignsPanel";
@@ -95,6 +94,11 @@ export default function CreatorDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [range, setRange] = useState<RangeKey>("1d");
   const [campaign, setCampaign] = useState<CampaignKey>("all");
+  const [trafficQuery, setTrafficQuery] = useState("");
+  const [trafficStatus, setTrafficStatus] = useState<
+    "all" | "payable" | "duplicate" | "mixed"
+  >("all");
+  const [trafficEvent, setTrafficEvent] = useState<"all" | string>("all");
   const liveCampaignsRef = useRef<HTMLDivElement | null>(null);
   const skipCampaignScroll = useRef(true);
 
@@ -177,12 +181,39 @@ export default function CreatorDashboardPage() {
       program?: { pricing_model?: string; promotion_type?: string };
     };
   }>;
+  const earningsByJob = useMemo(() => {
+    const rows = (Array.isArray(data?.earnings_by_job)
+      ? data.earnings_by_job
+      : []) as Array<{
+      title?: string;
+      listing_id?: number | null;
+      net_usd?: number;
+      payable_usd?: number;
+      pending_usd?: number;
+      approved_usd?: number;
+      paid_usd?: number;
+    }>;
+    const byTitle = new Map<string, (typeof rows)[number]>();
+    const byListing = new Map<number, (typeof rows)[number]>();
+    for (const row of rows) {
+      const titleKey = String(row.title ?? "")
+        .trim()
+        .toLowerCase();
+      if (titleKey) byTitle.set(titleKey, row);
+      if (row.listing_id) byListing.set(Number(row.listing_id), row);
+    }
+    return { byTitle, byListing };
+  }, [data]);
+
   const recentTraffic = useMemo(() => {
     type TrafficRow = (typeof recentTrafficAll)[number];
     type Grouped = TrafficRow & {
+      title: string;
       click_count: number;
       counted_count: number;
       duplicate_count: number;
+      payable_usd: number;
+      total_earning_usd: number;
     };
 
     const filtered = recentTrafficAll.filter((row) =>
@@ -197,9 +228,12 @@ export default function CreatorDashboardPage() {
       if (!existing) {
         groups.set(key, {
           ...row,
+          title,
           click_count: 1,
           counted_count: row.is_counted ? 1 : 0,
           duplicate_count: row.fraud_status === "dedup" || !row.is_counted ? 1 : 0,
+          payable_usd: 0,
+          total_earning_usd: 0,
         });
         continue;
       }
@@ -229,17 +263,93 @@ export default function CreatorDashboardPage() {
         existing.meta = row.meta ?? existing.meta;
         existing.created_at = row.created_at ?? existing.created_at;
         existing.listing = row.listing ?? existing.listing;
+        existing.title = title;
       }
     }
 
     return Array.from(groups.values())
+      .map((row) => {
+        const listingId = Number(
+          (row.listing as { id?: number } | undefined)?.id ?? 0,
+        );
+        const earn =
+          (listingId > 0 ? earningsByJob.byListing.get(listingId) : undefined) ??
+          earningsByJob.byTitle.get(row.title.trim().toLowerCase());
+        const payable = Number(earn?.payable_usd ?? 0);
+        const total =
+          Number(earn?.net_usd ?? 0) ||
+          Number(earn?.pending_usd ?? 0) +
+            Number(earn?.approved_usd ?? 0) +
+            Number(earn?.payable_usd ?? 0) +
+            Number(earn?.paid_usd ?? 0);
+        return {
+          ...row,
+          payable_usd: payable,
+          total_earning_usd: total,
+        };
+      })
       .sort((a, b) => {
         const aTs = Date.parse(String(a.meta?.clicked_at ?? a.created_at ?? ""));
         const bTs = Date.parse(String(b.meta?.clicked_at ?? b.created_at ?? ""));
         return (Number.isFinite(bTs) ? bTs : 0) - (Number.isFinite(aTs) ? aTs : 0);
+      });
+  }, [recentTrafficAll, campaign, earningsByJob]);
+
+  const trafficEventOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of recentTraffic) {
+      if (row.event_type) set.add(String(row.event_type));
+    }
+    return ["all", ...Array.from(set).sort()];
+  }, [recentTraffic]);
+
+  const filteredTraffic = useMemo(() => {
+    const q = trafficQuery.trim().toLowerCase();
+    return recentTraffic
+      .filter((row) => {
+        if (trafficEvent !== "all" && row.event_type !== trafficEvent) {
+          return false;
+        }
+        if (trafficStatus === "payable" && row.counted_count <= 0) return false;
+        if (trafficStatus === "duplicate" && row.duplicate_count <= 0) {
+          return false;
+        }
+        if (
+          trafficStatus === "mixed" &&
+          !(row.counted_count > 0 && row.duplicate_count > 0)
+        ) {
+          return false;
+        }
+        if (!q) return true;
+        const hay = [
+          row.title,
+          row.event_type,
+          row.ip_address,
+          row.listing?.type,
+          row.listing?.program?.pricing_model,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return hay.includes(q);
       })
-      .slice(0, 12);
-  }, [recentTrafficAll, campaign]);
+      .slice(0, 25);
+  }, [recentTraffic, trafficQuery, trafficStatus, trafficEvent]);
+
+  const trafficSummary = useMemo(() => {
+    let clicks = 0;
+    let duplicates = 0;
+    let earning = 0;
+    for (const row of filteredTraffic) {
+      clicks += row.click_count;
+      duplicates += row.duplicate_count;
+      earning += row.total_earning_usd;
+    }
+    return { clicks, duplicates, earning };
+  }, [filteredTraffic]);
+
+  const trafficFilterField =
+    "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
   const dedupMinutes = Number(data?.click_dedup_minutes ?? 10);
   const campaignLabel =
     campaignFilters.find((f) => f.id === campaign)?.label ?? "All campaigns";
@@ -268,21 +378,6 @@ export default function CreatorDashboardPage() {
     Number(earnings.payable_usd ?? 0) +
     Number(earnings.paid_usd ?? 0);
   const currencyCode = String(data?.currency ?? "USD");
-  const topPerformers = (data?.top_performers ?? null) as {
-    period_days?: number;
-    leaders?: Array<{
-      rank: number;
-      handle: string;
-      trust_tier?: string | null;
-      verified_clicks: number;
-      earnings_usd: number;
-      is_you?: boolean;
-    }>;
-    your_rank?: number | null;
-    your_clicks?: number;
-    your_earnings_usd?: number;
-  } | null;
-  const leaders = topPerformers?.leaders ?? [];
   const referralSummary = (data?.referrals ?? null) as {
     code?: string;
     signups?: number;
@@ -296,16 +391,10 @@ export default function CreatorDashboardPage() {
 
   const moduleLinks = [
     {
-      href: "/creator/opportunities",
-      title: "Opportunities",
-      desc: "Copy tracked links for marketplace listings on your page.",
-      stat: `${modules.listings_on_page ?? 0} live on page`,
-    },
-    {
       href: "/creator/campaigns",
       title: "Campaigns",
-      desc: "Join employer PPC / PPR / PPA / PPE programs.",
-      stat: `${modules.campaigns_joined ?? 0} joined`,
+      desc: "Browse jobs, PPC / PPR programs, and copy tracked share links.",
+      stat: `${modules.campaigns_joined ?? 0} joined · ${modules.listings_on_page ?? 0} on page`,
     },
     {
       href: "/creator/performance",
@@ -530,7 +619,13 @@ export default function CreatorDashboardPage() {
 
           <div className="mt-8 dash-card p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-lg font-bold">Promote link types</h2>
+              <div>
+                <h2 className="text-lg font-bold">Earnings by type</h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  Money you have already earned from verified actions — not the
+                  campaign offer rates below.
+                </p>
+              </div>
               <Link
                 href="/creator/performance"
                 className="text-sm font-semibold text-purple-600"
@@ -567,6 +662,9 @@ export default function CreatorDashboardPage() {
                     <p className="text-xs font-bold uppercase text-slate-400">{type}</p>
                     <p className="mt-1 text-lg font-bold">
                       {formatMoney(total, String(data?.currency ?? "USD"))}
+                    </p>
+                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                      Earned total
                     </p>
                   </button>
                 );
@@ -638,56 +736,197 @@ export default function CreatorDashboardPage() {
           {recentTraffic.length > 0 ? (
             <div className="mt-8 dash-card p-6">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-lg font-bold">Recent traffic</h2>
-                <Link href="/creator/earnings#clicks" className="text-sm font-semibold text-purple-700">
+                <div>
+                  <h2 className="text-lg font-bold">Recent traffic</h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Same job clicks are grouped. Duplicates (same IP + device
+                    within {dedupMinutes} min) are logged but not paid.
+                  </p>
+                </div>
+                <Link
+                  href="/creator/earnings#clicks"
+                  className="text-sm font-semibold text-purple-700"
+                >
                   All clicks
                 </Link>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
-                Same job clicks are grouped. Duplicates (same IP + device within{" "}
-                {dedupMinutes} min) are logged but not paid.
-              </p>
-              <ul className="mt-4 space-y-2 text-sm">
-                {recentTraffic.map((row) => {
-                  const title = row.listing?.title ?? row.meta?.title ?? "Job";
-                  const clicksLabel =
-                    row.click_count === 1
-                      ? "1 click"
-                      : `${row.click_count} clicks`;
-                  const statusLabel =
-                    row.counted_count > 0
-                      ? row.duplicate_count > 0
-                        ? `${row.counted_count} counted · ${row.duplicate_count} duplicate`
-                        : "Counted"
-                      : "Duplicate";
-                  return (
-                    <li
-                      key={`${row.event_type}-${title}`}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
-                    >
-                      <span>
-                        {row.event_type} · {title}
-                        <span className="mt-1 block text-xs font-normal text-slate-500">
-                          {clicksLabel}
-                          {" · "}
-                          {row.ip_address || "IP unknown"}
-                          {" · "}
-                          {formatClickTime(row.meta?.clicked_at ?? row.created_at)}
-                        </span>
-                      </span>
-                      <span
-                        className={`text-xs font-semibold ${
-                          row.counted_count > 0
-                            ? "text-emerald-700"
-                            : "text-amber-700"
-                        }`}
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Search
+                  <input
+                    type="search"
+                    value={trafficQuery}
+                    onChange={(e) => setTrafficQuery(e.target.value)}
+                    placeholder="Job, IP, event…"
+                    className={`mt-1 ${trafficFilterField}`}
+                  />
+                </label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Status
+                  <select
+                    value={trafficStatus}
+                    onChange={(e) =>
+                      setTrafficStatus(
+                        e.target.value as
+                          | "all"
+                          | "payable"
+                          | "duplicate"
+                          | "mixed",
+                      )
+                    }
+                    className={`mt-1 ${trafficFilterField}`}
+                  >
+                    <option value="all">All statuses</option>
+                    <option value="payable">Payable / counted</option>
+                    <option value="duplicate">Has duplicate</option>
+                    <option value="mixed">Counted + duplicate</option>
+                  </select>
+                </label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Event type
+                  <select
+                    value={trafficEvent}
+                    onChange={(e) => setTrafficEvent(e.target.value)}
+                    className={`mt-1 ${trafficFilterField}`}
+                  >
+                    {trafficEventOptions.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt === "all" ? "All events" : opt}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {(trafficQuery ||
+                trafficStatus !== "all" ||
+                trafficEvent !== "all") && (
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs text-slate-500">
+                    Showing {filteredTraffic.length} of {recentTraffic.length}{" "}
+                    job groups
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTrafficQuery("");
+                      setTrafficStatus("all");
+                      setTrafficEvent("all");
+                    }}
+                    className="text-xs font-semibold text-violet-700 hover:underline"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              )}
+
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                    Total click
+                  </p>
+                  <p className="mt-1 text-2xl font-bold tabular-nums text-[#172b63]">
+                    {trafficSummary.clicks}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700/80">
+                    Duplicate
+                  </p>
+                  <p className="mt-1 text-2xl font-bold tabular-nums text-amber-800">
+                    {trafficSummary.duplicates}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700/80">
+                    Total earning
+                  </p>
+                  <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-800">
+                    {formatMoney(
+                      trafficSummary.earning,
+                      String(data?.currency ?? "USD"),
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5">
+                {filteredTraffic.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+                    No traffic matches these filters.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {filteredTraffic.map((row) => (
+                      <article
+                        key={`${row.event_type}-${row.title}`}
+                        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
                       >
-                        {statusLabel}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
+                        <p className="line-clamp-2 font-semibold text-[#172b63]">
+                          {row.title}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {row.event_type}
+                          {" · "}
+                          {formatClickTime(
+                            row.meta?.clicked_at ?? row.created_at,
+                          )}
+                        </p>
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                              Total click
+                            </p>
+                            <p className="mt-0.5 text-lg font-bold tabular-nums text-[#172b63]">
+                              {row.click_count}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700/80">
+                              Duplicate
+                            </p>
+                            <p
+                              className={`mt-0.5 text-lg font-bold tabular-nums ${
+                                row.duplicate_count > 0
+                                  ? "text-amber-700"
+                                  : "text-slate-400"
+                              }`}
+                            >
+                              {row.duplicate_count}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700/80">
+                              Payable
+                            </p>
+                            <p
+                              className={`mt-0.5 text-lg font-bold tabular-nums ${
+                                row.counted_count > 0
+                                  ? "text-emerald-700"
+                                  : "text-slate-400"
+                              }`}
+                            >
+                              {row.counted_count}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-violet-700/80">
+                              Total earning
+                            </p>
+                            <p className="mt-0.5 text-lg font-bold tabular-nums text-violet-700">
+                              {formatMoney(
+                                row.total_earning_usd,
+                                String(data?.currency ?? "USD"),
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ) : null}
 
@@ -739,26 +978,6 @@ export default function CreatorDashboardPage() {
               </ul>
             </div>
           ) : null}
-
-          <div className="mt-8 rounded-3xl border border-dashed border-purple-200 bg-white/80 p-6">
-            <h2 className="font-bold">Quick actions</h2>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <Link
-                href="/creator/opportunities"
-                className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-2.5 text-sm font-bold text-white"
-              >
-                Copy tracked links
-              </Link>
-              {creator?.handle ? (
-                <Link
-                  href={creatorProfilePath(creator.handle)}
-                  className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700"
-                >
-                  Preview public page
-                </Link>
-              ) : null}
-            </div>
-          </div>
 
           <section className="mt-8 rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-white p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -817,101 +1036,6 @@ export default function CreatorDashboardPage() {
             )}
           </section>
 
-          <section className="mt-8 overflow-hidden rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50 via-white to-purple-50 p-6 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-amber-700">
-                  <Trophy size={16} />
-                  Top performers
-                </p>
-                <h2 className="mt-1 text-xl font-bold text-[#172b63]">
-                  {Number(topPerformers?.period_days) > 0
-                    ? `Top earners · last ${Number(topPerformers?.period_days)} days`
-                    : "Top earners"}
-                </h2>
-                <p className="mt-1 max-w-xl text-sm text-slate-600">
-                  Creators ranked by earnings — climb the list and stay motivated.
-                </p>
-              </div>
-              <Link
-                href="/leaderboard"
-                className="rounded-full border border-amber-200 bg-white px-4 py-2 text-sm font-semibold text-amber-800 shadow-sm"
-              >
-                Full leaderboard →
-              </Link>
-            </div>
-
-            {topPerformers?.your_rank ? (
-              <div className="mt-4 rounded-2xl border border-amber-100 bg-white/80 px-4 py-3 text-sm">
-                You’re{" "}
-                <span className="font-bold text-purple-700">
-                  #{topPerformers.your_rank}
-                </span>
-                {" · "}
-                {formatMoney(Number(topPerformers.your_earnings_usd ?? 0), currencyCode)}{" "}
-                earned
-                {topPerformers.your_rank > 1
-                  ? " — keep going to catch the next spot."
-                  : " — you’re on top!"}
-              </div>
-            ) : null}
-
-            {leaders.length > 0 ? (
-              <ol className="mt-4 space-y-2">
-                {leaders.map((row) => (
-                  <li
-                    key={`${row.rank}-${row.handle}`}
-                    className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-4 py-3 text-sm ${
-                      row.is_you
-                        ? "border-purple-300 bg-purple-50 ring-1 ring-purple-200"
-                        : "border-slate-100 bg-white"
-                    }`}
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                          row.rank === 1
-                            ? "bg-amber-300 text-amber-900"
-                            : row.rank === 2
-                              ? "bg-slate-200 text-slate-700"
-                              : row.rank === 3
-                                ? "bg-orange-300 text-orange-950"
-                                : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        #{row.rank}
-                      </span>
-                      <div className="min-w-0">
-                        <Link
-                          href={creatorProfilePath(row.handle)}
-                          className="font-semibold text-[#172b63] hover:text-purple-700"
-                        >
-                          @{row.handle}
-                          {row.is_you ? (
-                            <span className="ml-2 text-xs font-bold uppercase text-purple-600">
-                              you
-                            </span>
-                          ) : null}
-                        </Link>
-                        {row.trust_tier ? (
-                          <p className="text-[11px] uppercase tracking-wide text-slate-400">
-                            {row.trust_tier}
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                    <p className="font-bold tabular-nums text-emerald-700">
-                      {formatMoney(Number(row.earnings_usd ?? 0), currencyCode)}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p className="mt-4 text-sm text-slate-500">
-                No top performers yet. Start earning to appear on this list.
-              </p>
-            )}
-          </section>
         </>
       ) : null}
     </>

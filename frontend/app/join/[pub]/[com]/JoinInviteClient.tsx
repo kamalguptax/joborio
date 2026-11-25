@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import MathCaptcha from "@/components/auth/MathCaptcha";
+import PasswordInput from "@/components/auth/PasswordInput";
 import { ApiClientError } from "@/lib/api/client";
 import {
   acceptJoinInvitation,
@@ -18,7 +19,11 @@ import {
 } from "@/lib/auth/session";
 import { useResolvedParam } from "@/lib/hooks/useResolvedParam";
 import { STATIC_EXPORT_PLACEHOLDER } from "@/lib/staticExport";
-import { markOnboardingPending } from "@/lib/auth/onboardingFlag";
+import {
+  clearOnboardingPending,
+  markOnboardingPending,
+} from "@/lib/auth/onboardingFlag";
+import { toast } from "@/components/ui/Toast";
 
 const field =
   "mt-2 h-12 w-full rounded-xl border border-indigo-100 bg-white px-4 text-base text-[#0F1B3D] placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15";
@@ -143,8 +148,17 @@ export default function JoinInviteClient() {
       );
       setAuthToken(res.token);
       rememberPublicCode(res.user);
-      markOnboardingPending(res.user.id, "network");
-      router.push("/network/onboarding");
+      toast.success(res.message);
+      const returning = Boolean(res.join?.is_returning_member);
+      if (returning) {
+        clearOnboardingPending(res.user.id, "network");
+      } else {
+        markOnboardingPending(res.user.id, "network");
+      }
+      router.push(
+        res.redirect ||
+          (returning ? "/network/dashboard" : "/network/onboarding"),
+      );
     } catch (err) {
       setError(
         err instanceof ApiClientError
@@ -169,8 +183,8 @@ export default function JoinInviteClient() {
           <p className="mt-4 text-slate-300">
             You are joining as a private network member
             {underLabel ? ` under ${underLabel}` : ""}
-            {com ? ` / ${com}` : ""}. This is separate from a public Creator
-            account.
+            {com ? ` / ${com}` : ""}. You can join multiple communities when
+            invited. This is separate from a public Creator account.
           </p>
         </div>
 
@@ -202,8 +216,13 @@ export default function JoinInviteClient() {
 
               {loggedIn ? (
                 <p className="text-sm text-slate-600">
-                  Signed in as <span className="font-semibold">{email || "member"}</span>.
-                  Accept to join this network.
+                  Signed in as{" "}
+                  <span className="font-semibold">{email || "member"}</span>.
+                  Accept to join
+                  {invite.community?.name
+                    ? ` “${invite.community.name}”`
+                    : " this network"}
+                  . Existing members can add more communities from new invites.
                 </p>
               ) : (
                 <>
@@ -257,7 +276,11 @@ export default function JoinInviteClient() {
                 disabled={saving}
                 className="h-12 w-full rounded-full bg-gradient-to-r from-blue-600 to-violet-600 text-sm font-bold text-white disabled:opacity-60"
               >
-                {saving ? "Joining…" : "Accept invitation"}
+                {saving
+                  ? "Joining…"
+                  : invite.community?.name
+                    ? `Join ${invite.community.name}`
+                    : "Accept invitation"}
               </button>
 
               {!loggedIn ? (

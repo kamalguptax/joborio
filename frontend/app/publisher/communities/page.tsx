@@ -11,45 +11,54 @@ import {
   createPublisherCommunity,
   fetchPublisherCommunities,
   fetchPublisherMarketplace,
+  fetchPublisherMemberActivity,
+  fetchPublisherMembers,
   fetchPublisherTeam,
   invitePublisherManager,
   updatePublisherCommunity,
   type MarketplaceCampaign,
+  type NetworkMemberRow,
   type PublisherCommunity,
   type PublisherTeamMember,
 } from "@/lib/api/publisher";
 import { fetchPublicXmlJobs } from "@/lib/syndication/publicXmlFeed";
 import type { SyndicatedJob } from "@/lib/api/syndication";
 import { formatMoney } from "@/lib/money";
+import { publisherCommunityPath } from "@/lib/staticExport";
 import MultiSelect from "@/components/ui/MultiSelect";
 import SingleSelect from "@/components/ui/SingleSelect";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
+import BackButton from "@/components/ui/BackButton";
 
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
 
-type SourceKind = "all" | "job" | "xml" | "campaign";
+type SourceKind = "all" | "job" | "campaign";
+
+type PickerItemBase = {
+  key: string;
+  title: string;
+  meta: string;
+  search: string;
+  rateText?: string;
+  company?: string;
+  location?: string;
+  model?: string;
+  note?: string;
+};
 
 type PickerItem =
-  | {
-      key: string;
+  | (PickerItemBase & {
       kind: "program";
       programId: number;
-      title: string;
-      meta: string;
       badge: "Job" | "Campaign";
-      search: string;
-    }
-  | {
-      key: string;
+    })
+  | (PickerItemBase & {
       kind: "xml";
       xmlRef: string;
-      title: string;
-      meta: string;
-      badge: "XML";
-      search: string;
-    };
+      badge: "Job";
+    });
 
 export default function PublisherCommunitiesPage() {
   const [rows, setRows] = useState<PublisherCommunity[]>([]);
@@ -60,7 +69,7 @@ export default function PublisherCommunitiesPage() {
   const [xmlLoading, setXmlLoading] = useState(false);
   const [selectedProgramIds, setSelectedProgramIds] = useState<number[]>([]);
   const [selectedXmlRefs, setSelectedXmlRefs] = useState<string[]>([]);
-  /** What the publisher wants to attach: manual jobs, XML jobs, campaigns, or all. */
+  /** Jobs (manual + XML feed) and/or campaigns. */
   const [sourceKind, setSourceKind] = useState<SourceKind>("all");
   const [programSearch, setProgramSearch] = useState("");
   const [canInvite, setCanInvite] = useState(false);
@@ -68,6 +77,37 @@ export default function PublisherCommunitiesPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [membersCommunity, setMembersCommunity] =
+    useState<PublisherCommunity | null>(null);
+  const [communityMembers, setCommunityMembers] = useState<NetworkMemberRow[]>(
+    [],
+  );
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [canViewMemberEarnings, setCanViewMemberEarnings] = useState(false);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [memberDash, setMemberDash] = useState<{
+    member: NetworkMemberRow;
+    dashboard?: {
+      total_clicks: number;
+      valid_clicks: number;
+      ppr: number;
+      applications: number;
+      leads: number;
+      conversions: number;
+      actions_approved: number;
+      actions_pending: number;
+      total_earning_usd?: number | null;
+      settled_usd?: number | null;
+      pending_usd?: number | null;
+    };
+    recent?: Array<{
+      id: number;
+      activity_type: string;
+      title?: string | null;
+      occurred_at?: string | null;
+    }>;
+  } | null>(null);
+  const [memberDashLoading, setMemberDashLoading] = useState(false);
   const [name, setName] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
@@ -103,10 +143,31 @@ export default function PublisherCommunitiesPage() {
     [managers],
   );
 
+  const categoryNeedles = useMemo(
+    () =>
+      selectedCategories
+        .map((c) => c.trim().toLowerCase())
+        .filter(Boolean),
+    [selectedCategories],
+  );
+
+  const matchesSelectedCategories = (haystack: string) => {
+    if (categoryNeedles.length === 0) return true;
+    const hay = haystack.toLowerCase();
+    return categoryNeedles.some((needle) => {
+      if (hay.includes(needle) || needle.includes(hay)) return true;
+      return needle
+        .split(/[\s/,&-]+/)
+        .filter((t) => t.length >= 3)
+        .some((token) => hay.includes(token));
+    });
+  };
+
   const pickerItems = useMemo((): PickerItem[] => {
     const items: PickerItem[] = [];
-    const includePrograms = sourceKind === "all" || sourceKind === "job" || sourceKind === "campaign";
-    const includeXml = sourceKind === "all" || sourceKind === "job" || sourceKind === "xml";
+    const includePrograms =
+      sourceKind === "all" || sourceKind === "job" || sourceKind === "campaign";
+    const includeXml = sourceKind === "all" || sourceKind === "job";
 
     if (includePrograms) {
       for (const c of campaigns) {
@@ -115,16 +176,32 @@ export default function PublisherCommunitiesPage() {
           String(c.promotion_type ?? "").toLowerCase() === "job";
         if (sourceKind === "job" && !isJob) continue;
         if (sourceKind === "campaign" && isJob) continue;
+        if (
+          categoryNeedles.length > 0 &&
+          !matchesSelectedCategories(
+            [c.category, c.title, c.listing_title, c.promotion_type]
+              .filter(Boolean)
+              .join(" "),
+          )
+        ) {
+          continue;
+        }
+        const model = c.pricing_model
+          ? String(c.pricing_model).toUpperCase()
+          : "";
+        const rateText =
+          c.rate_usd != null ? formatMoney(Number(c.rate_usd), "USD") : undefined;
+        const note = c.assigned_community_count
+          ? `Already on ${c.assigned_community_count} other community${c.assigned_community_count === 1 ? "" : "ies"}`
+          : undefined;
         const meta = [
           (c.promotion_type || "campaign").toString(),
-          c.pricing_model ? String(c.pricing_model).toUpperCase() : null,
-          c.rate_usd != null ? formatMoney(Number(c.rate_usd), "USD") : null,
+          model || null,
+          rateText || null,
           c.employer || null,
           c.category || null,
           c.country_code || null,
-          c.assigned_community_count
-            ? `already on ${c.assigned_community_count} other community${c.assigned_community_count === 1 ? "" : "ies"}`
-            : null,
+          note || null,
         ]
           .filter(Boolean)
           .join(" · ");
@@ -135,6 +212,11 @@ export default function PublisherCommunitiesPage() {
           title: c.title,
           meta,
           badge: isJob ? "Job" : "Campaign",
+          rateText,
+          company: c.employer || undefined,
+          location: c.country_code || c.category || undefined,
+          model: model || undefined,
+          note,
           search: [c.title, c.listing_title, c.employer, c.category, c.country_code, c.promotion_type, c.pricing_model]
             .filter(Boolean)
             .join(" ")
@@ -147,13 +229,29 @@ export default function PublisherCommunitiesPage() {
       for (const job of xmlJobs) {
         const ref = (job.reference_id || "").trim();
         if (!ref) continue;
+        if (
+          categoryNeedles.length > 0 &&
+          !matchesSelectedCategories(
+            [job.category, job.title, job.jobtype, job.description_text]
+              .filter(Boolean)
+              .join(" "),
+          )
+        ) {
+          continue;
+        }
+        const rateText =
+          job.ppc_rate_usd != null
+            ? formatMoney(Number(job.ppc_rate_usd), "USD")
+            : undefined;
+        const location =
+          job.location_label || job.location || job.country || undefined;
         const meta = [
-          "XML feed",
-          job.ppc_rate_usd != null ? formatMoney(Number(job.ppc_rate_usd), "USD") : "PPC",
+          "job",
+          "PPC",
+          rateText || null,
           job.company || null,
           job.category || null,
-          job.location_label || job.location || null,
-          job.country || null,
+          location || null,
         ]
           .filter(Boolean)
           .join(" · ");
@@ -163,7 +261,11 @@ export default function PublisherCommunitiesPage() {
           xmlRef: ref,
           title: job.title || ref,
           meta,
-          badge: "XML",
+          badge: "Job",
+          rateText,
+          company: job.company || undefined,
+          location,
+          model: "PPC",
           search: [job.title, job.company, job.category, job.location, job.location_label, job.country, ref]
             .filter(Boolean)
             .join(" ")
@@ -173,7 +275,7 @@ export default function PublisherCommunitiesPage() {
     }
 
     return items;
-  }, [campaigns, xmlJobs, sourceKind]);
+  }, [campaigns, xmlJobs, sourceKind, categoryNeedles]);
 
   const filteredPrograms = useMemo(() => {
     const q = programSearch.trim().toLowerCase();
@@ -203,12 +305,9 @@ export default function PublisherCommunitiesPage() {
   };
 
   const loadCampaigns = (type: SourceKind = sourceKind) => {
-    if (type === "xml") {
-      setCampaigns([]);
-      return;
-    }
     setCampaignsLoading(true);
-    const marketType = type === "all" ? "all" : type === "job" ? "job" : "campaign";
+    const marketType =
+      type === "all" ? "all" : type === "job" ? "job" : "campaign";
     fetchPublisherMarketplace({ type: marketType })
       .then((list) => setCampaigns(list))
       .catch(() => setCampaigns([]))
@@ -233,18 +332,38 @@ export default function PublisherCommunitiesPage() {
   }, []);
 
   useEffect(() => {
-    if (sourceKind === "xml") {
-      setCampaigns([]);
+    if (sourceKind === "campaign") {
+      setXmlJobs([]);
+      loadCampaigns(sourceKind);
     } else {
       loadCampaigns(sourceKind);
-    }
-    if (sourceKind === "all" || sourceKind === "job" || sourceKind === "xml") {
       loadXmlJobs();
-    } else {
-      setXmlJobs([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when source kind changes
   }, [sourceKind]);
+
+  // When niches change, auto-select matching feed jobs for this community.
+  useEffect(() => {
+    if (categoryNeedles.length === 0) return;
+    const matchingXml = xmlJobs
+      .map((job) => (job.reference_id || "").trim())
+      .filter(Boolean)
+      .filter((ref) => {
+        const job = xmlJobs.find((j) => j.reference_id === ref);
+        if (!job) return false;
+        return matchesSelectedCategories(
+          [job.category, job.title, job.jobtype, job.description_text]
+            .filter(Boolean)
+            .join(" "),
+        );
+      });
+    if (matchingXml.length === 0) return;
+    setSelectedXmlRefs((prev) => {
+      const next = new Set([...prev, ...matchingXml]);
+      return [...next];
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryNeedles.join("|"), xmlJobs]);
 
   useEffect(() => {
     let cancelled = false;
@@ -342,6 +461,61 @@ export default function PublisherCommunitiesPage() {
     }
   }
 
+  async function openCommunityMembers(row: PublisherCommunity) {
+    setMembersCommunity(row);
+    setSelectedMemberId(null);
+    setMemberDash(null);
+    setMembersLoading(true);
+    setError(null);
+    try {
+      const res = await fetchPublisherMembers(row.id);
+      setCommunityMembers(res.members);
+      setCanViewMemberEarnings(Boolean(res.can_view_earnings));
+    } catch (err) {
+      setCommunityMembers([]);
+      setError(
+        err instanceof ApiClientError
+          ? err.message
+          : "Could not load community members.",
+      );
+    } finally {
+      setMembersLoading(false);
+    }
+  }
+
+  function closeCommunityMembers() {
+    setMembersCommunity(null);
+    setCommunityMembers([]);
+    setSelectedMemberId(null);
+    setMemberDash(null);
+  }
+
+  async function openMemberDashboard(memberId: number) {
+    setSelectedMemberId(memberId);
+    setMemberDashLoading(true);
+    setError(null);
+    try {
+      const res = await fetchPublisherMemberActivity(memberId);
+      setMemberDash({
+        member: res.member,
+        dashboard: res.dashboard,
+        recent: res.recent,
+      });
+      if (res.can_view_earnings != null) {
+        setCanViewMemberEarnings(res.can_view_earnings);
+      }
+    } catch (err) {
+      setMemberDash(null);
+      setError(
+        err instanceof ApiClientError
+          ? err.message
+          : "Could not load member dashboard.",
+      );
+    } finally {
+      setMemberDashLoading(false);
+    }
+  }
+
   async function onCreate(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -354,7 +528,7 @@ export default function PublisherCommunitiesPage() {
       return;
     }
     if (selectedProgramIds.length === 0 && selectedXmlRefs.length === 0) {
-      setError("Pick at least one job, XML job, or campaign for this community.");
+      setError("Pick at least one job or campaign for this community.");
       return;
     }
     setSaving(true);
@@ -461,7 +635,8 @@ export default function PublisherCommunitiesPage() {
   return (
     <>
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
+        <BackButton href="/publisher/dashboard" label="Back to dashboard" />
+        <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-violet-600">
           Communities
         </p>
         <h1 className="mt-1 text-3xl font-bold">Manage communities</h1>
@@ -525,7 +700,9 @@ export default function PublisherCommunitiesPage() {
                 emptyLabel="No matching niches"
               />
               <span className="mt-1.5 block text-[11px] font-normal normal-case tracking-normal text-slate-500">
-                Audience niches for this private community.
+                Jobs from the live XML feed are filtered and attached by these
+                niches. When the feed updates, community jobs refresh
+                automatically.
               </span>
             </label>
             <div className="sm:col-span-2">
@@ -565,17 +742,15 @@ export default function PublisherCommunitiesPage() {
                     Jobs & campaigns
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Choose manual jobs, XML feed jobs, or campaigns — filter,
-                    then select what this community can promote.
+                    Showing jobs for your selected niches. Feed jobs auto-attach
+                    and stay updated when the XML feed refreshes.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
-                    if (sourceKind !== "xml") loadCampaigns(sourceKind);
-                    if (sourceKind === "all" || sourceKind === "job" || sourceKind === "xml") {
-                      loadXmlJobs();
-                    }
+                    loadCampaigns(sourceKind);
+                    if (sourceKind !== "campaign") loadXmlJobs();
                   }}
                   className="text-xs font-semibold text-violet-700 hover:underline"
                 >
@@ -591,10 +766,9 @@ export default function PublisherCommunitiesPage() {
                     value={sourceKind}
                     onChange={(e) => setSourceKind(e.target.value as SourceKind)}
                   >
-                    <option value="all">All (jobs + XML + campaigns)</option>
-                    <option value="job">Jobs (manual + XML)</option>
-                    <option value="xml">XML jobs only</option>
-                    <option value="campaign">Campaigns only</option>
+                    <option value="all">All (jobs + campaigns)</option>
+                    <option value="job">Jobs</option>
+                    <option value="campaign">Campaigns</option>
                   </select>
                 </label>
                 <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -604,23 +778,23 @@ export default function PublisherCommunitiesPage() {
                     value={programSearch}
                     onChange={(e) => setProgramSearch(e.target.value)}
                     onBlur={() => {
-                      if (sourceKind === "all" || sourceKind === "job" || sourceKind === "xml") {
+                      if (sourceKind !== "campaign") {
                         loadXmlJobs(programSearch);
                       }
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
-                        if (sourceKind === "all" || sourceKind === "job" || sourceKind === "xml") {
+                        if (sourceKind !== "campaign") {
                           loadXmlJobs(programSearch);
                         }
                       }
                     }}
                     placeholder={
-                      sourceKind === "xml"
-                        ? "Search XML jobs by title, company, category…"
-                        : sourceKind === "job"
-                          ? "Search jobs by title, employer, category…"
+                      sourceKind === "job"
+                        ? "Search jobs by title, employer, category…"
+                        : sourceKind === "campaign"
+                          ? "Search campaigns by title, employer…"
                           : "Search by title, employer, type…"
                     }
                   />
@@ -649,49 +823,43 @@ export default function PublisherCommunitiesPage() {
                   {pickerItems.length !== filteredPrograms.length
                     ? ` of ${pickerItems.length}`
                     : ""}
-                  {xmlJobs.length > 0 ? ` · ${xmlJobs.length} XML` : ""}
+                  {xmlJobs.length > 0 && sourceKind !== "campaign"
+                    ? ` · ${xmlJobs.length} feed jobs`
+                    : ""}
                 </span>
               </div>
 
               {listLoading ? (
                 <p className="mt-3 text-sm text-slate-500">
                   Loading{" "}
-                  {sourceKind === "xml"
-                    ? "XML jobs"
-                    : sourceKind === "job"
-                      ? "jobs"
-                      : "campaigns"}
+                  {sourceKind === "job"
+                    ? "jobs"
+                    : sourceKind === "campaign"
+                      ? "campaigns"
+                      : "jobs & campaigns"}
                   …
                 </p>
               ) : pickerItems.length === 0 ? (
                 <div className="mt-3 rounded-xl border border-dashed border-violet-200 bg-white px-4 py-5 text-sm text-slate-600">
                   <p className="font-semibold text-[#172b63]">
                     No live{" "}
-                    {sourceKind === "xml"
-                      ? "XML jobs"
-                      : sourceKind === "job"
-                        ? "jobs"
-                        : "campaigns"}{" "}
+                    {sourceKind === "job"
+                      ? "jobs"
+                      : sourceKind === "campaign"
+                        ? "campaigns"
+                        : "jobs or campaigns"}{" "}
                     yet
                   </p>
                   <p className="mt-1 text-xs leading-5 text-slate-500">
-                    {sourceKind === "xml" ? (
-                      <>
-                        XML jobs come from Admin → Syndication feeds. Refresh the
-                        feed, then try again here.
-                      </>
-                    ) : (
-                      <>
-                        Launch one from Admin → Manual campaigns, or open{" "}
-                        <Link
-                          href="/publisher/marketplace"
-                          className="font-semibold text-violet-700 hover:underline"
-                        >
-                          Campaign Marketplace
-                        </Link>
-                        .
-                      </>
-                    )}
+                    Launch one from Admin → Manual campaigns / Syndication, or
+                    open{" "}
+                    <Link
+                      href="/publisher/marketplace"
+                      className="font-semibold text-violet-700 hover:underline"
+                    >
+                      Campaign Marketplace
+                    </Link>
+                    .
                   </p>
                 </div>
               ) : filteredPrograms.length === 0 ? (
@@ -699,50 +867,89 @@ export default function PublisherCommunitiesPage() {
                   No matches for this filter. Try another search or source type.
                 </p>
               ) : (
-                <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto">
-                  {filteredPrograms.map((item) => {
-                    const checked = isItemSelected(item);
-                    return (
-                      <li key={item.key}>
-                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 hover:border-violet-200">
-                          <input
-                            type="checkbox"
-                            className="mt-1"
-                            checked={checked}
-                            onChange={() => toggleItem(item)}
-                          />
-                          <span className="min-w-0 flex-1">
-                            <span className="flex flex-wrap items-center gap-2">
-                              <span className="text-sm font-semibold text-[#172b63]">
-                                {item.title}
-                              </span>
-                              <span
-                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                                  item.badge === "XML"
-                                    ? "bg-amber-50 text-amber-800"
-                                    : item.badge === "Job"
-                                      ? "bg-sky-50 text-sky-700"
-                                      : "bg-violet-50 text-violet-700"
-                                }`}
-                              >
-                                {item.badge}
-                              </span>
+                <div className="mt-3 max-h-[28rem] overflow-y-auto rounded-2xl border border-violet-100 bg-white/70 p-3">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                    {filteredPrograms.map((item) => {
+                      const checked = isItemSelected(item);
+                      return (
+                        <label
+                          key={item.key}
+                          className={`flex h-full cursor-pointer flex-col rounded-2xl border p-3 transition ${
+                            checked
+                              ? "border-violet-400 bg-violet-50 ring-2 ring-violet-200"
+                              : "border-slate-200 bg-white hover:border-violet-200 hover:bg-violet-50/40"
+                          }`}
+                        >
+                          <span className="flex items-start justify-between gap-2">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                                item.badge === "Job"
+                                  ? "bg-sky-50 text-sky-700"
+                                  : "bg-violet-50 text-violet-700"
+                              }`}
+                            >
+                              {item.badge}
                             </span>
-                            <span className="mt-0.5 block text-xs text-slate-500">
-                              {item.meta}
+                            <input
+                              type="checkbox"
+                              className="mt-0.5 h-4 w-4 accent-violet-600"
+                              checked={checked}
+                              onChange={() => toggleItem(item)}
+                            />
+                          </span>
+                          <span className="mt-2 line-clamp-2 text-sm font-bold leading-snug text-[#172b63]">
+                            {item.title}
+                          </span>
+                          {(item.company || item.location) ? (
+                            <span className="mt-1 line-clamp-1 text-xs text-slate-500">
+                              {[item.company, item.location]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            </span>
+                          ) : null}
+                          <span className="mt-auto flex flex-wrap items-end justify-between gap-2 pt-3">
+                            <span>
+                              {item.rateText ? (
+                                <span className="block text-base font-bold text-emerald-700">
+                                  {item.rateText}
+                                </span>
+                              ) : (
+                                <span className="block text-xs font-semibold text-slate-400">
+                                  Rate TBD
+                                </span>
+                              )}
+                              {item.model ? (
+                                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                  {item.model}
+                                </span>
+                              ) : null}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                checked
+                                  ? "bg-violet-600 text-white"
+                                  : "bg-slate-100 text-slate-500"
+                              }`}
+                            >
+                              {checked ? "Selected" : "Select"}
                             </span>
                           </span>
+                          {item.note ? (
+                            <span className="mt-2 line-clamp-2 text-[10px] text-slate-400">
+                              {item.note}
+                            </span>
+                          ) : null}
                         </label>
-                      </li>
-                    );
-                  })}
-                </ul>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
               {selectedCount > 0 ? (
                 <p className="mt-2 text-xs font-semibold text-violet-700">
                   {selectedCount} selected
                   {selectedXmlRefs.length > 0
-                    ? ` · ${selectedXmlRefs.length} XML`
+                    ? ` · ${selectedXmlRefs.length} feed jobs`
                     : ""}
                 </p>
               ) : null}
@@ -855,7 +1062,12 @@ export default function PublisherCommunitiesPage() {
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="font-bold text-[#172b63]">{row.name}</p>
+                    <Link
+                      href={publisherCommunityPath(row.id, { from: "communities" })}
+                      className="font-bold text-[#172b63] hover:text-violet-700"
+                    >
+                      {row.name}
+                    </Link>
                     <p className="mt-1 text-xs text-slate-500">
                       {row.code}
                       {row.categories && row.categories.length > 0
@@ -863,27 +1075,50 @@ export default function PublisherCommunitiesPage() {
                         : row.category
                           ? ` · ${row.category}`
                           : ""}
-                      {" · "}
-                      {row.members_count} members
                       {row.commission_percent != null
                         ? ` · ${Number(row.commission_percent)}% commission`
                         : ""}
                       {" · "}
                       Selected campaigns
                       {row.xml_jobs_count
-                        ? ` · ${row.xml_jobs_count} XML jobs`
+                        ? ` · ${row.xml_jobs_count} feed jobs`
                         : ""}
                       {row.manager
                         ? ` · Manager: ${row.manager.name}`
                         : " · No manager"}
                     </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Link
+                        href={publisherCommunityPath(row.id, { from: "communities" })}
+                        className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-bold text-violet-800 hover:bg-violet-100"
+                      >
+                        {row.members_count} member
+                        {row.members_count === 1 ? "" : "s"} · dashboard
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => void openCommunityMembers(row)}
+                        className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700 hover:border-violet-200"
+                      >
+                        Quick members
+                      </button>
+                      <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700">
+                        {row.clicks_total ?? 0} clicks
+                      </span>
+                    </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={publisherCommunityPath(row.id, { from: "communities" })}
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700"
+                    >
+                      Dashboard
+                    </Link>
                     <Link
                       href={`/publisher/network?community=${row.id}`}
                       className="rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-3 py-1.5 text-xs font-bold text-white"
                     >
-                      Invite Team
+                      Performance Team
                     </Link>
                     <span
                       className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
@@ -959,6 +1194,217 @@ export default function PublisherCommunitiesPage() {
           </ul>
         )}
       </div>
+
+      {membersCommunity ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-4 sm:items-center">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${membersCommunity.name} members`}
+            className="max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl"
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-violet-600">
+                  Community members
+                </p>
+                <h3 className="mt-1 text-xl font-bold text-[#172b63]">
+                  {membersCommunity.name}
+                </h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  {membersCommunity.members_count} members ·{" "}
+                  {membersCommunity.clicks_total ?? 0} total clicks. Click a
+                  member to open their dashboard.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeCommunityMembers}
+                className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid max-h-[calc(90vh-5rem)] gap-0 overflow-y-auto lg:grid-cols-2">
+              <div className="border-b border-slate-100 p-4 lg:border-b-0 lg:border-r">
+                {membersLoading ? (
+                  <ListSkeleton rows={4} />
+                ) : communityMembers.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                    No members in this community yet.{" "}
+                    <Link
+                      href={`/publisher/network?community=${membersCommunity.id}`}
+                      className="font-semibold text-violet-700"
+                    >
+                      Performance Team
+                    </Link>
+                  </p>
+                ) : (
+                  <ul className="space-y-2">
+                    {communityMembers.map((m) => {
+                      const active = selectedMemberId === m.id;
+                      return (
+                        <li key={m.id}>
+                          <button
+                            type="button"
+                            onClick={() => void openMemberDashboard(m.id)}
+                            className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                              active
+                                ? "border-violet-300 bg-violet-50"
+                                : "border-slate-100 bg-slate-50 hover:border-violet-200"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <p className="font-bold text-[#172b63]">
+                                  {m.display_name || "Member"}
+                                </p>
+                                <p className="text-xs text-slate-500">{m.email}</p>
+                              </div>
+                              <span
+                                className={`text-[10px] font-bold uppercase ${
+                                  m.status === "active"
+                                    ? "text-emerald-700"
+                                    : "text-amber-700"
+                                }`}
+                              >
+                                {m.status}
+                              </span>
+                            </div>
+                            <p className="mt-2 text-xs font-semibold text-slate-600">
+                              {m.activity?.clicks_total ?? 0} clicks ·{" "}
+                              {m.activity?.signups ?? 0} PPR
+                              {canViewMemberEarnings && m.earnings
+                                ? ` · ${formatMoney(m.earnings.total_usd, "USD")} earning`
+                                : ""}
+                            </p>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              <div className="p-4">
+                {!selectedMemberId ? (
+                  <p className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
+                    Select a member to view total earning, clicks, PPR, and
+                    recent track.
+                  </p>
+                ) : memberDashLoading ? (
+                  <ListSkeleton rows={5} />
+                ) : !memberDash ? (
+                  <p className="text-sm text-slate-500">
+                    Could not load this member dashboard.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-lg font-bold text-[#172b63]">
+                        {memberDash.member.display_name || "Member"}
+                      </h4>
+                      <p className="text-sm text-slate-500">
+                        {memberDash.member.email} · {memberDash.member.status}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      {(
+                        [
+                          [
+                            "Total earning",
+                            canViewMemberEarnings
+                              ? formatMoney(
+                                  Number(
+                                    memberDash.dashboard?.total_earning_usd ?? 0,
+                                  ),
+                                  "USD",
+                                )
+                              : "—",
+                          ],
+                          [
+                            "Total clicks",
+                            memberDash.dashboard?.total_clicks ?? 0,
+                          ],
+                          ["PPR", memberDash.dashboard?.ppr ?? 0],
+                          [
+                            "Applications",
+                            memberDash.dashboard?.applications ?? 0,
+                          ],
+                          ["Leads", memberDash.dashboard?.leads ?? 0],
+                          [
+                            "Conversions",
+                            memberDash.dashboard?.conversions ?? 0,
+                          ],
+                        ] as Array<[string, string | number]>
+                      ).map(([label, value]) => (
+                        <div
+                          key={label}
+                          className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
+                        >
+                          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                            {label}
+                          </p>
+                          <p className="mt-1 text-base font-bold text-[#172b63]">
+                            {value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {canViewMemberEarnings ? (
+                      <p className="text-xs text-slate-500">
+                        Settled{" "}
+                        {formatMoney(
+                          Number(memberDash.dashboard?.settled_usd ?? 0),
+                          "USD",
+                        )}{" "}
+                        · Pending{" "}
+                        {formatMoney(
+                          Number(memberDash.dashboard?.pending_usd ?? 0),
+                          "USD",
+                        )}
+                      </p>
+                    ) : null}
+
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                        Recent track
+                      </p>
+                      {(memberDash.recent ?? []).length === 0 ? (
+                        <p className="mt-2 text-sm text-slate-500">
+                          No share activity yet.
+                        </p>
+                      ) : (
+                        <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto text-xs text-slate-600">
+                          {(memberDash.recent ?? []).slice(0, 15).map((ev) => (
+                            <li
+                              key={ev.id}
+                              className="flex justify-between gap-2 rounded-lg bg-slate-50 px-2 py-1.5"
+                            >
+                              <span className="truncate font-semibold">
+                                {ev.activity_type}
+                                {ev.title ? ` · ${ev.title}` : ""}
+                              </span>
+                              <span className="shrink-0 text-slate-400">
+                                {ev.occurred_at
+                                  ? new Date(ev.occurred_at).toLocaleString()
+                                  : ""}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

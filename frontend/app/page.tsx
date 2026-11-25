@@ -17,7 +17,7 @@ export default function Home() {
       <EarningsCalculator />
       <HowItWorks />
       <OpportunitiesSlider />
-      <FAQSection />
+        <FAQSection />
     </>
   );
 }

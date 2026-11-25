@@ -30,6 +30,7 @@ export type SyndicationFilters = JobMasterFilters;
 
 export type SyndicationQuery = {
   search?: string;
+  category?: string;
   category_id?: number;
   city_id?: number;
   state_id?: number;

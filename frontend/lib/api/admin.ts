@@ -115,12 +115,155 @@ export function adminCreatePayoutBatch(mode: "auto" | "manual" = "manual") {
   });
 }
 
-export function adminCompletePayoutBatch(batchId: number) {
+export function adminCompletePayoutBatch(
+  batchId: number,
+  input: {
+    evidence: File;
+    evidence_note?: string;
+    external_reference?: string;
+  },
+) {
+  const body = new FormData();
+  body.append("evidence", input.evidence);
+  if (input.evidence_note) body.append("evidence_note", input.evidence_note);
+  if (input.external_reference) {
+    body.append("external_reference", input.external_reference);
+  }
   return apiFetch<Record<string, unknown>>(
     `/api/v1/admin/payouts/batches/${batchId}/complete`,
     {
       method: "POST",
       auth: true,
+      body,
+    },
+  );
+}
+
+export function adminPayoutBatchEvidenceUrl(batchId: number) {
+  return `/api/v1/admin/payouts/batches/${batchId}/evidence`;
+}
+
+export type AdminPublisherPayoutRow = {
+  publisher_id: number;
+  code: string;
+  username: string;
+  display_name: string;
+  payable_usd: number;
+  pending_usd: number;
+  paid_usd: number;
+  owner_name?: string | null;
+  owner_email?: string | null;
+};
+
+export function adminPublisherPayoutPreview() {
+  return apiFetch<{
+    publishers: AdminPublisherPayoutRow[];
+    total_usd: number;
+    count: number;
+  }>("/api/v1/admin/payouts/publishers/preview", { auth: true });
+}
+
+export function adminPublisherPayoutReleases() {
+  return apiFetch<{
+    releases: Array<{
+      publisher_id: number;
+      code?: string | null;
+      display_name?: string | null;
+      amount_usd: number;
+      entries: number;
+      paid_at?: string | null;
+      reference?: string | null;
+      evidence?: {
+        has_evidence: boolean;
+        evidence_original_name?: string | null;
+      };
+    }>;
+  }>("/api/v1/admin/payouts/publishers/releases", { auth: true });
+}
+
+export function adminReleasePublisherPayout(
+  publisherId: number,
+  input: {
+    evidence: File;
+    evidence_note?: string;
+    external_reference?: string;
+  },
+) {
+  const body = new FormData();
+  body.append("evidence", input.evidence);
+  if (input.evidence_note) body.append("evidence_note", input.evidence_note);
+  if (input.external_reference) {
+    body.append("external_reference", input.external_reference);
+  }
+  return apiFetch<{
+    publisher_id: number;
+    code: string;
+    display_name: string;
+    released_usd: number;
+    entries_paid: number;
+    evidence?: { has_evidence: boolean };
+    balances?: Record<string, number>;
+  }>(`/api/v1/admin/payouts/publishers/${publisherId}/release`, {
+    method: "POST",
+    auth: true,
+    body,
+  });
+}
+
+export type AdminWithdrawalRow = import("@/lib/api/wallet").WithdrawalRow;
+
+export function adminListWithdrawals(params?: {
+  status?: string;
+  role?: string;
+  limit?: number;
+}) {
+  const q = new URLSearchParams();
+  if (params?.status) q.set("status", params.status);
+  if (params?.role) q.set("role", params.role);
+  if (params?.limit) q.set("limit", String(params.limit));
+  const query = q.toString();
+  return apiFetch<{ withdrawals: AdminWithdrawalRow[] }>(
+    `/api/v1/admin/withdrawals${query ? `?${query}` : ""}`,
+    { auth: true },
+  );
+}
+
+export function adminRejectWithdrawal(
+  withdrawalId: number,
+  input?: { admin_note?: string },
+) {
+  return apiFetch<AdminWithdrawalRow>(
+    `/api/v1/admin/withdrawals/${withdrawalId}/reject`,
+    {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify(input ?? {}),
+    },
+  );
+}
+
+export function adminPayWithdrawal(
+  withdrawalId: number,
+  input: {
+    evidence: File;
+    evidence_note?: string;
+    external_reference?: string;
+    admin_note?: string;
+  },
+) {
+  const body = new FormData();
+  body.append("evidence", input.evidence);
+  if (input.evidence_note) body.append("evidence_note", input.evidence_note);
+  if (input.external_reference) {
+    body.append("external_reference", input.external_reference);
+  }
+  if (input.admin_note) body.append("admin_note", input.admin_note);
+  return apiFetch<AdminWithdrawalRow>(
+    `/api/v1/admin/withdrawals/${withdrawalId}/pay`,
+    {
+      method: "POST",
+      auth: true,
+      body,
     },
   );
 }
@@ -814,15 +957,67 @@ export type AdminPublisherRow = {
   network_type: string;
   status: string;
   status_label: string;
+  social_url?: string | null;
+  website_url?: string | null;
+  communities_count?: number;
+  members_count?: number;
+  payable_usd?: number;
+  paid_usd?: number;
+  lifetime_net_usd?: number;
+  owner?: { id: number; name?: string | null; email?: string | null } | null;
+  created_at?: string | null;
+  activated_at?: string | null;
+};
+
+export function adminListPublishers(status = "all", search?: string) {
+  const q = new URLSearchParams();
+  if (status && status !== "all") q.set("status", status);
+  if (search?.trim()) q.set("search", search.trim());
+  const query = q.toString();
+  return apiFetch<{ publishers: AdminPublisherRow[]; total?: number }>(
+    `/api/v1/admin/publishers${query ? `?${query}` : ""}`,
+    { auth: true },
+  ).then((d) => d.publishers);
+}
+
+export type AdminCommunityRow = {
+  id: number;
+  code: string;
+  name: string;
+  category?: string | null;
+  status: string;
+  country_code?: string | null;
+  commission_percent?: number | null;
+  members_active: number;
+  members_total: number;
+  xml_jobs_count: number;
+  manager?: { id: number; name?: string | null; email?: string | null } | null;
+  publisher?: {
+    id: number;
+    code: string;
+    username: string;
+    display_name: string;
+    status: string;
+  } | null;
   created_at?: string | null;
 };
 
-export function adminListPublishers(status = "all") {
-  const q = status && status !== "all" ? `?status=${encodeURIComponent(status)}` : "";
-  return apiFetch<{ publishers: AdminPublisherRow[] }>(
-    `/api/v1/admin/publishers${q}`,
+export function adminListCommunities(params?: {
+  status?: string;
+  publisher_id?: number;
+  search?: string;
+  limit?: number;
+}) {
+  const q = new URLSearchParams();
+  if (params?.status && params.status !== "all") q.set("status", params.status);
+  if (params?.publisher_id) q.set("publisher_id", String(params.publisher_id));
+  if (params?.search) q.set("search", params.search);
+  if (params?.limit) q.set("limit", String(params.limit));
+  const query = q.toString();
+  return apiFetch<{ communities: AdminCommunityRow[]; total: number }>(
+    `/api/v1/admin/communities${query ? `?${query}` : ""}`,
     { auth: true },
-  ).then((d) => d.publishers);
+  );
 }
 
 export function adminActivatePublisher(id: number) {

@@ -32,32 +32,67 @@ class EarningsController extends Controller
             ->orderByDesc('version')
             ->first();
 
-        $byAssignment = PublisherCampaignAssignment::query()
+        $assignments = PublisherCampaignAssignment::query()
             ->where('publisher_id', $publisher->id)
             ->with(['program:id,title,pricing_model', 'community:id,code,name'])
-            ->get()
-            ->map(function (PublisherCampaignAssignment $a) {
-                $credited = PublisherLedgerEntry::query()
-                    ->where('campaign_assignment_id', $a->id)
-                    ->whereIn('entry_type', ['credit', 'adjustment'])
-                    ->whereIn('state', ['approved', 'payable', 'paid'])
-                    ->sum('net_usd');
-                $reversed = PublisherLedgerEntry::query()
-                    ->where('campaign_assignment_id', $a->id)
-                    ->where('entry_type', 'reversal')
-                    ->sum('net_usd');
+            ->get();
 
-                return [
-                    'assignment_id' => $a->id,
-                    'program_title' => $a->program?->title,
-                    'community_name' => $a->community?->name ?? 'All members',
-                    'pricing_model' => $a->pricing_model,
-                    'accepted_rate_usd' => $a->accepted_rate_usd,
-                    'rate_version' => $a->rate_version,
-                    'status' => $a->status,
-                    'credited_net_usd' => round((float) $credited - abs((float) $reversed), 4),
-                ];
-            });
+        $assignmentIds = $assignments->pluck('id')->all();
+        $ledgerByAssignment = collect();
+        if ($assignmentIds !== []) {
+            $ledgerByAssignment = PublisherLedgerEntry::query()
+                ->where('publisher_id', $publisher->id)
+                ->whereIn('campaign_assignment_id', $assignmentIds)
+                ->with(['community:id,code,name', 'campaignAssignment.program:id,title,pricing_model'])
+                ->orderByDesc('id')
+                ->get()
+                ->groupBy('campaign_assignment_id');
+        }
+
+        $byAssignment = $assignments->map(function (PublisherCampaignAssignment $a) use ($ledgerByAssignment) {
+            $entries = $ledgerByAssignment->get($a->id, collect());
+            $credited = (float) $entries
+                ->whereIn('entry_type', ['credit', 'adjustment'])
+                ->whereIn('state', ['approved', 'payable', 'paid'])
+                ->sum('net_usd');
+            $reversed = (float) $entries
+                ->where('entry_type', 'reversal')
+                ->sum('net_usd');
+            $pending = (float) $entries
+                ->whereIn('entry_type', ['credit', 'adjustment'])
+                ->where('state', 'pending')
+                ->sum('net_usd');
+            $paid = (float) $entries
+                ->whereIn('entry_type', ['credit', 'adjustment'])
+                ->where('state', 'paid')
+                ->sum('net_usd');
+            $payable = (float) $entries
+                ->whereIn('entry_type', ['credit', 'adjustment'])
+                ->where('state', 'payable')
+                ->sum('net_usd');
+
+            $model = strtolower((string) ($a->pricing_model ?: $a->program?->pricing_model ?: 'other'));
+            if (! in_array($model, ['ppc', 'ppr', 'ppa', 'ppe'], true)) {
+                $model = 'other';
+            }
+
+            return [
+                'assignment_id' => $a->id,
+                'program_title' => $a->program?->title,
+                'community_name' => $a->community?->name ?? 'All members',
+                'pricing_model' => $model,
+                'accepted_rate_usd' => $a->accepted_rate_usd,
+                'rate_version' => $a->rate_version,
+                'status' => $a->status,
+                'credited_net_usd' => round($credited - abs($reversed), 4),
+                'pending_usd' => round($pending, 4),
+                'payable_usd' => round($payable, 4),
+                'paid_usd' => round($paid, 4),
+                'entries' => $entries->take(20)->map(fn (PublisherLedgerEntry $e) => $this->serializeEntry($e))->values()->all(),
+            ];
+        });
+
+        $byModel = $this->aggregateByPricingModel($byAssignment->all());
 
         $memberSettlementsPending = MemberSettlementRecord::query()
             ->where('publisher_id', $publisher->id)
@@ -66,9 +101,13 @@ class EarningsController extends Controller
 
         $recent = PublisherLedgerEntry::query()
             ->where('publisher_id', $publisher->id)
-            ->with(['community:id,code,name'])
+            ->with([
+                'community:id,code,name',
+                'campaignAssignment:id,pricing_model,program_id',
+                'campaignAssignment.program:id,title,pricing_model',
+            ])
             ->latest('id')
-            ->limit(15)
+            ->limit(80)
             ->get()
             ->map(fn (PublisherLedgerEntry $e) => $this->serializeEntry($e));
 
@@ -88,15 +127,69 @@ class EarningsController extends Controller
             'platform_fee_percent' => PublisherCommissionSplit::PLATFORM_FEE_PERCENT,
             'permitted_percentages' => PublisherCommissionSplit::permittedPublisherPercents(),
             'example_split' => PublisherCommissionSplit::split(10, $publisherPct),
-            'note' => 'Check Earnings: JobOrio keeps 30% platform fee. Your commission is 10–15% of the remaining creator pool. Member/creator payouts are separate.',
+            'note' => 'Earning: JobOrio keeps 30% platform fee. Your commission is 10–15% of the remaining creator pool. Member/creator payouts are separate.',
+            'by_model' => $byModel,
             'by_assignment' => $byAssignment,
             'member_settlements_pending' => $memberSettlementsPending,
             'recent_entries' => $recent,
         ]);
     }
 
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     * @return list<array{pricing_model: string, label: string, credited_net_usd: float, pending_usd: float, assignment_count: int}>
+     */
+    private function aggregateByPricingModel(array $rows): array
+    {
+        $labels = [
+            'ppc' => 'PPC · Pay Per Click',
+            'ppr' => 'PPR · Pay Per Registration',
+            'ppa' => 'PPA · Pay Per Action',
+            'ppe' => 'PPE · Pay Per Engagement',
+            'other' => 'Other',
+        ];
+
+        $bucket = [];
+        foreach (array_keys($labels) as $key) {
+            $bucket[$key] = [
+                'pricing_model' => $key,
+                'label' => $labels[$key],
+                'credited_net_usd' => 0.0,
+                'pending_usd' => 0.0,
+                'assignment_count' => 0,
+            ];
+        }
+
+        foreach ($rows as $row) {
+            $model = strtolower((string) ($row['pricing_model'] ?? 'other'));
+            if (! isset($bucket[$model])) {
+                $model = 'other';
+            }
+            $bucket[$model]['credited_net_usd'] += (float) ($row['credited_net_usd'] ?? 0);
+            $bucket[$model]['pending_usd'] += (float) ($row['pending_usd'] ?? 0);
+            $bucket[$model]['assignment_count']++;
+        }
+
+        foreach ($bucket as &$item) {
+            $item['credited_net_usd'] = round($item['credited_net_usd'], 4);
+            $item['pending_usd'] = round($item['pending_usd'], 4);
+        }
+        unset($item);
+
+        // Always return PPC/PPE/etc. so the UI can show empty cards.
+        return array_values($bucket);
+    }
+
     private function serializeEntry(PublisherLedgerEntry $e): array
     {
+        $assignment = $e->relationLoaded('campaignAssignment') ? $e->campaignAssignment : null;
+        $model = strtolower((string) ($assignment?->pricing_model
+            ?: $assignment?->program?->pricing_model
+            ?: 'other'));
+        if (! in_array($model, ['ppc', 'ppr', 'ppa', 'ppe'], true)) {
+            $model = $assignment ? 'other' : null;
+        }
+
         return [
             'id' => $e->id,
             'entry_type' => $e->entry_type,
@@ -108,6 +201,9 @@ class EarningsController extends Controller
             'currency' => $e->currency,
             'reference' => $e->reference,
             'community_name' => $e->community?->name,
+            'campaign_assignment_id' => $e->campaign_assignment_id,
+            'program_title' => $assignment?->program?->title,
+            'pricing_model' => $model,
             'reverses_ledger_id' => $e->reverses_ledger_id,
             'occurred_at' => optional($e->occurred_at)?->toIso8601String(),
             'approved_at' => optional($e->approved_at)?->toIso8601String(),

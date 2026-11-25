@@ -12,8 +12,11 @@ use App\Models\Listing;
 use App\Models\PpaApplication;
 use App\Models\PprRegistration;
 use App\Models\Program;
+use App\Models\Publisher;
+use App\Models\PublisherCommunity;
 use App\Models\SyndicationFeed;
 use App\Models\User;
+use App\Models\WithdrawalRequest;
 use App\Services\Syndication\JobrapidoFeedService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -60,6 +63,22 @@ class AdminDashboardController extends Controller
                 'syndication_jobs' => count($syndication['jobs']),
                 'syndication_feeds' => $feeds->where('is_active', true)->count(),
                 'syndication_feeds_total' => $feeds->count(),
+                'publishers' => Publisher::count(),
+                'publishers_activated' => Publisher::where('status', Publisher::STATUS_ACTIVATED)->count(),
+                'publishers_pending' => Publisher::whereIn('status', [
+                    Publisher::STATUS_SUBMITTED,
+                    Publisher::STATUS_EMAIL_VERIFIED,
+                    Publisher::STATUS_SOCIAL_REVIEWED,
+                    Publisher::STATUS_COMMERCIAL_APPROVED,
+                ])->count(),
+                'communities' => PublisherCommunity::count(),
+                'communities_active' => PublisherCommunity::where('status', 'active')->count(),
+                'withdrawals_pending' => $this->safeCount(
+                    fn () => WithdrawalRequest::where('status', 'pending')->count(),
+                ),
+                'withdrawals_total' => $this->safeCount(
+                    fn () => WithdrawalRequest::count(),
+                ),
             ],
             'syndication_source' => $syndication['source'],
             'syndication_feeds' => $feeds,
@@ -67,5 +86,17 @@ class AdminDashboardController extends Controller
             'recent_signups' => $recentSignups,
             'click_dedup_minutes' => (int) config('joborio.click_dedup_minutes', 10),
         ]);
+    }
+
+    /**
+     * Avoid breaking overview when a migration has not been applied yet.
+     */
+    private function safeCount(callable $fn): int
+    {
+        try {
+            return (int) $fn();
+        } catch (\Throwable) {
+            return 0;
+        }
     }
 }

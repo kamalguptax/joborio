@@ -87,6 +87,8 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const { auth = false, headers, ...rest } = options;
   const token = auth ? getAuthToken() : null;
+  const isFormData =
+    typeof FormData !== "undefined" && rest.body instanceof FormData;
 
   let res: Response;
   try {
@@ -94,7 +96,7 @@ export async function apiFetch<T>(
       ...rest,
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json",
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },

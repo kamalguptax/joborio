@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchNiches } from "@/lib/api/creator";
 import NicheSearch from "@/components/jobs/NicheSearch";
+import IndustryKeywordSelect from "@/components/job-preferences/IndustryKeywordSelect";
 import { toast } from "@/components/ui/Toast";
 import PromoteJobTypes from "@/components/jobs/PromoteJobTypes";
 import { readPromoteJobTypes, savePromoteJobTypes } from "@/lib/jobs/promoteTypes";
@@ -85,6 +86,17 @@ const chipOn = "bg-indigo-600 text-white";
 const chipOff = "bg-slate-100 text-slate-600 hover:bg-slate-200";
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10";
+
+const SALARY_RANGE_MIN = 0;
+const SALARY_RANGE_MAX = 200_000;
+const SALARY_RANGE_STEP = 1_000;
+
+function clampSalary(n: number): number {
+  return Math.min(
+    SALARY_RANGE_MAX,
+    Math.max(SALARY_RANGE_MIN, Math.round(n / SALARY_RANGE_STEP) * SALARY_RANGE_STEP),
+  );
+}
 
 function ChipInput({
   label,
@@ -299,19 +311,20 @@ export default function JobPreferencesForm({
         <p className="text-xs font-bold uppercase tracking-wider text-violet-600">
           02 · Search & targeting
         </p>
+        <div className="mt-4">
+          <IndustryKeywordSelect
+            industry={targeting.industry}
+            keywords={targeting.keywords}
+            onIndustryChange={(industry) =>
+              setTargeting((t) => ({ ...t, industry }))
+            }
+            onKeywordsChange={(keywords) =>
+              setTargeting((t) => ({ ...t, keywords }))
+            }
+          />
+        </div>
+
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <ChipInput
-            label="Keywords"
-            values={targeting.keywords}
-            onChange={(keywords) => setTargeting((t) => ({ ...t, keywords }))}
-            placeholder="e.g. React, product manager"
-          />
-          <ChipInput
-            label="Industry"
-            values={targeting.industry}
-            onChange={(industry) => setTargeting((t) => ({ ...t, industry }))}
-            placeholder="e.g. Fintech, EdTech"
-          />
           <ChipInput
             label="Brands / Employer"
             values={targeting.brands}
@@ -414,42 +427,143 @@ export default function JobPreferencesForm({
         ) : (
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {visibleKeys.includes("salary") ? (
-              <>
-                <label className="block text-sm font-semibold">
-                  Salary min ({targeting.currency})
-                  <input
-                    type="number"
-                    min={0}
-                    className={field}
-                    value={prefs.salary_min ?? ""}
-                    onChange={(e) =>
-                      setPrefs((p) => ({
-                        ...p,
-                        salary_min: e.target.value
-                          ? Number(e.target.value)
-                          : null,
-                      }))
-                    }
+              <div className="sm:col-span-2">
+                <div className="flex flex-wrap items-end justify-between gap-2">
+                  <p className="text-sm font-semibold">
+                    Salary range ({targeting.currency})
+                  </p>
+                  <p className="text-xs font-semibold tabular-nums text-violet-700">
+                    {Number(prefs.salary_min ?? SALARY_RANGE_MIN).toLocaleString()}{" "}
+                    –{" "}
+                    {Number(
+                      prefs.salary_max ?? SALARY_RANGE_MAX,
+                    ).toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="relative mt-5 h-6">
+                  <div className="absolute left-0 right-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-slate-200" />
+                  <div
+                    className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600"
+                    style={{
+                      left: `${
+                        ((Number(prefs.salary_min ?? SALARY_RANGE_MIN) -
+                          SALARY_RANGE_MIN) /
+                          (SALARY_RANGE_MAX - SALARY_RANGE_MIN)) *
+                        100
+                      }%`,
+                      right: `${
+                        100 -
+                        ((Number(prefs.salary_max ?? SALARY_RANGE_MAX) -
+                          SALARY_RANGE_MIN) /
+                          (SALARY_RANGE_MAX - SALARY_RANGE_MIN)) *
+                          100
+                      }%`,
+                    }}
                   />
-                </label>
-                <label className="block text-sm font-semibold">
-                  Salary max ({targeting.currency})
                   <input
-                    type="number"
-                    min={0}
-                    className={field}
-                    value={prefs.salary_max ?? ""}
-                    onChange={(e) =>
-                      setPrefs((p) => ({
-                        ...p,
-                        salary_max: e.target.value
-                          ? Number(e.target.value)
-                          : null,
-                      }))
-                    }
+                    type="range"
+                    min={SALARY_RANGE_MIN}
+                    max={SALARY_RANGE_MAX}
+                    step={SALARY_RANGE_STEP}
+                    value={Number(prefs.salary_min ?? SALARY_RANGE_MIN)}
+                    onChange={(e) => {
+                      const next = clampSalary(Number(e.target.value));
+                      setPrefs((p) => {
+                        const max = Number(p.salary_max ?? SALARY_RANGE_MAX);
+                        return {
+                          ...p,
+                          salary_min: next,
+                          salary_max: next > max ? next : p.salary_max ?? SALARY_RANGE_MAX,
+                        };
+                      });
+                    }}
+                    className="pointer-events-none absolute inset-0 z-20 w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-indigo-600 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-20 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-600"
+                    aria-label="Salary minimum"
                   />
-                </label>
-              </>
+                  <input
+                    type="range"
+                    min={SALARY_RANGE_MIN}
+                    max={SALARY_RANGE_MAX}
+                    step={SALARY_RANGE_STEP}
+                    value={Number(prefs.salary_max ?? SALARY_RANGE_MAX)}
+                    onChange={(e) => {
+                      const next = clampSalary(Number(e.target.value));
+                      setPrefs((p) => {
+                        const min = Number(p.salary_min ?? SALARY_RANGE_MIN);
+                        return {
+                          ...p,
+                          salary_max: next,
+                          salary_min: next < min ? next : p.salary_min ?? SALARY_RANGE_MIN,
+                        };
+                      });
+                    }}
+                    className="pointer-events-none absolute inset-0 z-30 w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-violet-600 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-30 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-600"
+                    aria-label="Salary maximum"
+                  />
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <label className="block text-sm font-semibold">
+                    Salary min ({targeting.currency})
+                    <input
+                      type="number"
+                      min={SALARY_RANGE_MIN}
+                      max={SALARY_RANGE_MAX}
+                      step={SALARY_RANGE_STEP}
+                      className={field}
+                      value={prefs.salary_min ?? ""}
+                      onChange={(e) => {
+                        if (!e.target.value) {
+                          setPrefs((p) => ({ ...p, salary_min: null }));
+                          return;
+                        }
+                        const next = clampSalary(Number(e.target.value));
+                        setPrefs((p) => {
+                          const max = Number(p.salary_max ?? SALARY_RANGE_MAX);
+                          return {
+                            ...p,
+                            salary_min: next,
+                            salary_max:
+                              p.salary_max != null && next > max ? next : p.salary_max,
+                          };
+                        });
+                      }}
+                    />
+                  </label>
+                  <label className="block text-sm font-semibold">
+                    Salary max ({targeting.currency})
+                    <input
+                      type="number"
+                      min={SALARY_RANGE_MIN}
+                      max={SALARY_RANGE_MAX}
+                      step={SALARY_RANGE_STEP}
+                      className={field}
+                      value={prefs.salary_max ?? ""}
+                      onChange={(e) => {
+                        if (!e.target.value) {
+                          setPrefs((p) => ({ ...p, salary_max: null }));
+                          return;
+                        }
+                        const next = clampSalary(Number(e.target.value));
+                        setPrefs((p) => {
+                          const min = Number(p.salary_min ?? SALARY_RANGE_MIN);
+                          return {
+                            ...p,
+                            salary_max: next,
+                            salary_min:
+                              p.salary_min != null && next < min ? next : p.salary_min,
+                          };
+                        });
+                      }}
+                    />
+                  </label>
+                </div>
+                <p className="mt-2 text-[11px] text-slate-400">
+                  Drag the range or type exact amounts (0 –{" "}
+                  {SALARY_RANGE_MAX.toLocaleString()} {targeting.currency}).
+                </p>
+              </div>
             ) : null}
 
             {visibleKeys.includes("experience") ? (

@@ -184,6 +184,13 @@ export function fetchCreatorEarnings(page = 1) {
   );
 }
 
+export function fetchCreatorWallet() {
+  return apiFetch<import("@/lib/api/wallet").AccountWallet>(
+    "/api/v1/creator/wallet",
+    { auth: true },
+  );
+}
+
 export type CreatorRegistrationRow = {
   id: number;
   email_masked: string;
@@ -349,6 +356,8 @@ export type CreatorReferralDashboard = {
     override_months: number;
   };
   stats: {
+    shares?: number;
+    onboarding?: number;
     signups: number;
     active_referrals: number;
     bonus_earned_usd: number;
@@ -380,6 +389,27 @@ export function claimCreatorReferral(referral_code: string) {
     method: "POST",
     auth: true,
     body: JSON.stringify({ referral_code }),
+  });
+}
+
+export function notifyReferredCreators(body: {
+  creator_ids: number[];
+  message?: string;
+}) {
+  return apiFetch<{ sent: number; skipped: number }>(
+    "/api/v1/creator/referrals/notify",
+    {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+export function recordCreatorReferralShare() {
+  return apiFetch<{ shares: number }>("/api/v1/creator/referrals/share", {
+    method: "POST",
+    auth: true,
   });
 }
 
