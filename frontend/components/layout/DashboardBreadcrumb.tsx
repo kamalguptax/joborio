@@ -14,7 +14,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   publisher: "Publisher",
   employer: "Brand",
   brand: "Brand",
-  network: "Network",
+  network: "Invite Team",
   dashboard: "Dashboard",
   overview: "Overview",
   performance: "Performance",
@@ -34,15 +34,20 @@ const SEGMENT_LABELS: Record<string, string> = {
   registrations: "Registrations",
   communities: "Communities",
   marketplace: "Campaign Marketplace",
-  reports: "View Reports",
+  reports: "View reports",
   integrations: "API & Integration",
   payments: "Payments",
-  programs: "Programs",
+  programs: "Campaigns",
   new: "New",
-  billing: "Company & payment",
+  billing: "Billing",
   onboarding: "Onboarding",
   members: "Members",
   invites: "Invites",
+  "lead-quality": "Lead Quality Centre",
+  tracking: "Tracking & Integrations",
+  assets: "Campaign Assets",
+  team: "Team & Permissions",
+  notifications: "Notifications",
 };
 
 /** Extra nested routes not always present as top-level nav items. */
@@ -67,16 +72,75 @@ const EXTRA_ROUTES: Array<{ href: string; label: string; parentHref?: string }> 
   { href: "/publisher/payments", label: "Payments", parentHref: "/publisher/earnings" },
   { href: "/publisher/settings", label: "Settings", parentHref: "/publisher/dashboard" },
   { href: "/publisher/profile", label: "Profile", parentHref: "/publisher/dashboard" },
-  { href: "/employer/profile", label: "Profile", parentHref: "/employer/dashboard" },
+  {
+    href: "/employer/profile",
+    label: "Brand Profile",
+    parentHref: "/employer/dashboard",
+  },
+  {
+    href: "/employer/programs",
+    label: "My Campaigns",
+    parentHref: "/employer/dashboard",
+  },
   {
     href: "/employer/programs/new",
-    label: "New program",
+    label: "Create Campaign",
     parentHref: "/employer/programs",
+  },
+  {
+    href: "/employer/performance",
+    label: "Campaign Performance",
+    parentHref: "/employer/dashboard",
+  },
+  {
+    href: "/employer/reports",
+    label: "Reports & Content Complaints",
+    parentHref: "/employer/dashboard",
+  },
+  {
+    href: "/employer/lead-quality",
+    label: "Lead Quality Centre",
+    parentHref: "/employer/dashboard",
+  },
+  {
+    href: "/employer/tracking",
+    label: "Tracking & Integrations",
+    parentHref: "/employer/dashboard",
+  },
+  {
+    href: "/employer/assets",
+    label: "Campaign Assets",
+    parentHref: "/employer/dashboard",
+  },
+  {
+    href: "/employer/billing",
+    label: "Billing & Wallet",
+    parentHref: "/employer/dashboard",
+  },
+  {
+    href: "/employer/team",
+    label: "Team & Permissions",
+    parentHref: "/employer/dashboard",
+  },
+  {
+    href: "/employer/notifications",
+    label: "Notifications",
+    parentHref: "/employer/dashboard",
   },
   {
     href: "/employer/job-preferences",
     label: "Job preferences",
     parentHref: "/employer/dashboard",
+  },
+  {
+    href: "/publisher/network",
+    label: "Invite Team",
+    parentHref: "/publisher/dashboard",
+  },
+  {
+    href: "/publisher/reports",
+    label: "View reports",
+    parentHref: "/publisher/network",
   },
 ];
 

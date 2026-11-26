@@ -31,6 +31,8 @@ export type DashboardNavItem = {
   icon: ComponentType<{ size?: number; className?: string }>;
   /** Extra paths that should also highlight this item. */
   alsoActive?: string[];
+  /** Optional count / pill shown on the right of the nav label. */
+  badge?: string | number;
 };
 
 export type { DashboardSearchItem };
@@ -63,9 +65,25 @@ function normalize(path: string | null): string {
   return path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
 }
 
-function isActive(path: string, item: DashboardNavItem): boolean {
+function pathMatchesItem(path: string, item: DashboardNavItem): boolean {
   const hit = (p: string) => path === p || path.startsWith(`${p}/`);
   return hit(item.href) || (item.alsoActive?.some(hit) ?? false);
+}
+
+/** Prefer the longest matching nav href so /programs/new does not also light up Programs. */
+function isActive(
+  path: string,
+  item: DashboardNavItem,
+  nav: DashboardNavItem[],
+): boolean {
+  if (!pathMatchesItem(path, item)) return false;
+  const better = nav.some(
+    (other) =>
+      other !== item &&
+      pathMatchesItem(path, other) &&
+      other.href.length > item.href.length,
+  );
+  return !better;
 }
 
 type AccountMenuProps = Pick<
@@ -330,7 +348,7 @@ export default function DashboardShell({
           className="dash-scroll-visible min-h-0 flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-2 pb-4 pr-1"
         >
           {nav.map((item) => {
-            const active = isActive(path, item);
+            const active = isActive(path, item, nav);
             const Icon = item.icon;
             return (
               <Link
@@ -358,7 +376,12 @@ export default function DashboardShell({
                 >
                   <Icon size={17} />
                 </span>
-                {item.label}
+                <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                {item.badge != null && String(item.badge) !== "" ? (
+                  <span className="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[10px] font-bold text-white">
+                    {item.badge}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
@@ -423,7 +446,7 @@ export default function DashboardShell({
             className="dash-scroll-x flex gap-1 overflow-x-auto overflow-y-hidden px-3 pb-3"
           >
             {nav.map((item) => {
-              const active = isActive(path, item);
+              const active = isActive(path, item, nav);
               const Icon = item.icon;
               return (
                 <Link
@@ -438,6 +461,11 @@ export default function DashboardShell({
                 >
                   <Icon size={14} />
                   {item.label}
+                  {item.badge != null && String(item.badge) !== "" ? (
+                    <span className="ml-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[9px] font-bold text-white">
+                      {item.badge}
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}

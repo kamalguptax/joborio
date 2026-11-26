@@ -114,10 +114,9 @@ export default function PostStudioClient({
         </p>
         <h1 className="mt-1 text-3xl font-bold">Post Studio</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
-          Select PPC, PPR, courses, and jobs, then generate a ready-to-post draft
-          with your tracked links. LinkedIn gets a full job-style post;
-          Instagram, Facebook, and X get a short hiring caption for{" "}
-          {audienceLabel}.
+          Select opportunities, pick a channel, and copy a ready-to-post draft
+          with your tracked apply link — LinkedIn, WhatsApp, Telegram,
+          Instagram, YouTube, Reel/Short, Facebook, and X for {audienceLabel}.
         </p>
       </div>
 

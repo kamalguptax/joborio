@@ -54,6 +54,11 @@ class ProgramController extends Controller
             'promotion_type' => ['sometimes', Rule::in(CampaignTypes::IDS)],
             'rate_usd' => ['required', 'numeric', 'min:0'],
             'budget_total_usd' => ['required', 'numeric', 'min:0'],
+            'daily_budget_usd' => ['nullable', 'numeric', 'min:0'],
+            'currency' => ['nullable', 'string', 'max:8'],
+            'brand_category' => ['nullable', 'string', 'max:64'],
+            'conversion_model_code' => ['nullable', 'string', 'max:16'],
+            'wizard_payload' => ['nullable', 'array'],
             'trial_without_ip' => ['sometimes', 'boolean'],
             'target_niche_ids' => ['nullable', 'array'],
             'target_niche_ids.*' => ['integer', 'exists:niches,id'],
@@ -69,8 +74,13 @@ class ProgramController extends Controller
             'engagement_actions' => ['nullable', 'array'],
             'engagement_actions.*' => ['string', Rule::in(CampaignTypes::ENGAGEMENT_ACTIONS)],
             'engage_brief' => ['nullable', 'string', 'max:5000'],
+            'lead_type' => ['nullable', 'string', 'max:32'],
+            'required_fields' => ['nullable', 'array'],
+            'required_fields.*' => ['string', 'max:64'],
+            'qualification_rules' => ['nullable', 'string', 'max:10000'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
+            'as_draft' => ['sometimes', 'boolean'],
         ]);
 
         if (($data['promotion_type'] ?? null) === 'post_promote' || ($data['pricing_model'] ?? null) === 'ppe') {
@@ -81,11 +91,16 @@ class ProgramController extends Controller
             $data['pricing_model'] = 'ppe';
         }
 
-        if ($scheduleError = $this->scheduleValidationError($data['pricing_model'] ?? null, $data)) {
-            return $this->error('VALIDATION', $scheduleError, 422);
+        $isDraft = (bool) ($data['as_draft'] ?? false);
+        $isTrial = (bool) ($data['trial_without_ip'] ?? false) || $isDraft;
+        $data['trial_without_ip'] = $isTrial;
+
+        if (! $isDraft) {
+            if ($scheduleError = $this->scheduleValidationError($data['pricing_model'] ?? null, $data)) {
+                return $this->error('VALIDATION', $scheduleError, 422);
+            }
         }
 
-        $isTrial = (bool) ($data['trial_without_ip'] ?? false);
         if (! $isTrial && (float) $data['budget_total_usd'] < 10) {
             return $this->error('VALIDATION', 'Budget must be at least 10 for paid programs.', 422);
         }
@@ -144,6 +159,15 @@ class ProgramController extends Controller
             'engagement_actions' => ['nullable', 'array'],
             'engagement_actions.*' => ['string', Rule::in(CampaignTypes::ENGAGEMENT_ACTIONS)],
             'engage_brief' => ['nullable', 'string', 'max:5000'],
+            'daily_budget_usd' => ['nullable', 'numeric', 'min:0'],
+            'currency' => ['nullable', 'string', 'max:8'],
+            'brand_category' => ['nullable', 'string', 'max:64'],
+            'conversion_model_code' => ['nullable', 'string', 'max:16'],
+            'wizard_payload' => ['nullable', 'array'],
+            'lead_type' => ['nullable', 'string', 'max:32'],
+            'required_fields' => ['nullable', 'array'],
+            'required_fields.*' => ['string', 'max:64'],
+            'qualification_rules' => ['nullable', 'string', 'max:10000'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
         ]);

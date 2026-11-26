@@ -165,6 +165,7 @@ class InvitationController extends Controller
                     $activityByMember[$id] = [
                         'clicks_total' => 0,
                         'clicks_valid' => 0,
+                        'clicks_duplicate' => 0,
                         'signups' => 0,
                         'applications' => 0,
                         'leads' => 0,
@@ -189,6 +190,31 @@ class InvitationController extends Controller
                 }
             }
 
+            $duplicateRows = \App\Models\MemberActivityEvent::query()
+                ->where('publisher_id', $publisher->id)
+                ->whereIn('network_member_id', $memberIds)
+                ->where('activity_type', 'click')
+                ->where('status', 'rejected')
+                ->selectRaw('network_member_id, COUNT(*) as total')
+                ->groupBy('network_member_id')
+                ->get();
+
+            foreach ($duplicateRows as $row) {
+                $id = (int) $row->network_member_id;
+                if (! isset($activityByMember[$id])) {
+                    $activityByMember[$id] = [
+                        'clicks_total' => 0,
+                        'clicks_valid' => 0,
+                        'clicks_duplicate' => 0,
+                        'signups' => 0,
+                        'applications' => 0,
+                        'leads' => 0,
+                        'conversions' => 0,
+                    ];
+                }
+                $activityByMember[$id]['clicks_duplicate'] = (int) $row->total;
+            }
+
             $lastActivityRows = \App\Models\MemberActivityEvent::query()
                 ->where('publisher_id', $publisher->id)
                 ->whereIn('network_member_id', $memberIds)
@@ -210,6 +236,7 @@ class InvitationController extends Controller
             $activity = $activityByMember[$m->id] ?? [
                 'clicks_total' => 0,
                 'clicks_valid' => 0,
+                'clicks_duplicate' => 0,
                 'signups' => 0,
                 'applications' => 0,
                 'leads' => 0,
@@ -218,6 +245,7 @@ class InvitationController extends Controller
             if ($activity['clicks_valid'] === 0 && $activity['clicks_total'] > 0) {
                 $activity['clicks_valid'] = $activity['clicks_total'];
             }
+            $activity['clicks_duplicate'] = (int) ($activity['clicks_duplicate'] ?? 0);
 
             $registeredAt = $m->joined_at ?? $m->created_at;
 

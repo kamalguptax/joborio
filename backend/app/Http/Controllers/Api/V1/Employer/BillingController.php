@@ -48,9 +48,11 @@ class BillingController extends Controller
             'website' => ['nullable', 'url', 'max:500'],
             'country_code' => ['nullable', 'string', 'size:2'],
             'business_email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'primary_contact' => ['nullable', 'string', 'max:120'],
             'gst_number' => ['required', 'string', 'max:32'],
             'billing_address' => ['required', 'string', 'max:2000'],
-            'payment_method' => ['required', Rule::in(EmployerBilling::PAYMENT_METHODS)],
+            'payment_method' => ['nullable', Rule::in(EmployerBilling::PAYMENT_METHODS)],
             'payment_upi_id' => ['nullable', 'string', 'max:120'],
             'payment_account_name' => ['nullable', 'string', 'max:120'],
             'payment_bank_name' => ['nullable', 'string', 'max:120'],
@@ -62,13 +64,17 @@ class BillingController extends Controller
             return $this->error('VALIDATION', 'Enter a valid 15-character GSTIN.', 422);
         }
 
+        if (empty($data['payment_method'])) {
+            $data['payment_method'] = 'card';
+        }
+
         EmployerBilling::apply($employer, $data);
 
-        if ($data['payment_method'] === 'upi' && ! filled($employer->payment_upi_id)) {
-            return $this->error('VALIDATION', 'UPI ID is required for UPI payment.', 422);
+        if (! empty($data['phone'])) {
+            $employer->phone = $data['phone'];
         }
-        if ($data['payment_method'] === 'bank' && ! EmployerBilling::hasPaymentDetails($employer)) {
-            return $this->error('VALIDATION', 'Bank account name, bank, account number, and IFSC are required.', 422);
+        if (! empty($data['primary_contact'])) {
+            $employer->primary_contact = $data['primary_contact'];
         }
 
         EmployerBilling::markComplete($employer);

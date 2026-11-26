@@ -159,6 +159,7 @@ class MemberController extends Controller
             'dashboard' => [
                 'total_clicks' => $activity['clicks_total'],
                 'valid_clicks' => $activity['clicks_valid'],
+                'duplicate_clicks' => $activity['clicks_duplicate'],
                 'ppr' => $activity['signups'],
                 'applications' => $activity['applications'],
                 'leads' => $activity['leads'],

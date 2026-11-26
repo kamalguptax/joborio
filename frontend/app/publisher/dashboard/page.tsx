@@ -126,7 +126,7 @@ export default function PublisherDashboardPage() {
       label: "Members",
       value: overview.members,
       href: "/publisher/network",
-      hint: "View network",
+      hint: "Invite Team",
     },
     {
       label: "Live campaigns",
@@ -183,13 +183,7 @@ export default function PublisherDashboardPage() {
               href="/publisher/network"
               className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
             >
-              Performance Team
-            </Link>
-            <Link
-              href="/publisher/reports"
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
-            >
-              View Reports
+              Invite Team
             </Link>
             {canFinance ? (
               <Link
@@ -372,7 +366,7 @@ export default function PublisherDashboardPage() {
             </p>
           </div>
           <Link
-            href="/publisher/reports"
+            href="/publisher/network?tab=reports"
             className="text-sm font-semibold text-violet-700"
           >
             View reports →

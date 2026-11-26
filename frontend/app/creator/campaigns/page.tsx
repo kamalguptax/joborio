@@ -16,7 +16,7 @@ import {
 } from "@/lib/api/creator";
 import { fetchMe } from "@/lib/api/auth";
 import type { SyndicatedJob } from "@/lib/api/syndication";
-import { fetchPublicXmlJobs } from "@/lib/syndication/publicXmlFeed";
+import { fetchAllPublicXmlJobs } from "@/lib/syndication/publicXmlFeed";
 import { shareJobUrl } from "@/lib/tracking/subid";
 import { rememberPublicCode } from "@/lib/auth/session";
 import {
@@ -151,6 +151,7 @@ export default function CreatorCampaignsPage() {
   const [trackUrls, setTrackUrls] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [xmlError, setXmlError] = useState<string | null>(null);
+  const [xmlFeedNote, setXmlFeedNote] = useState<string | null>(null);
   const [tab, setTab] = useState<TabId>("all");
   const [jobType, setJobType] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -168,10 +169,31 @@ export default function CreatorCampaignsPage() {
     fetchMe()
       .then((user) => setPublicCode(rememberPublicCode(user)))
       .catch(() => setPublicCode(null));
-    fetchPublicXmlJobs({ per_page: 48, page: 1, auth: true, for_creator: true })
+    fetchAllPublicXmlJobs({
+      per_page: 100,
+      maxPages: 10,
+      auth: true,
+      for_creator: true,
+    })
       .then((res) => {
         const unique = uniqueSyndicatedJobs(res.jobs);
         setXmlJobs(unique);
+        const feeds = Array.isArray(res.meta.source?.feeds)
+          ? (res.meta.source.feeds as Array<Record<string, unknown>>)
+          : [];
+        const sample = feeds.some((f) => Boolean(f.sample_fallback));
+        const note = feeds
+          .map((f) => String(f.feed_note ?? ""))
+          .find((n) => n.trim());
+        const inFeed = Number(res.meta.total_in_feed ?? res.meta.total ?? 0);
+        if (sample || (note && inFeed <= 5)) {
+          setXmlFeedNote(
+            note ||
+              "Live XML feed is empty or blocked. Showing sample jobs until WhatJobs is connected.",
+          );
+        } else {
+          setXmlFeedNote(null);
+        }
         setXmlError(
           unique.length
             ? null
@@ -180,6 +202,7 @@ export default function CreatorCampaignsPage() {
       })
       .catch(() => {
         setXmlJobs([]);
+        setXmlFeedNote(null);
         setXmlError("Live jobs could not be loaded. Refresh the page and try again.");
       });
   }, []);
@@ -363,6 +386,11 @@ export default function CreatorCampaignsPage() {
         {publicCode ? (
           <p className="mt-3 inline-flex rounded-full bg-purple-50 px-3 py-1 text-sm font-semibold text-purple-800">
             Your id: {publicCode}
+          </p>
+        ) : null}
+        {xmlFeedNote ? (
+          <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            {xmlFeedNote}
           </p>
         ) : null}
       </div>

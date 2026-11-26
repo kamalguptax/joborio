@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { Copy, Share2, X } from "lucide-react";
 import { ApiClientError } from "@/lib/api/client";
+import { fetchMe } from "@/lib/api/auth";
 import {
   assignPublisherCampaign,
   fetchPublisherAssignments,
@@ -13,14 +14,44 @@ import {
   type PublisherAssignment,
   type PublisherCommunity,
 } from "@/lib/api/publisher";
+import { rememberPublicCode } from "@/lib/auth/session";
 import { formatMoney } from "@/lib/money";
+import { shareDestinationUrl } from "@/lib/tracking/subid";
 import { CardGridSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
+
+function assignmentShareUrl(
+  publicCode: string,
+  assignment: PublisherAssignment,
+): string {
+  const code = publicCode.trim() || "PUBLISHER";
+  const programId = Number(assignment.program?.id ?? 0);
+  const dest = (assignment.destination_url || "").trim();
+  const title = assignment.program?.title || undefined;
+  if (dest.startsWith("https://")) {
+    return shareDestinationUrl(code, dest, {
+      title,
+      referenceId: `assignment:${assignment.id}`,
+    });
+  }
+  const params = new URLSearchParams({
+    code,
+    subid: code,
+    ref: programId
+      ? `campaign:${programId}`
+      : `assignment:${assignment.id}`,
+  });
+  if (title) params.set("title", title);
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "";
+  return `${origin}/go/?${params.toString()}`;
+}
 
 export default function PublisherMarketplacePage() {
   const [campaigns, setCampaigns] = useState<MarketplaceCampaign[]>([]);
   const [assignments, setAssignments] = useState<PublisherAssignment[]>([]);
   const [communities, setCommunities] = useState<PublisherCommunity[]>([]);
+  const [publicCode, setPublicCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,11 +70,15 @@ export default function PublisherMarketplacePage() {
       fetchPublisherMarketplace(),
       fetchPublisherAssignments(),
       fetchPublisherCommunities(),
+      fetchMe()
+        .then((u) => rememberPublicCode(u) || "")
+        .catch(() => ""),
     ])
-      .then(([c, a, com]) => {
+      .then(([c, a, com, code]) => {
         setCampaigns(c);
         setAssignments(a);
         setCommunities(com);
+        if (code) setPublicCode(code);
       })
       .catch((err) =>
         setError(
@@ -138,6 +173,32 @@ export default function PublisherMarketplacePage() {
     }
   }
 
+  async function copyAssignmentLink(a: PublisherAssignment) {
+    const link = assignmentShareUrl(publicCode, a);
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Share link copied");
+    } catch {
+      toast.error("Could not copy link.");
+    }
+  }
+
+  async function shareAssignment(a: PublisherAssignment) {
+    const link = assignmentShareUrl(publicCode, a);
+    const title = a.program?.title ?? "Campaign";
+    const text = `Check out ${title} on JobOrio: ${link}`;
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title, text, url: link });
+      } else {
+        await navigator.clipboard.writeText(link);
+        toast.success("Share link copied");
+      }
+    } catch {
+      /* cancelled */
+    }
+  }
+
   const alreadyOn = (c: MarketplaceCampaign, communityId: number) =>
     (c.assigned_community_ids ?? []).includes(communityId);
 
@@ -207,34 +268,77 @@ export default function PublisherMarketplacePage() {
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-bold">Your assignments</h2>
-        {assignments.length === 0 ? (
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-bold">Your assignments</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {assignments.length} assignment
+              {assignments.length === 1 ? "" : "s"} · copy or share the tracked
+              link
+            </p>
+          </div>
+        </div>
+        {loading ? (
+          <CardGridSkeleton count={3} className="mt-4 sm:grid-cols-2 lg:grid-cols-3" />
+        ) : assignments.length === 0 ? (
           <p className="mt-4 text-sm text-slate-500">No assignments yet.</p>
         ) : (
-          <ul className="mt-4 space-y-2">
+          <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {assignments.map((a) => (
               <li
                 key={a.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm"
+                className="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm"
               >
-                <div>
-                  <p className="font-semibold">{a.program?.title}</p>
-                  <p className="text-xs text-slate-500">
-                    {a.community?.name ?? "All members"} · locked{" "}
-                    {formatMoney(Number(a.accepted_rate_usd ?? 0), "USD")} · v
-                    {a.rate_version}
+                <div className="flex items-start justify-between gap-2">
+                  <p className="line-clamp-2 font-bold text-[#172b63]">
+                    {a.program?.title ?? "Campaign"}
                   </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase text-slate-500">
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                      a.status === "active"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
                     {a.status}
                   </span>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  {a.community?.name ?? "All members"}
+                  {a.pricing_model || a.program?.pricing_model
+                    ? ` · ${String(
+                        a.pricing_model ?? a.program?.pricing_model,
+                      ).toUpperCase()}`
+                    : ""}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-[#172b63]">
+                  Locked {formatMoney(Number(a.accepted_rate_usd ?? 0), "USD")}
+                  {a.rate_version != null ? ` · v${a.rate_version}` : ""}
+                </p>
+
+                <div className="mt-auto flex flex-wrap gap-2 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => void copyAssignmentLink(a)}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-3 py-1.5 text-xs font-bold text-white"
+                  >
+                    <Copy size={13} />
+                    Copy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void shareAssignment(a)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white px-3 py-1.5 text-xs font-bold text-violet-700"
+                  >
+                    <Share2 size={13} />
+                    Share
+                  </button>
                   {a.status === "active" ? (
                     <button
                       type="button"
                       disabled={busyId === a.id}
                       onClick={() => void pause(a.id)}
-                      className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold"
+                      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-60"
                     >
                       Pause
                     </button>

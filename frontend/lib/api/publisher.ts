@@ -82,6 +82,7 @@ export type PublisherInvitation = {
 export type NetworkMemberActivitySummary = {
   clicks_total: number;
   clicks_valid: number;
+  clicks_duplicate?: number;
   signups: number;
   applications: number;
   leads: number;
@@ -642,6 +643,7 @@ export type PublisherMemberDashboard = {
   activity: {
     clicks_total: number;
     clicks_valid: number;
+    clicks_duplicate?: number;
     signups: number;
     applications: number;
     leads: number;
@@ -652,6 +654,7 @@ export type PublisherMemberDashboard = {
   dashboard?: {
     total_clicks: number;
     valid_clicks: number;
+    duplicate_clicks?: number;
     ppr: number;
     applications: number;
     leads: number;

@@ -13,10 +13,12 @@ class SyndicationFeedSeeder extends Seeder
         $url = (string) config('joborio.jobrapido_feed_url');
         $sample = (string) config('joborio.jobrapido_feed_sample_path');
 
-        SyndicationFeed::query()->firstOrCreate(
+        // Always keep the primary Vigyapanam feed on the configured live URL
+        // (WhatJobs). Older installs still pointed at an empty Jobrapido GCS XML.
+        SyndicationFeed::query()->updateOrCreate(
             ['slug' => 'vigyapanam-in'],
             [
-                'name' => 'Vigyapanam India (Jobrapido)',
+                'name' => 'Vigyapanam India (WhatJobs)',
                 'feed_url' => $url,
                 'format' => 'jobrapido',
                 'job_xpath' => '//job',

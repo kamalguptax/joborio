@@ -1,158 +1,26 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import PreferredJobsList from "@/components/job-preferences/PreferredJobsList";
-import EmployerAwareness from "@/components/employer/EmployerAwareness";
-import {
-  fetchEmployerMe,
-  fetchEmployerPreferredJobs,
-  fetchEmployerPrograms,
-} from "@/lib/api/employer";
-import type { Listing } from "@/lib/api/types";
+import CampaignCommandCenter from "@/components/employer/CampaignCommandCenter";
+import { fetchEmployerPrograms } from "@/lib/api/employer";
 
 export default function EmployerDashboardPage() {
-  const [company, setCompany] = useState<string>("");
-  const [programs, setPrograms] = useState<Array<Record<string, unknown>>>([]);
-  const [preferredJobs, setPreferredJobs] = useState<Listing[]>([]);
+  const [active, setActive] = useState(3);
+  const [total, setTotal] = useState(6);
 
   useEffect(() => {
-    fetchEmployerMe()
-      .then((r) => setCompany(String(r.employer?.company_name ?? "Your company")))
-      .catch(() => setCompany("Your company"));
     fetchEmployerPrograms()
-      .then(setPrograms)
-      .catch(() => setPrograms([]));
-    fetchEmployerPreferredJobs()
-      .then((rows) => setPreferredJobs(rows as Listing[]))
-      .catch(() => setPreferredJobs([]));
+      .then((programs) => {
+        if (!programs.length) return;
+        setTotal(programs.length);
+        setActive(programs.filter((p) => p.status === "active").length);
+      })
+      .catch(() => {
+        /* keep sample defaults */
+      });
   }, []);
 
-  const active = programs.filter((p) => p.status === "active").length;
-  const totalBudget = programs.reduce(
-    (sum, p) => sum + Number(p.budget_total_usd ?? 0),
-    0,
-  );
-
   return (
-    <>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-purple-600">
-            Employer dashboard
-          </p>
-          <h1 className="mt-1 text-3xl font-bold">{company}</h1>
-          <p className="mt-2 text-slate-500">
-            Launch programs and manage performance. Programs go live as soon as you create them.
-          </p>
-        </div>
-        <Link
-          href="/employer/programs/new"
-          className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 text-sm font-bold text-white shadow-md"
-        >
-          Create program
-        </Link>
-      </div>
-
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-bold uppercase text-slate-400">Programs</p>
-          <p className="mt-2 text-3xl font-bold">{programs.length}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-bold uppercase text-slate-400">Active</p>
-          <p className="mt-2 text-3xl font-bold text-emerald-600">{active}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-bold uppercase text-slate-400">Total budget (USD)</p>
-          <p className="mt-2 text-3xl font-bold">${totalBudget.toFixed(0)}</p>
-        </div>
-      </div>
-
-      {programs.length === 0 ? (
-        <div className="mt-10 rounded-3xl border border-violet-100 bg-[#f8f7fc] p-6 sm:p-8">
-          <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-            Why brands join JobOrio
-          </p>
-          <h2 className="mt-1 text-xl font-bold text-[#172b63]">
-            Understand the benefits before you launch
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-500">
-            See who can advertise, which outcomes you can drive, and how PPC /
-            PPR / PPA / PPE campaigns work — then create your first program.
-          </p>
-          <div className="mt-6">
-            <EmployerAwareness
-              compact
-              primaryHref="/employer/programs/new"
-              primaryLabel="Create your first program"
-              secondaryHref="/brands"
-              secondaryLabel="Full brand guide"
-            />
-          </div>
-        </div>
-      ) : null}
-
-      <div className="mt-10">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-bold">Preferred jobs</h2>
-          <Link
-            href="/employer/job-preferences"
-            className="text-sm font-semibold text-purple-600"
-          >
-            Job preferences →
-          </Link>
-        </div>
-        <p className="mt-1 text-xs text-slate-500">
-          Marketplace listings that match your hiring interests.
-        </p>
-        <div className="mt-4">
-          <PreferredJobsList
-            jobs={preferredJobs.slice(0, 5)}
-            emptyHint="Set job preferences to see relevant listings."
-          />
-        </div>
-      </div>
-
-      <div className="mt-10">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Recent programs</h2>
-          <Link href="/employer/programs" className="text-sm font-semibold text-purple-600">
-            View all
-          </Link>
-        </div>
-        <ul className="mt-4 space-y-3">
-          {programs.slice(0, 5).map((p) => (
-            <li
-              key={String(p.id)}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3"
-            >
-              <div>
-                <p className="font-semibold">{String(p.title)}</p>
-                <p className="text-xs text-slate-500">
-                  {String(p.pricing_model).toUpperCase()} · {String(p.status)}
-                </p>
-              </div>
-              {p.pricing_model === "ppa" ? (
-                <Link
-                  href={`/employer/programs/${p.id}/applications`}
-                  className="text-sm font-semibold text-purple-600"
-                >
-                  Applications
-                </Link>
-              ) : null}
-            </li>
-          ))}
-          {programs.length === 0 ? (
-            <li className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
-              No programs yet.{" "}
-              <Link href="/employer/programs/new" className="font-semibold text-purple-600">
-                Create your first program
-              </Link>
-            </li>
-          ) : null}
-        </ul>
-      </div>
-    </>
+    <CampaignCommandCenter activeCampaigns={active} totalCampaigns={total} />
   );
 }

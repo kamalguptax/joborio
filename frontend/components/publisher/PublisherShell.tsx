@@ -7,7 +7,6 @@ import {
   Users,
   Network,
   Store,
-  BarChart3,
   Wallet,
   CircleDollarSign,
   Plug,
@@ -23,11 +22,15 @@ type PublisherNavItem = DashboardNavItem & { ownerOnly?: boolean };
 
 const allNav: PublisherNavItem[] = [
   { href: "/publisher/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/publisher/network", label: "Performance Team", icon: Network },
+  {
+    href: "/publisher/network",
+    label: "Invite Team",
+    icon: Network,
+    alsoActive: ["/publisher/reports"],
+  },
   { href: "/publisher/communities", label: "Communities", icon: Users },
   { href: "/publisher/marketplace", label: "Campaign Marketplace", icon: Store },
   { href: "/publisher/post-studio", label: "Post Studio", icon: Zap },
-  { href: "/publisher/reports", label: "View Reports", icon: BarChart3 },
   { href: "/publisher/earnings", label: "Earning", icon: Wallet, ownerOnly: true },
   { href: "/publisher/integrations", label: "API & Integration", icon: Plug, ownerOnly: true },
 ];

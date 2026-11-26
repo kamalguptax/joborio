@@ -181,13 +181,15 @@ class XmlClickController extends Controller
             ->limit(40)
             ->get(['meta']);
 
+        $isDuplicate = false;
         foreach ($recent as $row) {
             $meta = is_string($row->meta) ? json_decode($row->meta, true) : (array) $row->meta;
             if (
                 ($meta['job_key'] ?? null) === $jobKey
                 && ($meta['ip_address'] ?? null) === $ip
             ) {
-                return;
+                $isDuplicate = true;
+                break;
             }
         }
 
@@ -223,8 +225,9 @@ class XmlClickController extends Controller
                 'ip_address' => $ip,
                 'clicked_at' => ClickContext::clickedAt(),
                 'user_agent' => $request->userAgent(),
+                'duplicate' => $isDuplicate,
             ],
-            'status' => 'counted',
+            'status' => $isDuplicate ? 'rejected' : 'counted',
             'occurred_at' => now(),
         ]);
     }

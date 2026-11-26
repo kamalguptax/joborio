@@ -44,7 +44,7 @@ export default function CommunityDashboardClient() {
         ? "/publisher/earnings"
         : from === "dashboard"
           ? "/publisher/dashboard"
-          : "/publisher/reports";
+          : "/publisher/network?tab=reports";
   const backLabel =
     from === "communities"
       ? "Back to communities"
@@ -202,7 +202,7 @@ export default function CommunityDashboardClient() {
                 href={`/publisher/network?community=${community.id}`}
                 className="font-semibold text-violet-700"
               >
-                Invite from Performance Team
+                Open Invite Team
               </Link>
             </p>
           ) : (

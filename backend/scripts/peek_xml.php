@@ -1,5 +1,11 @@
 <?php
-$url = 'https://storage.googleapis.com/jr-databox-syndication-public/syndication/aggregators/vigyapanam/jobrapido_Vigyapanam_IN.xml';
-$x = file_get_contents($url);
-echo 'length: ' . strlen($x) . "\n";
-echo $x;
+$url = 'https://feeds.whatjobs.com/vigyapanam/vigyapanam_en_IN.xml';
+$ctx = stream_context_create([
+    'http' => [
+        'timeout' => 90,
+        'header' => "User-Agent: Mozilla/5.0 (compatible; JobOrioFeedBot/1.0)\r\nAccept: application/xml\r\n",
+    ],
+]);
+$x = @file_get_contents($url, false, $ctx);
+echo 'length: '.strlen((string) $x)."\n";
+echo substr((string) $x, 0, 500);

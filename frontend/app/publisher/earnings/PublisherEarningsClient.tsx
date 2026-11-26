@@ -124,7 +124,7 @@ export default function PublisherEarningsClient() {
   const from = (search.get("from") || "").trim();
   const backHref =
     from === "reports"
-      ? "/publisher/reports"
+      ? "/publisher/network?tab=reports"
       : from === "payments"
         ? "/publisher/payments"
         : "/publisher/dashboard";
@@ -372,7 +372,7 @@ export default function PublisherEarningsClient() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/publisher/reports"
+            href="/publisher/network?tab=reports"
             className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
           >
             View reports

@@ -26,9 +26,10 @@ return [
 
     'jobrapido_feed_url' => env(
         'JOBORIO_JOBRAPIDO_FEED_URL',
-        'https://storage.googleapis.com/jr-databox-syndication-public/syndication/aggregators/vigyapanam/jobrapido_Vigyapanam_IN.xml'
+        'https://feeds.whatjobs.com/vigyapanam/vigyapanam_en_IN.xml'
     ),
-    'jobrapido_feed_cache_seconds' => (int) env('JOBORIO_JOBRAPIDO_FEED_CACHE_SECONDS', 900),
+    // Cache longer so Cloudflare rate limits (429) on feeds.whatjobs.com hurt less.
+    'jobrapido_feed_cache_seconds' => (int) env('JOBORIO_JOBRAPIDO_FEED_CACHE_SECONDS', 3600),
     'jobrapido_feed_cache_store' => env('JOBORIO_JOBRAPIDO_FEED_CACHE_STORE', 'file'),
     'jobrapido_feed_sample_path' => env(
         'JOBORIO_JOBRAPIDO_SAMPLE_PATH',

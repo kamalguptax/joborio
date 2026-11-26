@@ -24,6 +24,7 @@ import { fetchPublicXmlJobs } from "@/lib/syndication/publicXmlFeed";
 import type { SyndicatedJob } from "@/lib/api/syndication";
 import { formatMoney } from "@/lib/money";
 import { publisherCommunityPath } from "@/lib/staticExport";
+import CommunityInviteMenu from "@/components/publisher/CommunityInviteMenu";
 import MultiSelect from "@/components/ui/MultiSelect";
 import SingleSelect from "@/components/ui/SingleSelect";
 import { ListSkeleton } from "@/components/ui/Skeleton";
@@ -1110,12 +1111,7 @@ export default function PublisherCommunitiesPage() {
                   </div>
 
                   <div className="mt-auto flex flex-wrap gap-2 pt-3">
-                    <Link
-                      href={`/publisher/network?community=${row.id}`}
-                      className="rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-3 py-1.5 text-xs font-bold text-white"
-                    >
-                      Invite
-                    </Link>
+                    <CommunityInviteMenu community={row} />
                     <Link
                       href={publisherCommunityPath(row.id, {
                         from: "communities",
@@ -1245,7 +1241,7 @@ export default function PublisherCommunitiesPage() {
                       href={`/publisher/network?community=${membersCommunity.id}`}
                       className="font-semibold text-violet-700"
                     >
-                      Performance Team
+                      Invite Team
                     </Link>
                   </p>
                 ) : (

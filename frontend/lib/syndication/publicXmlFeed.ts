@@ -10,6 +10,7 @@ export type PublicJobsResponse = {
     per_page: number;
     has_more: boolean;
     total?: number;
+    total_in_feed?: number;
     source: Record<string, unknown>;
   };
 };
@@ -63,6 +64,59 @@ export async function fetchPublicXmlJobs(params?: {
       has_more: page < lastPage,
       total: json.meta?.total,
       source: (json.data?.source as Record<string, unknown>) ?? {},
+      total_in_feed:
+        json.meta?.total_in_feed != null
+          ? Number(json.meta.total_in_feed)
+          : undefined,
+    },
+  };
+}
+
+/** Pull consecutive pages so Campaigns can show the full live XML set. */
+export async function fetchAllPublicXmlJobs(params?: {
+  per_page?: number;
+  search?: string;
+  promote_types?: string;
+  for_creator?: boolean;
+  auth?: boolean;
+  maxPages?: number;
+}): Promise<PublicJobsResponse> {
+  const perPage = Math.min(Math.max(params?.per_page ?? 100, 1), 100);
+  const maxPages = Math.min(Math.max(params?.maxPages ?? 10, 1), 20);
+  const first = await fetchPublicXmlJobs({
+    ...params,
+    page: 1,
+    per_page: perPage,
+  });
+  const jobs = [...first.jobs];
+  let page = 1;
+  let hasMore = first.meta.has_more;
+  let total = first.meta.total;
+  let source = first.meta.source;
+
+  while (hasMore && page < maxPages) {
+    page += 1;
+    const next = await fetchPublicXmlJobs({
+      ...params,
+      page,
+      per_page: perPage,
+    });
+    jobs.push(...next.jobs);
+    hasMore = next.meta.has_more;
+    total = next.meta.total ?? total;
+    source = next.meta.source ?? source;
+  }
+
+  return {
+    success: true,
+    jobs,
+    meta: {
+      page,
+      per_page: perPage,
+      has_more: hasMore,
+      total,
+      source,
+      total_in_feed: first.meta.total_in_feed,
     },
   };
 }

@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Copy, Upload, Users } from "lucide-react";
 import { ApiClientError } from "@/lib/api/client";
 import {
@@ -22,9 +22,12 @@ import {
   type PublisherInvitation,
   type PublisherMemberDashboard,
 } from "@/lib/api/publisher";
+import PublisherReportsPanel from "@/components/publisher/PublisherReportsPanel";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
 import BackButton from "@/components/ui/BackButton";
+
+type NetworkTab = "team" | "reports";
 
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
@@ -60,6 +63,9 @@ function memberDisplayStatus(status?: string | null): "Active" | "Deactive" {
 
 export default function PublisherNetworkClient() {
   const search = useSearchParams();
+  const router = useRouter();
+  const tabParam = search.get("tab");
+  const tab: NetworkTab = tabParam === "reports" ? "reports" : "team";
   const [communities, setCommunities] = useState<PublisherCommunity[]>([]);
   const [invites, setInvites] = useState<PublisherInvitation[]>([]);
   const [members, setMembers] = useState<NetworkMemberRow[]>([]);
@@ -81,6 +87,7 @@ export default function PublisherNetworkClient() {
       {
         clicks_total: number;
         clicks_valid: number;
+        clicks_duplicate?: number;
         signups: number;
         applications: number;
         leads: number;
@@ -390,20 +397,64 @@ export default function PublisherNetworkClient() {
     }
   }
 
+  function setTab(next: NetworkTab) {
+    const params = new URLSearchParams(search.toString());
+    if (next === "team") params.delete("tab");
+    else params.set("tab", next);
+    const q = params.toString();
+    router.replace(q ? `/publisher/network?${q}` : "/publisher/network");
+  }
+
   return (
     <>
-      <div className="mb-8">
+      <div className="mb-6">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-          Performance Team
+          Invite Team
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Invite creators to your community</h1>
+        <h1 className="mt-1 text-3xl font-bold">
+          {tab === "reports"
+            ? "View reports"
+            : selectedCommunity
+              ? `Invite creators to ${selectedCommunity.name}`
+              : "Invite creators to your community"}
+        </h1>
         <p className="mt-2 text-slate-500">
-          Share a join link, upload a CSV of creators, or use the API. Creators
-          sign in as Network Members — campaign prices and publisher financials
-          stay hidden from them.
+          {tab === "reports"
+            ? "Campaign and member performance across your communities."
+            : selectedCommunity
+              ? `Share a join link, upload a CSV, or use the API for ${selectedCommunity.name}. Creators sign in as Network Members — campaign prices and publisher financials stay hidden from them.`
+              : "Share a join link, upload a CSV of creators, or use the API. Creators sign in as Network Members — campaign prices and publisher financials stay hidden from them."}
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setTab("team")}
+            className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+              tab === "team"
+                ? "bg-violet-600 text-white"
+                : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            Team & invites
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("reports")}
+            className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+              tab === "reports"
+                ? "bg-violet-600 text-white"
+                : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            View reports
+          </button>
+        </div>
       </div>
 
+      {tab === "reports" ? <PublisherReportsPanel /> : null}
+
+      {tab === "team" ? (
+      <>
       {error ? (
         <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -759,9 +810,10 @@ export default function PublisherNetworkClient() {
                   <th className="px-2 py-2 font-semibold">Registered</th>
                   <th className="px-2 py-2 font-semibold">Last activity</th>
                   <th className="px-2 py-2 font-semibold">Status</th>
+                  <th className="px-2 py-2 font-semibold">Clicks</th>
+                  <th className="px-2 py-2 font-semibold">Duplicate clicks</th>
                   {canViewEarnings ? (
                     <>
-                      <th className="px-2 py-2 font-semibold">Settled</th>
                       <th className="px-2 py-2 font-semibold">Pending</th>
                       <th className="px-2 py-2 font-semibold">Total</th>
                     </>
@@ -819,11 +871,14 @@ export default function PublisherNetworkClient() {
                         {memberDisplayStatus(m.status)}
                       </span>
                     </td>
+                    <td className="px-2 py-3 font-semibold tabular-nums text-[#172b63]">
+                      {m.activity?.clicks_total ?? 0}
+                    </td>
+                    <td className="px-2 py-3 font-semibold tabular-nums text-slate-600">
+                      {m.activity?.clicks_duplicate ?? 0}
+                    </td>
                     {canViewEarnings ? (
                       <>
-                        <td className="px-2 py-3 font-semibold tabular-nums">
-                          {money(m.earnings?.settled_usd)}
-                        </td>
                         <td className="px-2 py-3 font-semibold tabular-nums text-amber-700">
                           {money(m.earnings?.pending_usd)}
                         </td>
@@ -876,8 +931,8 @@ export default function PublisherNetworkClient() {
                       {activityById[m.id] ? (
                         <div className="mt-2 space-y-2">
                           <p className="text-xs text-slate-500">
-                            clicks {activityById[m.id].clicks_total}/
-                            {activityById[m.id].clicks_valid} · signups{" "}
+                            clicks {activityById[m.id].clicks_total} · duplicates{" "}
+                            {activityById[m.id].clicks_duplicate ?? 0} · signups{" "}
                             {activityById[m.id].signups} · apps{" "}
                             {activityById[m.id].applications} · leads{" "}
                             {activityById[m.id].leads} · conv{" "}
@@ -914,6 +969,8 @@ export default function PublisherNetworkClient() {
           </div>
         )}
       </div>
+      </>
+      ) : null}
     </>
   );
 }
@@ -978,7 +1035,10 @@ function MemberEarningDashboard({
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Clicks", dash?.total_clicks ?? data.activity.clicks_total],
-          ["Valid clicks", dash?.valid_clicks ?? data.activity.clicks_valid],
+          [
+            "Duplicate clicks",
+            dash?.duplicate_clicks ?? data.activity.clicks_duplicate ?? 0,
+          ],
           ["PPR / signups", dash?.ppr ?? data.activity.signups],
           ["Applications", dash?.applications ?? data.activity.applications],
           ["Leads", dash?.leads ?? data.activity.leads],
