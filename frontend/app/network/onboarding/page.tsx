@@ -54,7 +54,7 @@ export default function NetworkOnboardingPage() {
       return;
     }
     done();
-    router.push("/network/dashboard");
+    router.push("/network/opportunities");
   };
 
   const publisher = data?.publisher?.name || "your publisher";
@@ -70,7 +70,7 @@ export default function NetworkOnboardingPage() {
       onExit={done}
       onBack={step === 0 ? undefined : () => setStep(0)}
       onNext={next}
-      nextLabel={step === steps.length - 1 ? "Go to dashboard" : "Continue"}
+      nextLabel={step === steps.length - 1 ? "Open opportunities" : "Continue"}
     >
       {step === 0 && (
         <div className="space-y-3 text-sm text-slate-600">
@@ -94,8 +94,9 @@ export default function NetworkOnboardingPage() {
       {step === 1 && (
         <div className="space-y-3 text-sm text-slate-600">
           <p>
-            Campaigns are assigned to you by {publisher}. Your clicks, signups and approved actions
-            show up on your dashboard as they happen.
+            Open <span className="font-semibold text-slate-900">Opportunities</span> to see
+            PPC campaigns and jobs from {publisher}. Share the tracked links — clicks count on
+            your earnings activity and appear on the publisher track.
           </p>
           {data && (
             <p>

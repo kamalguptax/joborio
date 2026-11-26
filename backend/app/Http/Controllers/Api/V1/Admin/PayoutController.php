@@ -4,12 +4,18 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PayoutBatch;
+use App\Models\Publisher;
+use App\Models\PublisherLedgerEntry;
+use App\Services\Payments\PaymentEvidenceService;
 use App\Services\Payouts\PayoutBatchService;
+use App\Services\Payouts\PublisherPayoutService;
 use App\Services\Payouts\TransactionHistoryService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PayoutController extends Controller
 {
@@ -17,7 +23,9 @@ class PayoutController extends Controller
 
     public function __construct(
         private PayoutBatchService $payouts,
+        private PublisherPayoutService $publisherPayouts,
         private TransactionHistoryService $history,
+        private PaymentEvidenceService $evidence,
     ) {}
 
     public function transactions(Request $request): JsonResponse
@@ -93,15 +101,48 @@ class PayoutController extends Controller
         return $this->success($batch, 201);
     }
 
-    public function completeBatch(PayoutBatch $payoutBatch): JsonResponse
+    public function completeBatch(Request $request, PayoutBatch $payoutBatch): JsonResponse
     {
         if ($payoutBatch->status === 'completed') {
             return $this->error('ALREADY_COMPLETED', 'Batch already completed.', 422);
         }
 
-        $batch = $this->payouts->completeBatch($payoutBatch);
+        $data = $request->validate([
+            'evidence' => ['required', 'file', 'max:'.PaymentEvidenceService::MAX_KB],
+            'evidence_note' => ['nullable', 'string', 'max:2000'],
+            'external_reference' => ['nullable', 'string', 'max:190'],
+        ]);
 
-        return $this->success($batch);
+        try {
+            $batch = $this->payouts->completeBatch(
+                $payoutBatch,
+                $request->file('evidence'),
+                $request->user(),
+                [
+                    'evidence_note' => $data['evidence_note'] ?? null,
+                    'external_reference' => $data['external_reference'] ?? null,
+                ],
+            );
+        } catch (InvalidArgumentException $e) {
+            return $this->error('PAYOUT_RELEASE_FAILED', $e->getMessage(), 422);
+        }
+
+        return $this->success([
+            'id' => $batch->id,
+            'status' => $batch->status,
+            'total_usd' => $batch->total_usd,
+            'evidence' => $this->evidence->meta($batch),
+            'lines' => $batch->lines,
+        ]);
+    }
+
+    public function evidence(PayoutBatch $payoutBatch): StreamedResponse|JsonResponse
+    {
+        if (! $payoutBatch->evidence_path) {
+            return $this->error('NOT_FOUND', 'No payment evidence on this batch.', 404);
+        }
+
+        return $this->evidence->download($payoutBatch);
     }
 
     public function indexBatches(): JsonResponse
@@ -110,9 +151,68 @@ class PayoutController extends Controller
             ->withCount('lines')
             ->latest()
             ->limit(20)
-            ->get();
+            ->get()
+            ->map(fn (PayoutBatch $b) => [
+                'id' => $b->id,
+                'status' => $b->status,
+                'source' => $b->source,
+                'total_usd' => $b->total_usd,
+                'lines_count' => $b->lines_count,
+                'processed_at' => optional($b->processed_at)?->toIso8601String(),
+                'created_at' => optional($b->created_at)?->toIso8601String(),
+                'evidence' => $this->evidence->meta($b),
+            ]);
 
         return $this->success($batches);
+    }
+
+    public function previewPublishers(): JsonResponse
+    {
+        return $this->success($this->publisherPayouts->preview());
+    }
+
+    public function recentPublisherReleases(): JsonResponse
+    {
+        return $this->success([
+            'releases' => $this->publisherPayouts->recentReleases(),
+        ]);
+    }
+
+    public function releasePublisher(Request $request, Publisher $publisher): JsonResponse
+    {
+        $data = $request->validate([
+            'evidence' => ['required', 'file', 'max:'.PaymentEvidenceService::MAX_KB],
+            'evidence_note' => ['nullable', 'string', 'max:2000'],
+            'external_reference' => ['nullable', 'string', 'max:190'],
+        ]);
+
+        try {
+            $result = $this->publisherPayouts->release(
+                $publisher,
+                $request->file('evidence'),
+                $request->user(),
+                [
+                    'evidence_note' => $data['evidence_note'] ?? null,
+                    'external_reference' => $data['external_reference'] ?? null,
+                ],
+            );
+        } catch (InvalidArgumentException $e) {
+            return $this->error('PUBLISHER_PAYOUT_FAILED', $e->getMessage(), 422);
+        }
+
+        return $this->success($result);
+    }
+
+    public function publisherEvidence(Publisher $publisher, PublisherLedgerEntry $ledger): StreamedResponse|JsonResponse
+    {
+        if ((int) $ledger->publisher_id !== (int) $publisher->id) {
+            return $this->error('FORBIDDEN', 'Ledger entry does not belong to this publisher.', 403);
+        }
+        if (! $ledger->evidence_path) {
+            return $this->error('NOT_FOUND', 'No payment evidence on this ledger entry.', 404);
+        }
+
+        return $this->evidence->download($ledger);
     }
 
     public function exportReport(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse

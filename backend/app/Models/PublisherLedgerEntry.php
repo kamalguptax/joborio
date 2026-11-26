@@ -27,6 +27,13 @@ class PublisherLedgerEntry extends Model
         'occurred_at',
         'approved_at',
         'paid_at',
+        'evidence_path',
+        'evidence_original_name',
+        'evidence_mime',
+        'evidence_size',
+        'evidence_note',
+        'evidence_uploaded_at',
+        'released_by_user_id',
     ];
 
     protected function casts(): array
@@ -39,6 +46,8 @@ class PublisherLedgerEntry extends Model
             'occurred_at' => 'datetime',
             'approved_at' => 'datetime',
             'paid_at' => 'datetime',
+            'evidence_uploaded_at' => 'datetime',
+            'evidence_size' => 'integer',
         ];
     }
 

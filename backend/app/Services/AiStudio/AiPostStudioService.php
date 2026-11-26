@@ -89,11 +89,15 @@ class AiPostStudioService
         $loc = $listing->location_label ?? ($listing->is_remote ? 'Remote' : 'Global');
         $handle = $creator->handle;
 
+        $companyTag = preg_replace('/[^A-Za-z0-9]+/', '', (string) $company) ?: 'Hiring';
+        $city = trim(explode(',', (string) $loc)[0] ?? '');
+        $cityTag = $city !== '' ? preg_replace('/[^A-Za-z0-9]+/', '', $city).'Jobs' : 'Jobs';
+
         return match ($platform) {
-            'whatsapp' => "👋 Hi! Found a role worth sharing:\n\n*{$title}* at {$company} ({$loc}).\n\nApply via my tracked link:\n{$url}\n\n— @{$handle} on JobOrio",
-            'instagram' => "New opportunity 🚀\n{$title} · {$company}\n📍 {$loc}\n\nTap the link in bio or use:\n{$url}\n\n#jobs #careers #hiring #joborio",
-            'linkedin' => "Sharing a role my audience may like:\n\n{$title} — {$company} ({$loc}).\n\nIf you're exploring your next move, see details here: {$url}\n\n#hiring #careers",
-            'twitter' => "📣 {$title} at {$company} ({$loc})\n\nDetails: {$url}\n\n#jobs #hiring",
+            'whatsapp' => "👋 Hi! Found a role worth sharing:\n\n*{$company} Looking for {$title}*\n📍 Location: {$loc}\n\nApply Now:\n{$url}\n\n— @{$handle} on JobOrio",
+            'instagram' => "{$company} is hiring – {$title}".($city !== '' ? " in {$city}" : '')."!\n\n{$company} is looking for skilled professionals to join its team.\n\nCheck my bio link to apply for this role\n{$url}\n\n#{$companyTag} #EngineeringJobs #{$cityTag} #JobOrio",
+            'linkedin' => "{$company} Looking for {$title}\n\n📍 Location: {$loc}\n\nApply Now:\n{$url}\n\n#Hiring #{$companyTag} #{$cityTag} #JobOrio",
+            'twitter' => "{$company} is hiring – {$title}".($city !== '' ? " in {$city}" : '')."!\n\nCheck my bio link to apply for this role\n{$url}\n\n#{$companyTag} #{$cityTag}",
             default => "{$title} — {$url}",
         };
     }

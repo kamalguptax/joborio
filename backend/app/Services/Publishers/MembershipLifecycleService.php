@@ -86,35 +86,20 @@ class MembershipLifecycleService
             ->where('status', 'pending')
             ->count();
 
-        if ($pending > 0 && ! $settlePending) {
+        // Payment release now requires uploaded evidence on /publisher/payments.
+        // Membership release no longer auto-settles without that proof.
+        if ($pending > 0) {
             throw ValidationException::withMessages([
                 'settlement' => [
-                    "{$pending} pending member settlement record(s) must be settled or cancelled before release. Pass settle_pending=true to mark them settled.",
+                    "{$pending} pending member settlement(s) must be released with payment evidence first (Publisher → Payout status).",
                 ],
             ]);
         }
 
-        return DB::transaction(function () use ($member, $publisher, $actor, $notes, $settlePending, $pending) {
-            if ($pending > 0 && $settlePending) {
-                MemberSettlementRecord::query()
-                    ->where('network_member_id', $member->id)
-                    ->where('status', 'pending')
-                    ->get()
-                    ->each(function (MemberSettlementRecord $row) {
-                        $note = trim((string) $row->notes);
-                        $row->update([
-                            'status' => 'settled',
-                            'settled_at' => now(),
-                            'notes' => $note === ''
-                                ? 'Auto-settled on membership release'
-                                : $note.' | Auto-settled on membership release',
-                        ]);
-                    });
-            }
-
+        return DB::transaction(function () use ($member, $publisher, $actor, $notes) {
             $updated = $this->transition($member, $actor, 'release', 'released', $notes, [
                 'initiated_by' => 'publisher',
-                'pending_settlements_settled' => $pending > 0 && $settlePending,
+                'pending_settlements_settled' => false,
             ]);
 
             $this->maybeDropNetworkRole($updated->user_id);

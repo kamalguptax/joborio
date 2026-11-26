@@ -73,9 +73,16 @@ class TrustTierAndPayoutTest extends TestCase
         $batchId = $create->json('data.id');
 
         $complete = $this->actingAs($admin, 'sanctum')
-            ->postJson("/api/v1/admin/payouts/batches/{$batchId}/complete");
+            ->post("/api/v1/admin/payouts/batches/{$batchId}/complete", [
+                'evidence' => \Illuminate\Http\UploadedFile::fake()->create('receipt.pdf', 120, 'application/pdf'),
+                'evidence_note' => 'Bank transfer UTR 123',
+                'external_reference' => 'UTR-123',
+            ], [
+                'Accept' => 'application/json',
+            ]);
 
         $complete->assertOk()->assertJsonPath('data.status', 'completed');
+        $complete->assertJsonPath('data.evidence.has_evidence', true);
 
         $this->assertDatabaseHas('earning_ledgers', [
             'creator_id' => $creator->id,

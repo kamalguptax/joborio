@@ -7,18 +7,31 @@ import { SOCIAL_PLATFORMS, type SocialKey } from "@/lib/socialLinks";
 export default function SocialLinksFields({
   values,
   onChange,
+  keys,
+  title,
+  hint,
 }: {
   values: Partial<Record<SocialKey, string>>;
   onChange: (key: SocialKey, value: string) => void;
+  /** Limit to a subset of platforms (for splitting across cards). */
+  keys?: SocialKey[];
+  title?: string;
+  hint?: string;
 }) {
+  const platforms = keys?.length
+    ? SOCIAL_PLATFORMS.filter((p) => keys.includes(p.key))
+    : [...SOCIAL_PLATFORMS];
+
+  if (platforms.length === 0) return null;
+
   return (
-    <fieldset className="mt-5">
-      <legend className="text-sm font-semibold">Social links</legend>
-      <p className="mt-1 text-xs text-slate-500">
-        These show as icons on your public creator card. Paste a link or an @handle.
-      </p>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {SOCIAL_PLATFORMS.map((p) => (
+    <fieldset className={title || hint ? "mt-5" : "mt-4"}>
+      {title ? <legend className="text-sm font-semibold">{title}</legend> : null}
+      {hint ? (
+        <p className={`text-xs text-slate-500 ${title ? "mt-1" : ""}`}>{hint}</p>
+      ) : null}
+      <div className={`grid gap-3 sm:grid-cols-2 ${title || hint ? "mt-3" : ""}`}>
+        {platforms.map((p) => (
           <label key={p.key} className="block">
             <span className="mb-1 flex items-center gap-2 text-[13px] font-semibold text-slate-700">
               <span

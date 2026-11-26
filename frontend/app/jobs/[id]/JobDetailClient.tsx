@@ -151,7 +151,7 @@ export default function JobDetailClient() {
         </a>
         <p className="mt-6 text-sm text-slate-500">
           Creators: copy a <strong>tracked</strong> link from{" "}
-          <Link href="/creator/opportunities" className="text-purple-600">
+          <Link href="/creator/campaigns" className="text-purple-600">
             your dashboard
           </Link>{" "}
           to earn on clicks.

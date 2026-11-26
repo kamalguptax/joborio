@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Public;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\JobMasters\JobMasterService;
+use App\Services\Publishers\CommunityXmlFeedSyncService;
 use App\Services\Syndication\JobrapidoFeedService;
 use App\Services\Platform\PlatformSettingsService;
 use App\Support\ApiResponse;
@@ -22,6 +23,7 @@ class JobrapidoSyndicationController extends Controller
         private readonly JobrapidoFeedService $feed,
         private readonly JobMasterService $masters,
         private readonly PlatformSettingsService $settings,
+        private readonly CommunityXmlFeedSyncService $communityFeeds,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -227,10 +229,12 @@ class JobrapidoSyndicationController extends Controller
     {
         $this->feed->clearCache();
         $payload = $this->feed->loadFeed();
+        $sync = $this->communityFeeds->syncAllCommunities();
 
         return $this->success([
             'total_in_feed' => count($payload['jobs']),
             'source' => $payload['source'],
+            'community_feed_sync' => $sync,
         ], 200, ['storage' => 'live_feed_cache_only']);
     }
 }

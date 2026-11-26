@@ -43,7 +43,9 @@ export default function AdminDashboardPage() {
   const activityDedup = adminPath("/admin/activity/?fraud=dedup");
   const fraud = adminPath("/admin/fraud");
   const publishers = adminPath("/admin/publishers");
+  const communities = adminPath("/admin/communities");
   const payouts = adminPath("/admin/payouts");
+  const withdrawals = adminPath("/admin/withdrawals");
   const programs = adminPath("/admin/programs");
   const signups = adminPath("/admin/activity/?panel=signups");
 
@@ -80,6 +82,32 @@ export default function AdminDashboardPage() {
           href={pending}
         />
         <AdminStatCard label="Publishers" value={c.publishers ?? 0} href={publishers} />
+        <AdminStatCard
+          label="Publisher pending"
+          value={c.publishers_pending ?? 0}
+          href={publishers}
+          hint="Needs activation"
+        />
+        <AdminStatCard
+          label="Communities"
+          value={c.communities ?? 0}
+          href={communities}
+          hint={
+            c.communities_active
+              ? `${c.communities_active} active`
+              : undefined
+          }
+        />
+        <AdminStatCard
+          label="Withdrawals pending"
+          value={c.withdrawals_pending ?? 0}
+          href={withdrawals}
+          hint={
+            c.withdrawals_total
+              ? `${c.withdrawals_total} total requests`
+              : "Pay or reject"
+          }
+        />
         <AdminStatCard label="Active listings" value={c.listings_active ?? 0} href={listings} />
         <AdminStatCard label="XML jobs (cache)" value={c.syndication_jobs ?? 0} href={jobs} />
         <AdminStatCard label="Active feeds" value={c.syndication_feeds ?? 0} href={feeds} />

@@ -83,18 +83,36 @@ class JobrapidoFeedService
 
     private function ensureDefaultFeedFromConfig(): void
     {
-        if (SyndicationFeed::query()->exists()) {
-            return;
-        }
-
         $url = (string) config('joborio.jobrapido_feed_url');
         if ($url === '') {
             return;
         }
 
+        // Migrate installs still pointed at the empty Jobrapido GCS XML.
+        $stale = SyndicationFeed::query()
+            ->where(function ($q) {
+                $q->where('feed_url', 'like', '%jr-databox-syndication-public%')
+                    ->orWhere('feed_url', 'like', '%jobrapido_Vigyapanam_IN.xml%');
+            })
+            ->get();
+        foreach ($stale as $row) {
+            $row->update([
+                'feed_url' => $url,
+                'name' => $row->slug === 'vigyapanam-in'
+                    ? 'Vigyapanam India (WhatJobs)'
+                    : $row->name,
+                'last_error' => null,
+            ]);
+            $this->clearFeedCache($row);
+        }
+
+        if (SyndicationFeed::query()->exists()) {
+            return;
+        }
+
         SyndicationFeed::create([
-            'name' => 'Default Jobrapido feed',
-            'slug' => 'default',
+            'name' => 'Vigyapanam India (WhatJobs)',
+            'slug' => 'vigyapanam-in',
             'feed_url' => $url,
             'format' => 'jobrapido',
             'job_xpath' => '//job',
@@ -106,6 +124,16 @@ class JobrapidoFeedService
                 : null,
             'sort_order' => 0,
         ]);
+    }
+
+    private function looksLikeHtmlErrorPage(string $body): bool
+    {
+        $head = strtolower(substr(ltrim($body), 0, 240));
+
+        return str_starts_with($head, '<!doctype html')
+            || str_starts_with($head, '<html')
+            || str_contains($head, 'too many requests')
+            || str_contains($head, 'cf-ray');
     }
 
     /**
@@ -222,12 +250,38 @@ class JobrapidoFeedService
         ];
 
         try {
-            $response = Http::timeout(60)->retry(2, 500)->get($url);
+            // WhatJobs sits behind Cloudflare; a browser-like UA + slower 429
+            // retries avoids empty sample fallbacks from rate limits.
+            $response = Http::timeout(90)
+                ->withHeaders([
+                    'User-Agent' => 'Mozilla/5.0 (compatible; JobOrioFeedBot/1.0; +https://joborio.sevenapps.in)',
+                    'Accept' => 'application/xml,text/xml,*/*;q=0.8',
+                    'Accept-Language' => 'en-IN,en;q=0.9',
+                ])
+                ->retry(
+                    4,
+                    fn (int $attempt) => min(8000, 1500 * $attempt),
+                    function ($exception) {
+                        if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
+                            return true;
+                        }
+                        $status = method_exists($exception, 'response')
+                            ? $exception->response?->status()
+                            : null;
+
+                        return in_array($status, [429, 502, 503, 504], true);
+                    },
+                    false,
+                )
+                ->get($url);
         } catch (Throwable $e) {
             $error = 'FETCH_FAILED';
             $payload = $this->mergeSampleIfNeeded($feed, [
                 'jobs' => [],
-                'source' => array_merge($source, ['error' => $error]),
+                'source' => array_merge($source, [
+                    'error' => $error,
+                    'error_message' => $e->getMessage(),
+                ]),
             ]);
             $this->persistFeedStats($feed, $payload, $error);
 
@@ -248,6 +302,18 @@ class JobrapidoFeedService
         $body = trim($response->body());
         if ($body === '') {
             $error = 'EMPTY_BODY';
+            $payload = $this->mergeSampleIfNeeded($feed, [
+                'jobs' => [],
+                'source' => array_merge($source, ['error' => $error]),
+            ]);
+            $this->persistFeedStats($feed, $payload, $error);
+
+            return $payload;
+        }
+
+        // Cloudflare often returns an HTML 429/challenge page with HTTP 200.
+        if ($this->looksLikeHtmlErrorPage($body)) {
+            $error = 'CLOUDFLARE_BLOCKED';
             $payload = $this->mergeSampleIfNeeded($feed, [
                 'jobs' => [],
                 'source' => array_merge($source, ['error' => $error]),

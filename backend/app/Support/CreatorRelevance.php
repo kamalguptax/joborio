@@ -82,10 +82,6 @@ class CreatorRelevance
         bool $preferRemote,
     ): bool {
         $jobTypes = PromoteJobTypes::clean($jobTypes);
-        if ($nicheNames === [] && $jobTypes === []) {
-            return false;
-        }
-
         $hay = strtolower(implode(' ', array_filter([
             $job['title'] ?? '',
             $job['category'] ?? '',
@@ -96,6 +92,8 @@ class CreatorRelevance
             $job['company'] ?? '',
         ])));
 
+        // No niches / promote types configured → do not hide the whole feed.
+        // Only apply topic filters when the creator actually set them.
         if ($nicheNames !== [] && ! self::textMatchesNames($hay, $nicheNames)) {
             return false;
         }

@@ -12,9 +12,15 @@ See **`IMPLEMENTATION-WORKFLOW.md`** for the full guide. Below are concise flows
 
 ## PPR registration (Phase 1)
 
-1. Destination **`POST /api/v1/webhooks/ppr`** with secret header.
-2. Email verification link → **`/ppr/verify`**.
-3. Verified → earning (tier-gated).
+1. Visitor opens creator tracked link **`/r/{token}`**.
+2. JobOrio logs the click, then redirects to the employer `destination_url` with:
+   - `joborio_token={token}` (and `token=` alias)
+   - `subid={creator_public_code}` when available
+3. Employer signup page stores `joborio_token` (cookie / hidden field / session).
+4. After registration, destination **`POST /api/v1/webhooks/ppr`** with secret header and body:
+   `{ "joborio_token": "…", "email": "user@example.com" }`
+5. Email verification link → **`/ppr/verify`**.
+6. Verified → earning (tier-gated).
 
 ## PPA application (Phase 3)
 

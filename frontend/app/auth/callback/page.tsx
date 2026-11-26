@@ -4,14 +4,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { fetchMe } from "@/lib/api/auth";
 import {
-  clearAuthToken,
   getAuthToken,
   rememberPublicCode,
   setAuthToken,
 } from "@/lib/auth/session";
 import { cacheUser } from "@/lib/auth/userCache";
-import { homePathForUser, navigateTo, roleFlags } from "@/lib/auth/redirect";
-import { ADMIN_LOGIN_URL } from "@/lib/siteUrls";
+import { homePathForUser, navigateTo } from "@/lib/auth/redirect";
 import { CenteredCardSkeleton } from "@/components/ui/Skeleton";
 
 function AuthCallbackInner() {
@@ -39,16 +37,10 @@ function AuthCallbackInner() {
 
     fetchMe()
       .then((user) => {
-        // Admin accounts use the separate admin app.
-        if (roleFlags(user).isAdmin) {
-          clearAuthToken();
-          window.location.href = ADMIN_LOGIN_URL;
-          return;
-        }
         rememberPublicCode(user);
         cacheUser(user, getAuthToken());
         // Same role-based routing as the email login form
-        // (publisher / network / brand / creator / onboarding).
+        // (admin / publisher / network / brand / creator / onboarding).
         navigateTo(router, homePathForUser(user));
       })
       .catch(() => {

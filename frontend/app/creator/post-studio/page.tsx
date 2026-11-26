@@ -12,7 +12,10 @@ import type { SyndicatedJob } from "@/lib/api/syndication";
 import { rememberPublicCode } from "@/lib/auth/session";
 import { formatMoney } from "@/lib/money";
 import { mapOpportunityCategory } from "@/lib/home/opportunityCards";
-import type { PostStudioPick } from "@/lib/postStudio/templates";
+import {
+  extractSkillsFromText,
+  type PostStudioPick,
+} from "@/lib/postStudio/templates";
 import { fetchPublicXmlJobs } from "@/lib/syndication/publicXmlFeed";
 import { shareJobUrl } from "@/lib/tracking/subid";
 
@@ -39,6 +42,7 @@ export default function CreatorPostStudioPage() {
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     Promise.all([
       fetchCreatorCampaigns().catch(() => [] as CreatorCampaignRow[]),
       fetchPublicXmlJobs({
@@ -51,12 +55,28 @@ export default function CreatorPostStudioPage() {
         .then((user) => rememberPublicCode(user))
         .catch(() => null),
     ])
-      .then(([camp, xml, code]) => {
+      .then(async ([camp, xml, code]) => {
         setCampaigns(camp);
-        setXmlJobs(xml?.jobs ?? []);
         setPublicCode(code);
-        if (!camp.length && !(xml?.jobs?.length ?? 0)) {
-          setError("No campaigns or jobs yet. Open Opportunities first.");
+
+        let jobs = xml?.jobs ?? [];
+        // If preference filtering returned nothing, fall back to the live feed
+        // so Jobs tab is not blank when niches are narrow or feed just refreshed.
+        if (jobs.length === 0) {
+          const fallback = await fetchPublicXmlJobs({
+            per_page: 48,
+            page: 1,
+            auth: true,
+            for_creator: false,
+          }).catch(() => null);
+          jobs = fallback?.jobs ?? [];
+        }
+        setXmlJobs(jobs);
+
+        if (!camp.length && jobs.length === 0) {
+          setError(
+            "No campaigns or jobs yet. Set niches in Job Preferences, or open Campaigns.",
+          );
         }
       })
       .catch(() => setError("Could not load Post Studio data."))
@@ -121,29 +141,45 @@ export default function CreatorPostStudioPage() {
         badge,
         rateText: `${formatMoney(Number(p.rate_usd ?? 0))} / ${rateWord(model)}`,
         shareUrl: url,
+        category: promo,
+        summary:
+          promo === "course"
+            ? `Explore this ${badge.toLowerCase()} opportunity and grow your skills with a tracked JobOrio link.`
+            : "Open role / campaign worth sharing with your audience.",
       });
     }
 
     for (const job of xmlJobs) {
-      if (!publicCode) continue;
       const cat = mapOpportunityCategory(
         job.category,
         job.jobtype,
         job.title,
         job.description_text,
       );
-      const badge =
-        cat === "course" ? "Course" : cat === "tools" ? "Tools" : "Job";
+      // Jobs tab matches badge "Job"; keep XML listings there even when
+      // category heuristics lean course/tools.
+      const badge = "Job";
       const rate = Number(job.ppc_rate_usd ?? 0.01);
+      const location = job.location_label || job.location || "";
+      const code = publicCode || "CREATOR";
       out.push({
         id: `xml-${job.reference_id}`,
         title: job.title,
-        subtitle: [job.company, job.location_label || job.location]
-          .filter(Boolean)
-          .join(" · "),
+        subtitle: [job.company, location].filter(Boolean).join(" · "),
         badge,
         rateText: `${formatMoney(rate)} / click`,
-        shareUrl: shareJobUrl(publicCode, job.reference_id),
+        shareUrl: shareJobUrl(code, job.reference_id),
+        company: job.company || undefined,
+        location: location || undefined,
+        experience: job.experience || undefined,
+        qualification: job.education || undefined,
+        salary: job.salary || undefined,
+        jobType: job.jobtype || undefined,
+        category: job.category || cat || undefined,
+        skills: extractSkillsFromText(job.description_text),
+        summary: job.company
+          ? `${job.company} is looking for skilled professionals${location ? ` in ${location}` : ""} to join the team.`
+          : undefined,
       });
     }
 
@@ -156,7 +192,7 @@ export default function CreatorPostStudioPage() {
       loading={loading}
       error={error}
       audienceLabel="creators"
-      emptyHint="Join or open Opportunities to load PPC, PPR, courses, and jobs here."
+      emptyHint="No jobs matched your filters. Set niches in Job Preferences, or open Campaigns — the XML feed also refreshes on a schedule."
     />
   );
 }

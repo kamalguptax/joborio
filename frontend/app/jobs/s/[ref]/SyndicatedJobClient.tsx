@@ -8,6 +8,7 @@ import { postedAgo } from "@/lib/home/opportunityCards";
 import { companyName } from "@/lib/jobs/companyName";
 import { fetchPublicXmlJob } from "@/lib/syndication/publicXmlFeed";
 import SyndicatedJobApplyBar from "@/components/jobs/SyndicatedJobApplyBar";
+import ReferAndEarnPopup from "@/components/creator/ReferAndEarnPopup";
 import { recordJobActivity } from "@/lib/api/creator";
 import { getAuthToken, getPublicCode, rememberPublicCode } from "@/lib/auth/session";
 import { fetchMe } from "@/lib/api/auth";
@@ -174,12 +175,14 @@ export default function SyndicatedJobClient() {
           referenceId={job.reference_id}
           title={job.title}
           company={companyName(job.company)}
+          publicCode={publicCode}
         />
         <p className="mt-6 text-xs text-slate-400">
           reference {job.reference_id}
           {publicCode ? ` · subid ${publicCode}` : ""}
         </p>
       </div>
+      <ReferAndEarnPopup />
     </main>
   );
 }

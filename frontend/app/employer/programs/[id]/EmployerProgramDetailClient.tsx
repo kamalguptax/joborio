@@ -279,6 +279,17 @@ export default function EmployerProgramDetailClient() {
               }
               className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
             />
+            {String(program.pricing_model ?? "").toLowerCase() === "ppr" ? (
+              <span className="mt-2 block text-xs text-slate-500">
+                PPR: visitors arrive with{" "}
+                <code className="rounded bg-slate-100 px-1">?joborio_token=…</code>.
+                Capture it and send{" "}
+                <code className="rounded bg-slate-100 px-1">
+                  POST /api/v1/webhooks/ppr
+                </code>{" "}
+                with token + email after registration.
+              </span>
+            ) : null}
           </label>
           {isPpe ? (
             <>

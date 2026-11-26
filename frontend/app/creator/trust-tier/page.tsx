@@ -59,10 +59,10 @@ export default function AccountFeaturesPage() {
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
-            href="/creator/opportunities"
+            href="/creator/campaigns"
             className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white"
           >
-            Browse opportunities
+            Browse campaigns
           </Link>
           <Link
             href="/creator/payout"

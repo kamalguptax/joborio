@@ -148,17 +148,115 @@ class InvitationController extends Controller
             }
         }
 
-        $rows = $members->map(function ($m) use ($canViewEarnings, $earningsByMember) {
+        $activityByMember = [];
+        $lastActivityByMember = [];
+        if ($memberIds !== []) {
+            $activityRows = \App\Models\MemberActivityEvent::query()
+                ->where('publisher_id', $publisher->id)
+                ->whereIn('network_member_id', $memberIds)
+                ->where('status', 'counted')
+                ->selectRaw('network_member_id, activity_type, COUNT(*) as total')
+                ->groupBy('network_member_id', 'activity_type')
+                ->get();
+
+            foreach ($activityRows as $row) {
+                $id = (int) $row->network_member_id;
+                if (! isset($activityByMember[$id])) {
+                    $activityByMember[$id] = [
+                        'clicks_total' => 0,
+                        'clicks_valid' => 0,
+                        'clicks_duplicate' => 0,
+                        'signups' => 0,
+                        'applications' => 0,
+                        'leads' => 0,
+                        'conversions' => 0,
+                    ];
+                }
+                $type = (string) $row->activity_type;
+                $total = (int) $row->total;
+                if ($type === 'click' || $type === 'click_valid') {
+                    $activityByMember[$id]['clicks_total'] += $total;
+                    if ($type === 'click_valid') {
+                        $activityByMember[$id]['clicks_valid'] += $total;
+                    }
+                } elseif ($type === 'signup') {
+                    $activityByMember[$id]['signups'] = $total;
+                } elseif ($type === 'application') {
+                    $activityByMember[$id]['applications'] = $total;
+                } elseif ($type === 'lead') {
+                    $activityByMember[$id]['leads'] = $total;
+                } elseif ($type === 'conversion') {
+                    $activityByMember[$id]['conversions'] = $total;
+                }
+            }
+
+            $duplicateRows = \App\Models\MemberActivityEvent::query()
+                ->where('publisher_id', $publisher->id)
+                ->whereIn('network_member_id', $memberIds)
+                ->where('activity_type', 'click')
+                ->where('status', 'rejected')
+                ->selectRaw('network_member_id, COUNT(*) as total')
+                ->groupBy('network_member_id')
+                ->get();
+
+            foreach ($duplicateRows as $row) {
+                $id = (int) $row->network_member_id;
+                if (! isset($activityByMember[$id])) {
+                    $activityByMember[$id] = [
+                        'clicks_total' => 0,
+                        'clicks_valid' => 0,
+                        'clicks_duplicate' => 0,
+                        'signups' => 0,
+                        'applications' => 0,
+                        'leads' => 0,
+                        'conversions' => 0,
+                    ];
+                }
+                $activityByMember[$id]['clicks_duplicate'] = (int) $row->total;
+            }
+
+            $lastActivityRows = \App\Models\MemberActivityEvent::query()
+                ->where('publisher_id', $publisher->id)
+                ->whereIn('network_member_id', $memberIds)
+                ->selectRaw('network_member_id, MAX(COALESCE(occurred_at, created_at)) as last_activity_at')
+                ->groupBy('network_member_id')
+                ->get();
+
+            foreach ($lastActivityRows as $row) {
+                $lastActivityByMember[(int) $row->network_member_id] = $row->last_activity_at
+                    ? \Illuminate\Support\Carbon::parse($row->last_activity_at)->toIso8601String()
+                    : null;
+            }
+        }
+
+        $rows = $members->map(function ($m) use ($canViewEarnings, $earningsByMember, $activityByMember, $lastActivityByMember) {
             $earn = $earningsByMember[$m->id] ?? ['settled_usd' => 0.0, 'pending_usd' => 0.0];
             $settled = $earn['settled_usd'];
             $pending = $earn['pending_usd'];
+            $activity = $activityByMember[$m->id] ?? [
+                'clicks_total' => 0,
+                'clicks_valid' => 0,
+                'clicks_duplicate' => 0,
+                'signups' => 0,
+                'applications' => 0,
+                'leads' => 0,
+                'conversions' => 0,
+            ];
+            if ($activity['clicks_valid'] === 0 && $activity['clicks_total'] > 0) {
+                $activity['clicks_valid'] = $activity['clicks_total'];
+            }
+            $activity['clicks_duplicate'] = (int) ($activity['clicks_duplicate'] ?? 0);
+
+            $registeredAt = $m->joined_at ?? $m->created_at;
 
             return [
                 'id' => $m->id,
                 'display_name' => $m->display_name ?: $m->user?->name,
                 'email' => $m->user?->email,
                 'status' => $m->status,
-                'joined_at' => optional($m->joined_at)?->toIso8601String(),
+                'joined_at' => optional($registeredAt)?->toIso8601String(),
+                'registered_at' => optional($registeredAt)?->toIso8601String(),
+                'last_activity_at' => $lastActivityByMember[$m->id] ?? null,
                 'left_at' => optional($m->left_at)?->toIso8601String(),
                 'released_at' => optional($m->released_at)?->toIso8601String(),
                 'communities' => $m->communityMemberships
@@ -171,6 +269,7 @@ class InvitationController extends Controller
                     ])
                     ->values()
                     ->all(),
+                'activity' => $activity,
                 'earnings' => $canViewEarnings ? [
                     'settled_usd' => $settled,
                     'pending_usd' => $pending,

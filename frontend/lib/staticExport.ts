@@ -16,15 +16,17 @@ export function creatorProfilePath(handle: string): string {
 }
 
 /**
- * Network invite path. Prefer pretty `/join/{pub}/{com}/?token=…`.
- * Hostinger `.htaccess` rewrites those to `/join/static/static/index.html`.
- * Old `/join/static/static/?token=&pub=&com=` links still work via query fallback.
+ * Network invite path for static export.
+ * Always use `/join/static/static/` (the only exported page). Pretty
+ * `/join/{pub}/{com}/` links 404 on hosts without the Hostinger rewrite.
  */
 export function joinInvitePath(pub: string, com: string, token: string): string {
-  const q = new URLSearchParams({ token });
-  const pubSeg = encodeURIComponent(pub.trim() || "PUB");
-  const comSeg = encodeURIComponent(com.trim() || "ALL");
-  return `/join/${pubSeg}/${comSeg}/?${q.toString()}`;
+  const q = new URLSearchParams({
+    token,
+    pub: pub.trim() || "PUB",
+    com: com.trim() || "ALL",
+  });
+  return `/join/${STATIC_EXPORT_PLACEHOLDER}/${STATIC_EXPORT_PLACEHOLDER}/?${q.toString()}`;
 }
 
 /** Static-export-safe admin user detail. Pretty `/admin/users/{id}` 404s without Apache rewrite. */
@@ -35,6 +37,16 @@ export function adminUserPath(
   const q = new URLSearchParams({ id: String(id) });
   if (tab) q.set("tab", tab);
   return `/admin/users/${STATIC_EXPORT_PLACEHOLDER}/?${q.toString()}`;
+}
+
+/** Publisher community dashboard (static-export safe). */
+export function publisherCommunityPath(
+  id: string | number,
+  opts?: { from?: "reports" | "communities" | "earnings" | "dashboard" },
+): string {
+  const q = new URLSearchParams({ id: String(id) });
+  if (opts?.from) q.set("from", opts.from);
+  return `/publisher/communities/${STATIC_EXPORT_PLACEHOLDER}/?${q.toString()}`;
 }
 
 export function resolveDynamicParam(

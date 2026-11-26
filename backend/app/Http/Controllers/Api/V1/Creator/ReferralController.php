@@ -53,4 +53,38 @@ class ReferralController extends Controller
             'referred_by_creator_id' => $creator->referred_by_creator_id,
         ]);
     }
+
+    public function notify(Request $request): JsonResponse
+    {
+        $creator = $request->user()->creator;
+        if (! $creator) {
+            return $this->error('NOT_A_CREATOR', 'Creator profile not found.', 404);
+        }
+
+        $data = $request->validate([
+            'creator_ids' => ['required', 'array', 'min:1', 'max:50'],
+            'creator_ids.*' => ['integer', 'min:1'],
+            'message' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $result = $this->referrals->notifyReferred(
+            $creator,
+            $data['creator_ids'],
+            $data['message'] ?? null,
+        );
+
+        return $this->success($result);
+    }
+
+    public function share(Request $request): JsonResponse
+    {
+        $creator = $request->user()->creator;
+        if (! $creator) {
+            return $this->error('NOT_A_CREATOR', 'Creator profile not found.', 404);
+        }
+
+        $count = $this->referrals->recordShare($creator);
+
+        return $this->success(['shares' => $count]);
+    }
 }

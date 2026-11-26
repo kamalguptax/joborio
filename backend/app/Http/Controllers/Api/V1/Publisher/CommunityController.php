@@ -3,17 +3,23 @@
 namespace App\Http\Controllers\Api\V1\Publisher;
 
 use App\Http\Controllers\Controller;
+use App\Models\MemberActivityEvent;
+use App\Models\MemberSettlementRecord;
+use App\Models\NetworkMember;
 use App\Models\Program;
 use App\Models\PublisherCampaignAssignment;
 use App\Models\PublisherCommission;
 use App\Models\PublisherCommunity;
 use App\Models\PublisherInvitation;
+use App\Models\PublisherLedgerEntry;
 use App\Models\PublisherUser;
+use App\Services\Publishers\CommunityXmlFeedSyncService;
 use App\Support\ApiResponse;
 use App\Support\PublisherAccess;
 use App\Support\PublisherCommissionSplit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -22,21 +28,331 @@ class CommunityController extends Controller
 {
     use ApiResponse;
 
+    public function __construct(private CommunityXmlFeedSyncService $xmlFeedSync) {}
+
     public function index(Request $request): JsonResponse
     {
         $membership = PublisherAccess::membership($request->user());
+        $publisher = $membership->publisher;
 
-        $rows = PublisherAccess::communitiesQuery($request->user())
+        $communities = PublisherAccess::communitiesQuery($request->user())
             ->withCount(['members as members_count' => fn ($q) => $q->where('status', 'active')])
             ->with('manager:id,name,email')
             ->latest()
-            ->get()
-            ->map(fn (PublisherCommunity $c) => $this->serialize($c));
+            ->get();
+
+        $communityIds = $communities->pluck('id')->all();
+        $clicksByCommunity = collect();
+        if ($communityIds !== []) {
+            $clicksByCommunity = MemberActivityEvent::query()
+                ->where('publisher_id', $publisher->id)
+                ->whereIn('community_id', $communityIds)
+                ->where('status', 'counted')
+                ->whereIn('activity_type', ['click', 'click_valid'])
+                ->select('community_id', DB::raw('count(*) as total'))
+                ->groupBy('community_id')
+                ->pluck('total', 'community_id');
+        }
+
+        $rows = $communities->map(function (PublisherCommunity $c) use ($clicksByCommunity) {
+            $payload = $this->serialize($c);
+            $payload['clicks_total'] = (int) ($clicksByCommunity[$c->id] ?? 0);
+
+            return $payload;
+        });
 
         return $this->success([
             'communities' => $rows,
             'membership_role' => $membership->role,
             'scope' => $membership->isOwner() ? 'all' : 'assigned',
+        ]);
+    }
+
+    public function dashboard(Request $request, int $community): JsonResponse
+    {
+        $row = PublisherAccess::assertCanAccessCommunity($request->user(), $community);
+        $publisher = PublisherAccess::publisher($request->user());
+        $isOwner = PublisherAccess::membership($request->user())->isOwner();
+
+        $row->loadCount([
+            'members as members_count' => fn ($q) => $q->where('status', 'active'),
+        ]);
+        $row->load('manager:id,name,email');
+
+        $activityByType = MemberActivityEvent::query()
+            ->where('publisher_id', $publisher->id)
+            ->where('community_id', $row->id)
+            ->where('status', 'counted')
+            ->select('activity_type', DB::raw('count(*) as total'))
+            ->groupBy('activity_type')
+            ->pluck('total', 'activity_type');
+
+        $clicks = (int) ($activityByType['click'] ?? 0) + (int) ($activityByType['click_valid'] ?? 0);
+        $signups = (int) ($activityByType['signup'] ?? 0);
+        $applications = (int) ($activityByType['application'] ?? 0);
+        $conversions = (int) ($activityByType['conversion'] ?? 0);
+
+        $members = NetworkMember::query()
+            ->where('publisher_id', $publisher->id)
+            ->whereHas('communityMemberships', function ($q) use ($row) {
+                $q->where('community_id', $row->id)
+                    ->whereIn('status', ['active', 'ended', 'released']);
+            })
+            ->with([
+                'user:id,name,email',
+                'communityMemberships' => fn ($q) => $q
+                    ->where('community_id', $row->id)
+                    ->with('community:id,code,name'),
+            ])
+            ->latest()
+            ->limit(200)
+            ->get();
+
+        $memberIds = $members->pluck('id')->all();
+        $activityByMember = [];
+        if ($memberIds !== []) {
+            $activityRows = MemberActivityEvent::query()
+                ->where('publisher_id', $publisher->id)
+                ->where('community_id', $row->id)
+                ->whereIn('network_member_id', $memberIds)
+                ->where('status', 'counted')
+                ->selectRaw('network_member_id, activity_type, COUNT(*) as total')
+                ->groupBy('network_member_id', 'activity_type')
+                ->get();
+
+            foreach ($activityRows as $event) {
+                $id = (int) $event->network_member_id;
+                if (! isset($activityByMember[$id])) {
+                    $activityByMember[$id] = [
+                        'clicks_total' => 0,
+                        'clicks_valid' => 0,
+                        'signups' => 0,
+                        'applications' => 0,
+                        'leads' => 0,
+                        'conversions' => 0,
+                    ];
+                }
+                $type = (string) $event->activity_type;
+                $total = (int) $event->total;
+                if ($type === 'click' || $type === 'click_valid') {
+                    $activityByMember[$id]['clicks_total'] += $total;
+                    if ($type === 'click_valid') {
+                        $activityByMember[$id]['clicks_valid'] += $total;
+                    }
+                } elseif ($type === 'signup') {
+                    $activityByMember[$id]['signups'] = $total;
+                } elseif ($type === 'application') {
+                    $activityByMember[$id]['applications'] = $total;
+                } elseif ($type === 'lead') {
+                    $activityByMember[$id]['leads'] = $total;
+                } elseif ($type === 'conversion') {
+                    $activityByMember[$id]['conversions'] = $total;
+                }
+            }
+        }
+
+        $earningsByMember = [];
+        $settledUsd = 0.0;
+        $pendingUsd = 0.0;
+        if ($isOwner && $memberIds !== []) {
+            $settlements = MemberSettlementRecord::query()
+                ->where('publisher_id', $publisher->id)
+                ->where('community_id', $row->id)
+                ->whereIn('network_member_id', $memberIds)
+                ->whereIn('status', ['pending', 'settled'])
+                ->selectRaw('network_member_id, status, COALESCE(SUM(amount_usd), 0) as total')
+                ->groupBy('network_member_id', 'status')
+                ->get();
+
+            foreach ($settlements as $s) {
+                $id = (int) $s->network_member_id;
+                if (! isset($earningsByMember[$id])) {
+                    $earningsByMember[$id] = ['settled_usd' => 0.0, 'pending_usd' => 0.0];
+                }
+                if ($s->status === 'settled') {
+                    $earningsByMember[$id]['settled_usd'] = round((float) $s->total, 4);
+                    $settledUsd += (float) $s->total;
+                } else {
+                    $earningsByMember[$id]['pending_usd'] = round((float) $s->total, 4);
+                    $pendingUsd += (float) $s->total;
+                }
+            }
+        }
+
+        $memberRows = $members->map(function (NetworkMember $m) use ($isOwner, $activityByMember, $earningsByMember) {
+            $activity = $activityByMember[$m->id] ?? [
+                'clicks_total' => 0,
+                'clicks_valid' => 0,
+                'signups' => 0,
+                'applications' => 0,
+                'leads' => 0,
+                'conversions' => 0,
+            ];
+            if ($activity['clicks_valid'] === 0 && $activity['clicks_total'] > 0) {
+                $activity['clicks_valid'] = $activity['clicks_total'];
+            }
+            $earn = $earningsByMember[$m->id] ?? ['settled_usd' => 0.0, 'pending_usd' => 0.0];
+            $membership = $m->communityMemberships->first();
+
+            return [
+                'id' => $m->id,
+                'display_name' => $m->display_name ?: $m->user?->name,
+                'email' => $m->user?->email,
+                'status' => $m->status,
+                'community_status' => $membership?->status,
+                'joined_at' => optional($m->joined_at)?->toIso8601String(),
+                'activity' => $activity,
+                'earnings' => $isOwner ? [
+                    'settled_usd' => $earn['settled_usd'],
+                    'pending_usd' => $earn['pending_usd'],
+                    'total_usd' => round($earn['settled_usd'] + $earn['pending_usd'], 4),
+                    'currency' => 'USD',
+                ] : null,
+            ];
+        })->values();
+
+        $assignmentModels = PublisherCampaignAssignment::query()
+            ->where('publisher_id', $publisher->id)
+            ->where(function ($q) use ($row) {
+                $q->where('community_id', $row->id)->orWhereNull('community_id');
+            })
+            ->with('program:id,title,pricing_model,promotion_type,status')
+            ->latest()
+            ->limit(40)
+            ->get();
+
+        $assignmentIds = $assignmentModels->pluck('id')->all();
+        $earnedByAssignment = [];
+        $pendingByAssignment = [];
+        if ($isOwner && $assignmentIds !== []) {
+            // Only count ledger rows attributed to this community
+            // (network-wide campaigns still break out per community).
+            $ledgerRows = PublisherLedgerEntry::query()
+                ->where('publisher_id', $publisher->id)
+                ->where('community_id', $row->id)
+                ->whereIn('campaign_assignment_id', $assignmentIds)
+                ->selectRaw(
+                    'campaign_assignment_id,
+                     entry_type,
+                     state,
+                     COALESCE(SUM(net_usd), 0) as total'
+                )
+                ->groupBy('campaign_assignment_id', 'entry_type', 'state')
+                ->get();
+
+            foreach ($ledgerRows as $ledger) {
+                $aid = (int) $ledger->campaign_assignment_id;
+                $total = (float) $ledger->total;
+                if (! isset($earnedByAssignment[$aid])) {
+                    $earnedByAssignment[$aid] = 0.0;
+                    $pendingByAssignment[$aid] = 0.0;
+                }
+                if ($ledger->entry_type === 'reversal') {
+                    $earnedByAssignment[$aid] -= abs($total);
+                    continue;
+                }
+                if (! in_array($ledger->entry_type, ['credit', 'adjustment'], true)) {
+                    continue;
+                }
+                if ($ledger->state === 'pending') {
+                    $pendingByAssignment[$aid] += $total;
+                } elseif (in_array($ledger->state, ['approved', 'payable', 'paid'], true)) {
+                    $earnedByAssignment[$aid] += $total;
+                }
+            }
+        }
+
+        $campaignsEarnedTotal = 0.0;
+        $campaignsPendingTotal = 0.0;
+        $assignments = $assignmentModels->map(function (PublisherCampaignAssignment $a) use (
+            $isOwner,
+            $earnedByAssignment,
+            $pendingByAssignment,
+            &$campaignsEarnedTotal,
+            &$campaignsPendingTotal,
+        ) {
+            $earned = round((float) ($earnedByAssignment[$a->id] ?? 0), 4);
+            $pending = round((float) ($pendingByAssignment[$a->id] ?? 0), 4);
+            $campaignsEarnedTotal += $earned;
+            $campaignsPendingTotal += $pending;
+
+            return [
+                'id' => $a->id,
+                'status' => $a->status,
+                'pricing_model' => $isOwner ? ($a->program?->pricing_model ?? $a->pricing_model) : null,
+                'accepted_rate_usd' => $isOwner ? $a->accepted_rate_usd : null,
+                'program_title' => $a->program?->title,
+                'scope' => $a->community_id ? 'community' : 'network',
+                'earned_usd' => $isOwner ? $earned : null,
+                'pending_usd' => $isOwner ? $pending : null,
+                'total_usd' => $isOwner ? round($earned + $pending, 4) : null,
+            ];
+        })->values();
+
+        $recent = MemberActivityEvent::query()
+            ->where('publisher_id', $publisher->id)
+            ->where('community_id', $row->id)
+            ->where('status', 'counted')
+            ->with(['networkMember:id,display_name,user_id', 'networkMember.user:id,name'])
+            ->orderByDesc('occurred_at')
+            ->limit(25)
+            ->get()
+            ->map(function (MemberActivityEvent $e) {
+                $member = $e->networkMember;
+
+                return [
+                    'id' => $e->id,
+                    'activity_type' => $e->activity_type,
+                    'title' => is_array($e->meta) ? ($e->meta['title'] ?? null) : null,
+                    'member_name' => $member?->display_name ?: $member?->user?->name,
+                    'occurred_at' => optional($e->occurred_at)?->toIso8601String(),
+                ];
+            })
+            ->values();
+
+        $publisherEarnings = null;
+        if ($isOwner) {
+            $publisherEarnings = round((float) PublisherLedgerEntry::query()
+                ->where('publisher_id', $publisher->id)
+                ->where('community_id', $row->id)
+                ->whereIn('entry_type', ['credit', 'adjustment'])
+                ->whereIn('state', ['approved', 'payable', 'paid'])
+                ->sum('net_usd'), 4);
+        }
+
+        $pendingInvites = PublisherInvitation::query()
+            ->where('publisher_id', $publisher->id)
+            ->where('community_id', $row->id)
+            ->where('status', 'pending')
+            ->count();
+
+        $payload = $this->serialize($row);
+        $payload['clicks_total'] = $clicks;
+
+        return $this->success([
+            'community' => $payload,
+            'summary' => [
+                'members_active' => (int) $row->members_count,
+                'members_total' => $memberRows->count(),
+                'clicks' => $clicks,
+                'signups' => $signups,
+                'applications' => $applications,
+                'conversions' => $conversions,
+                'pending_invites' => $pendingInvites,
+                'xml_jobs_count' => is_array($row->xml_job_refs) ? count($row->xml_job_refs) : 0,
+                'publisher_earnings_usd' => $publisherEarnings,
+                'campaigns_earned_usd' => $isOwner ? round($campaignsEarnedTotal, 4) : null,
+                'campaigns_pending_usd' => $isOwner ? round($campaignsPendingTotal, 4) : null,
+                'campaigns_total_usd' => $isOwner
+                    ? round($campaignsEarnedTotal + $campaignsPendingTotal, 4)
+                    : null,
+                'member_settled_usd' => $isOwner ? round($settledUsd, 4) : null,
+                'member_pending_usd' => $isOwner ? round($pendingUsd, 4) : null,
+            ],
+            'members' => $memberRows,
+            'assignments' => $assignments,
+            'recent_activity' => $recent,
+            'can_view_financials' => $isOwner,
         ]);
     }
 
@@ -68,22 +384,30 @@ class CommunityController extends Controller
 
         $managerId = $this->resolveManagerId($publisher->id, $data['manager_user_id'] ?? null);
         $programIds = array_values(array_unique(array_map('intval', $data['program_ids'] ?? [])));
-        $xmlJobRefs = $this->normalizeXmlJobRefs($data['xml_job_refs'] ?? []);
-        if ($programIds === [] && $xmlJobRefs === []) {
-            return $this->error(
-                'VALIDATION_ERROR',
-                'Pick at least one campaign, manual job, or XML job for this community.',
-                422,
-                [
-                    'program_ids' => ['Pick at least one campaign, manual job, or XML job.'],
-                    'xml_job_refs' => ['Pick at least one campaign, manual job, or XML job.'],
-                ],
-            );
-        }
         $category = $this->normalizeCategories(
             $data['categories'] ?? null,
             $data['category'] ?? null,
         );
+        $categoryList = $category
+            ? array_values(array_filter(array_map('trim', preg_split('/\s*,\s*/', $category) ?: [])))
+            : [];
+        // Live XML jobs matching niches are attached automatically (and stay in sync on feed refresh).
+        $xmlJobRefs = $this->xmlFeedSync->resolveRefsForCreate(
+            $categoryList,
+            $this->normalizeXmlJobRefs($data['xml_job_refs'] ?? []),
+        );
+        if ($programIds === [] && $xmlJobRefs === []) {
+            return $this->error(
+                'VALIDATION_ERROR',
+                'Pick at least one campaign/job, or choose niches that match live feed jobs.',
+                422,
+                [
+                    'program_ids' => ['Pick at least one campaign or job.'],
+                    'categories' => ['Or choose niches that match live feed jobs.'],
+                    'xml_job_refs' => ['No matching feed jobs for the selected niches yet.'],
+                ],
+            );
+        }
         $commissionPercent = PublisherCommissionSplit::clampPublisherPercent(
             (float) $data['commission_percent'],
         );
@@ -162,19 +486,21 @@ class CommunityController extends Controller
 
         $data = $request->validate($rules);
 
-        if (array_key_exists('xml_job_refs', $data)) {
-            $data['xml_job_refs'] = $this->normalizeXmlJobRefs($data['xml_job_refs'] ?? []);
-            if ($data['xml_job_refs'] === []) {
-                $data['xml_job_refs'] = null;
-            }
-        }
-
         if (array_key_exists('categories', $data) || array_key_exists('category', $data)) {
             $data['category'] = $this->normalizeCategories(
                 $data['categories'] ?? null,
                 $data['category'] ?? null,
             );
             unset($data['categories']);
+        }
+
+        $categoriesChanged = array_key_exists('category', $data);
+        $manualXmlProvided = array_key_exists('xml_job_refs', $data);
+        if ($manualXmlProvided) {
+            $data['xml_job_refs'] = $this->normalizeXmlJobRefs($data['xml_job_refs'] ?? []);
+            if ($data['xml_job_refs'] === []) {
+                $data['xml_job_refs'] = null;
+            }
         }
 
         if ($membership->isOwner() && array_key_exists('manager_user_id', $data)) {
@@ -201,6 +527,12 @@ class CommunityController extends Controller
         }
 
         $community->fill($data)->save();
+
+        // Keep community job feed aligned with niches whenever categories change
+        // (or when the publisher did not send a manual xml_job_refs override).
+        if ($categoriesChanged || ! $manualXmlProvided) {
+            $this->xmlFeedSync->syncCommunity($community->fresh());
+        }
 
         return $this->success([
             'community' => $this->serialize($community->fresh()->load('manager:id,name,email')),
@@ -439,6 +771,7 @@ class CommunityController extends Controller
             'status' => $c->status,
             'manager_user_id' => $c->manager_user_id,
             'members_count' => (int) ($c->members_count ?? $c->members()->where('status', 'active')->count()),
+            'clicks_total' => (int) ($c->clicks_total ?? 0),
             'join_url' => $this->joinUrl($invite),
             'join_path' => $invite->invitePath(),
             'manager' => $c->manager ? [

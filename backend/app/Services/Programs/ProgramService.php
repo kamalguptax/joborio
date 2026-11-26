@@ -48,10 +48,14 @@ class ProgramService
                     : null,
             ]);
 
-            $isTrial = (bool) ($data['trial_without_ip'] ?? false);
+            $isDraft = (bool) ($data['as_draft'] ?? false);
+            $isTrial = (bool) ($data['trial_without_ip'] ?? false) || $isDraft;
             $wantsLive = (bool) ($data['force_active'] ?? config('joborio.employer_programs.auto_activate', true));
             $billingOk = EmployerBilling::canGoLive($employer) || (bool) ($data['skip_billing_gate'] ?? false);
-            $autoActive = $wantsLive && ($isTrial || $billingOk);
+            $autoActive = ! $isDraft && $wantsLive && ($isTrial || $billingOk);
+            $status = $isDraft
+                ? 'draft'
+                : ($autoActive ? 'active' : 'pending_review');
             $programPayload = [
                 'employer_id' => $employer->id,
                 'listing_id' => $listing->id,
@@ -61,7 +65,7 @@ class ProgramService
                 'rate_usd' => $data['rate_usd'],
                 'budget_total_usd' => $isTrial ? max(0, (float) $data['budget_total_usd']) : $data['budget_total_usd'],
                 'budget_spent_usd' => 0,
-                'status' => $autoActive ? 'active' : 'pending_review',
+                'status' => $status,
                 'target_niche_ids' => $data['target_niche_ids'] ?? [],
                 'target_countries' => $data['target_countries'] ?? [],
                 'min_trust_tier' => $data['min_trust_tier'] ?? null,
@@ -115,6 +119,27 @@ class ProgramService
             }
             if (Schema::hasColumn('programs', 'auto_pause_on_budget') && array_key_exists('auto_pause_on_budget', $data)) {
                 $programPayload['auto_pause_on_budget'] = (bool) $data['auto_pause_on_budget'];
+            }
+            if (Schema::hasColumn('programs', 'brand_category') && array_key_exists('brand_category', $data)) {
+                $programPayload['brand_category'] = $data['brand_category'] ?: null;
+            } elseif (Schema::hasColumn('programs', 'brand_category') && ! empty($data['category'])) {
+                $programPayload['brand_category'] = $data['category'];
+            }
+            if (Schema::hasColumn('programs', 'conversion_model_code') && array_key_exists('conversion_model_code', $data)) {
+                $programPayload['conversion_model_code'] = $data['conversion_model_code'] ?: null;
+            }
+            if (Schema::hasColumn('programs', 'currency') && array_key_exists('currency', $data)) {
+                $programPayload['currency'] = strtoupper((string) ($data['currency'] ?: 'USD'));
+            }
+            if (Schema::hasColumn('programs', 'daily_budget_usd') && array_key_exists('daily_budget_usd', $data)) {
+                $programPayload['daily_budget_usd'] = $data['daily_budget_usd'] !== null
+                    ? (float) $data['daily_budget_usd']
+                    : null;
+            }
+            if (Schema::hasColumn('programs', 'wizard_payload') && array_key_exists('wizard_payload', $data)) {
+                $programPayload['wizard_payload'] = is_array($data['wizard_payload'])
+                    ? $data['wizard_payload']
+                    : null;
             }
 
             $program = Program::create($programPayload);
@@ -229,6 +254,27 @@ class ProgramService
             }
             if (Schema::hasColumn('programs', 'auto_pause_on_budget') && array_key_exists('auto_pause_on_budget', $data)) {
                 $payload['auto_pause_on_budget'] = (bool) $data['auto_pause_on_budget'];
+            }
+            if (Schema::hasColumn('programs', 'brand_category') && array_key_exists('brand_category', $data)) {
+                $payload['brand_category'] = $data['brand_category'] ?: null;
+            } elseif (Schema::hasColumn('programs', 'brand_category') && array_key_exists('category', $data)) {
+                $payload['brand_category'] = $data['category'] ?: null;
+            }
+            if (Schema::hasColumn('programs', 'conversion_model_code') && array_key_exists('conversion_model_code', $data)) {
+                $payload['conversion_model_code'] = $data['conversion_model_code'] ?: null;
+            }
+            if (Schema::hasColumn('programs', 'currency') && array_key_exists('currency', $data)) {
+                $payload['currency'] = strtoupper((string) ($data['currency'] ?: 'USD'));
+            }
+            if (Schema::hasColumn('programs', 'daily_budget_usd') && array_key_exists('daily_budget_usd', $data)) {
+                $payload['daily_budget_usd'] = $data['daily_budget_usd'] !== null
+                    ? (float) $data['daily_budget_usd']
+                    : null;
+            }
+            if (Schema::hasColumn('programs', 'wizard_payload') && array_key_exists('wizard_payload', $data)) {
+                $payload['wizard_payload'] = is_array($data['wizard_payload'])
+                    ? $data['wizard_payload']
+                    : null;
             }
 
             $program->update($payload);

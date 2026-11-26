@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PasswordInput from "@/components/auth/PasswordInput";
 import {
   adminFetchPlatformSettings,
   adminUpdatePlatformSettings,
@@ -9,6 +10,9 @@ import {
 import { CURRENCIES, isCurrencyCode } from "@/lib/money";
 import { SectionSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
+
+const adminSecretField =
+  "mt-1 w-full max-w-xl rounded-lg border border-white/15 bg-zinc-950 px-3 py-2 font-mono text-sm text-zinc-100 placeholder:text-zinc-500";
 
 function SecretHint({ meta }: { meta: { configured: boolean; source: string; masked: string | null } }) {
   if (!meta.configured) {
@@ -164,12 +168,11 @@ export default function AdminPlatformSettingsPage() {
 
             <label className="mt-6 block text-sm font-semibold text-zinc-300">
               Geocoding API key (server)
-              <input
-                type="password"
+              <PasswordInput
                 value={serverKey}
                 onChange={(e) => setServerKey(e.target.value)}
                 placeholder="Paste new key to replace"
-                className="mt-1 w-full max-w-xl rounded-lg border border-white/15 bg-zinc-950 px-3 py-2 font-mono text-sm"
+                className={adminSecretField}
                 autoComplete="off"
               />
               <SecretHint meta={data.maps.google_maps_api_key} />
@@ -177,12 +180,11 @@ export default function AdminPlatformSettingsPage() {
 
             <label className="mt-4 block text-sm font-semibold text-zinc-300">
               Maps JavaScript API key (browser)
-              <input
-                type="password"
+              <PasswordInput
                 value={browserKey}
                 onChange={(e) => setBrowserKey(e.target.value)}
                 placeholder="Paste new key to replace"
-                className="mt-1 w-full max-w-xl rounded-lg border border-white/15 bg-zinc-950 px-3 py-2 font-mono text-sm"
+                className={adminSecretField}
                 autoComplete="off"
               />
               <SecretHint meta={data.maps.google_maps_browser_api_key} />

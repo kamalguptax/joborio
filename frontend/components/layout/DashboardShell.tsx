@@ -17,6 +17,12 @@ import { fetchMe } from "@/lib/api/auth";
 import { getAuthToken } from "@/lib/auth/session";
 import { readCachedUser } from "@/lib/auth/userCache";
 import Logo from "@/components/layout/Logo";
+import DashboardBreadcrumb, {
+  buildDashboardBreadcrumbs,
+} from "@/components/layout/DashboardBreadcrumb";
+import DashboardGlobalSearch, {
+  type DashboardSearchItem,
+} from "@/components/layout/DashboardGlobalSearch";
 import { Toaster } from "@/components/ui/Toast";
 
 export type DashboardNavItem = {
@@ -25,7 +31,11 @@ export type DashboardNavItem = {
   icon: ComponentType<{ size?: number; className?: string }>;
   /** Extra paths that should also highlight this item. */
   alsoActive?: string[];
+  /** Optional count / pill shown on the right of the nav label. */
+  badge?: string | number;
 };
+
+export type { DashboardSearchItem };
 
 type Props = {
   nav: DashboardNavItem[];
@@ -36,11 +46,17 @@ type Props = {
   /** Optional "view public page" link in the account menu. */
   profileHref?: string;
   profileLabel?: string;
-  /** "Profile settings" page (photo, name, username, password). */
+  /** Account / settings page in the top-left account menu. */
   settingsHref?: string;
+  /** Label for settingsHref (default: Account). */
+  settingsLabel?: string;
   onSignOut: () => void | Promise<void>;
   /** Controls in the top-right of the content area (settings, bell…). */
   topRight?: ReactNode;
+  /** Extra global-search destinations beyond nav + role defaults. */
+  searchExtras?: DashboardSearchItem[];
+  /** Optional block under the menu (e.g. creator leaderboard). */
+  sidebarExtra?: ReactNode;
   children: ReactNode;
 };
 
@@ -49,14 +65,36 @@ function normalize(path: string | null): string {
   return path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
 }
 
-function isActive(path: string, item: DashboardNavItem): boolean {
+function pathMatchesItem(path: string, item: DashboardNavItem): boolean {
   const hit = (p: string) => path === p || path.startsWith(`${p}/`);
   return hit(item.href) || (item.alsoActive?.some(hit) ?? false);
 }
 
+/** Prefer the longest matching nav href so /programs/new does not also light up Programs. */
+function isActive(
+  path: string,
+  item: DashboardNavItem,
+  nav: DashboardNavItem[],
+): boolean {
+  if (!pathMatchesItem(path, item)) return false;
+  const better = nav.some(
+    (other) =>
+      other !== item &&
+      pathMatchesItem(path, other) &&
+      other.href.length > item.href.length,
+  );
+  return !better;
+}
+
 type AccountMenuProps = Pick<
   Props,
-  "userName" | "userHint" | "profileHref" | "profileLabel" | "settingsHref" | "onSignOut"
+  | "userName"
+  | "userHint"
+  | "profileHref"
+  | "profileLabel"
+  | "settingsHref"
+  | "settingsLabel"
+  | "onSignOut"
 > & { avatarUrl?: string | null };
 
 /** Profile photo of the signed-in user; refreshes when account settings change. */
@@ -120,6 +158,7 @@ function AccountMenu({
   profileHref,
   profileLabel = "Public page",
   settingsHref,
+  settingsLabel = "Account",
   avatarUrl,
   onSignOut,
 }: AccountMenuProps) {
@@ -194,7 +233,7 @@ function AccountMenu({
           <div className="py-1.5">
             {settingsHref ? (
               <MenuLink href={settingsHref} icon={UserRound} onDone={close}>
-                Account
+                {settingsLabel}
               </MenuLink>
             ) : null}
             {profileHref ? (
@@ -251,12 +290,33 @@ export default function DashboardShell({
   profileHref,
   profileLabel = "Public page",
   settingsHref,
+  settingsLabel = "Account",
   onSignOut,
   topRight,
+  searchExtras,
+  sidebarExtra,
   children,
 }: Props) {
-  const path = normalize(usePathname());
+  const pathname = usePathname();
+  const path = normalize(pathname);
   const avatarUrl = useAccountAvatar();
+  const breadcrumbs = buildDashboardBreadcrumbs(pathname, nav, {
+    settingsHref,
+    settingsLabel,
+    profileHref,
+    profileLabel,
+  });
+
+  const globalSearch = (
+    <DashboardGlobalSearch
+      nav={nav}
+      settingsHref={settingsHref}
+      settingsLabel={settingsLabel}
+      profileHref={profileHref}
+      profileLabel={profileLabel}
+      extras={searchExtras}
+    />
+  );
 
   return (
     <div className="min-h-svh bg-[#F8F8FB] text-[#0F1B3D] lg:grid lg:grid-cols-[16.5rem_minmax(0,1fr)]">
@@ -274,20 +334,21 @@ export default function DashboardShell({
             profileHref={profileHref}
             profileLabel={profileLabel}
             settingsHref={settingsHref}
+            settingsLabel={settingsLabel}
             avatarUrl={avatarUrl}
             onSignOut={onSignOut}
           />
         </div>
 
-        <p className="px-6 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+        <p className="shrink-0 px-6 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
           Menu
         </p>
         <nav
           aria-label="Main"
-          className="dash-scroll flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-3 pb-4"
+          className="dash-scroll-visible min-h-0 flex-1 space-y-1 overflow-y-auto overflow-x-hidden px-2 pb-4 pr-1"
         >
           {nav.map((item) => {
-            const active = isActive(path, item);
+            const active = isActive(path, item, nav);
             const Icon = item.icon;
             return (
               <Link
@@ -315,13 +376,19 @@ export default function DashboardShell({
                 >
                   <Icon size={17} />
                 </span>
-                {item.label}
+                <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                {item.badge != null && String(item.badge) !== "" ? (
+                  <span className="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[10px] font-bold text-white">
+                    {item.badge}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
         </nav>
 
         <div className="shrink-0 space-y-3 border-t border-slate-100 p-4">
+          {sidebarExtra ? <div>{sidebarExtra}</div> : null}
           <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-blue-50/70 p-4">
             <p className="text-sm font-bold text-[#0F1B3D]">Need a hand?</p>
             <p className="mt-1 text-xs leading-relaxed text-slate-500">
@@ -364,18 +431,22 @@ export default function DashboardShell({
                 profileHref={profileHref}
                 profileLabel={profileLabel}
                 settingsHref={settingsHref}
+                settingsLabel={settingsLabel}
                 avatarUrl={avatarUrl}
                 onSignOut={onSignOut}
               />
             </div>
-            <div className="flex shrink-0 items-center gap-2">{topRight}</div>
+            <div className="flex shrink-0 items-center gap-2">
+              {globalSearch}
+              {topRight}
+            </div>
           </div>
           <nav
             aria-label="Main"
             className="dash-scroll-x flex gap-1 overflow-x-auto overflow-y-hidden px-3 pb-3"
           >
             {nav.map((item) => {
-              const active = isActive(path, item);
+              const active = isActive(path, item, nav);
               const Icon = item.icon;
               return (
                 <Link
@@ -390,6 +461,11 @@ export default function DashboardShell({
                 >
                   <Icon size={14} />
                   {item.label}
+                  {item.badge != null && String(item.badge) !== "" ? (
+                    <span className="ml-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[9px] font-bold text-white">
+                      {item.badge}
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}
@@ -397,17 +473,14 @@ export default function DashboardShell({
         </div>
 
         <main className="dash-content w-full max-w-full px-5 pb-16 pt-6 lg:px-8 lg:pt-7 xl:px-10 2xl:px-12">
-          {topRight ? (
-            <div className="mb-4 hidden items-center justify-between gap-4 lg:flex">
-              <div id="dash-header-slot" className="flex min-w-0 items-center gap-3" />
-              <div className="flex shrink-0 items-center gap-2">{topRight}</div>
+          <div className="mb-4 hidden items-center justify-between gap-4 lg:flex">
+            <div id="dash-header-slot" className="flex min-w-0 flex-1 items-center gap-3" />
+            <div className="flex shrink-0 items-center gap-2">
+              {globalSearch}
+              {topRight}
             </div>
-          ) : (
-            <div
-              id="dash-header-slot"
-              className="mb-4 hidden min-w-0 items-center gap-3 lg:flex lg:empty:hidden"
-            />
-          )}
+          </div>
+          <DashboardBreadcrumb items={breadcrumbs} />
           {children}
         </main>
       </div>

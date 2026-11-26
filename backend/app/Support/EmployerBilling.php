@@ -34,11 +34,7 @@ class EmployerBilling
         if (! filled($employer->billing_address)) {
             $missing[] = 'billing_address';
         }
-        if (! filled($employer->payment_method) || ! in_array((string) $employer->payment_method, self::PAYMENT_METHODS, true)) {
-            $missing[] = 'payment_method';
-        } elseif (! self::hasPaymentDetails($employer)) {
-            $missing[] = 'payment_details';
-        }
+        // Razorpay Checkout covers payment collection; manual UPI/bank details are optional.
 
         // First payment: prepaid wallet must be funded before a paid campaign goes live.
         if (Schema::hasColumn('employers', 'prepaid_balance_usd')
@@ -71,8 +67,6 @@ class EmployerBilling
             'business_email' => 'Business email',
             'gst_number' => 'GST number',
             'billing_address' => 'Billing address',
-            'payment_method' => 'Payment method',
-            'payment_details' => 'Payment details (UPI / bank)',
             'first_payment' => 'First payment (Razorpay wallet top-up)',
         ];
         $out = [];
@@ -115,6 +109,8 @@ class EmployerBilling
             'website',
             'country_code',
             'business_email',
+            'phone',
+            'primary_contact',
             'gst_number',
             'billing_address',
             'payment_method',

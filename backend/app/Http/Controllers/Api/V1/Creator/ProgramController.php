@@ -31,10 +31,28 @@ class ProgramController extends Controller
         $joinedIds = $joined->pluck('id');
 
         return $this->success([
-            'campaigns' => $campaigns->map(fn (Program $p) => [
-                'program' => $p,
-                'joined' => $joinedIds->contains($p->id),
-            ]),
+            'campaigns' => $campaigns->map(function (Program $p) use ($joinedIds) {
+                $listing = $p->listing;
+                $payload = $p->toArray();
+                if ($listing) {
+                    $payload['listing'] = array_merge(
+                        is_array($payload['listing'] ?? null) ? $payload['listing'] : [
+                            'id' => $listing->id,
+                            'title' => $listing->title,
+                        ],
+                        [
+                            'ppc_rate_usd' => $listing->ppc_rate_usd,
+                            'ppr_rate_usd' => $listing->ppr_rate_usd,
+                            'ppa_rate_usd' => $listing->ppa_rate_usd,
+                        ],
+                    );
+                }
+
+                return [
+                    'program' => $payload,
+                    'joined' => $joinedIds->contains($p->id),
+                ];
+            }),
         ]);
     }
 

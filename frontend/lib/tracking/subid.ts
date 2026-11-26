@@ -32,12 +32,35 @@ function publicSiteBase(): string {
   return fromEnv || "https://joborio.sevenapps.in";
 }
 
-/** Link a creator copies. Opening it on JobOrio counts the click, then sends the visitor to the employer site. */
+/**
+ * Link a creator / network member copies.
+ * Member reference is always in the URL as `code` (and mirrored as `subid`).
+ * Opening it on JobOrio counts the click, then sends the visitor outbound with the same subid.
+ */
 export function shareJobUrl(code: string, referenceId: string): string {
+  const memberRef = code.trim();
   const params = new URLSearchParams({
-    code: code.trim(),
+    code: memberRef,
+    subid: memberRef,
     ref: referenceId,
   });
+  return `${publicSiteBase()}/go/?${params.toString()}`;
+}
+
+/** Campaign / employer destination share for network members (and creators when destination is known). */
+export function shareDestinationUrl(
+  code: string,
+  destination: string,
+  opts?: { title?: string; referenceId?: string },
+): string {
+  const memberRef = code.trim();
+  const params = new URLSearchParams({
+    code: memberRef,
+    subid: memberRef,
+    to: destination,
+  });
+  if (opts?.title) params.set("title", opts.title);
+  if (opts?.referenceId) params.set("ref", opts.referenceId);
   return `${publicSiteBase()}/go/?${params.toString()}`;
 }
 

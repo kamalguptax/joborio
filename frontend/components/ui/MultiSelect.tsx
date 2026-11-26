@@ -17,6 +17,10 @@ type Props = {
   disabled?: boolean;
   emptyLabel?: string;
   className?: string;
+  /** Allow typing a custom value (Select2 tagging). */
+  allowCreate?: boolean;
+  createLabel?: (query: string) => string;
+  invalid?: boolean;
 };
 
 export default function MultiSelect({
@@ -28,6 +32,9 @@ export default function MultiSelect({
   disabled = false,
   emptyLabel = "No options found",
   className = "",
+  allowCreate = false,
+  createLabel = (q) => `Add “${q}”`,
+  invalid = false,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -35,18 +42,34 @@ export default function MultiSelect({
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
 
-  const selected = useMemo(() => {
-    const map = new Map(options.map((o) => [o.value, o]));
-    return value
-      .map((v) => map.get(v))
-      .filter((o): o is MultiSelectOption => Boolean(o));
+  const mergedOptions = useMemo(() => {
+    const map = new Map(options.map((o) => [o.value.toLowerCase(), o]));
+    for (const v of value) {
+      const key = v.toLowerCase();
+      if (!map.has(key)) map.set(key, { value: v, label: v });
+    }
+    return [...map.values()];
   }, [options, value]);
+
+  const selected = useMemo(() => {
+    const map = new Map(mergedOptions.map((o) => [o.value.toLowerCase(), o]));
+    return value
+      .map((v) => map.get(v.toLowerCase()))
+      .filter((o): o is MultiSelectOption => Boolean(o));
+  }, [mergedOptions, value]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return options;
-    return options.filter((o) => o.label.toLowerCase().includes(q));
-  }, [options, query]);
+    if (!q) return mergedOptions;
+    return mergedOptions.filter((o) => o.label.toLowerCase().includes(q));
+  }, [mergedOptions, query]);
+
+  const canCreate = useMemo(() => {
+    if (!allowCreate) return false;
+    const q = query.trim();
+    if (!q) return false;
+    return !mergedOptions.some((o) => o.label.toLowerCase() === q.toLowerCase());
+  }, [allowCreate, mergedOptions, query]);
 
   useEffect(() => {
     if (!open) return;
@@ -77,15 +100,23 @@ export default function MultiSelect({
   }, [open]);
 
   function toggle(val: string) {
-    if (value.includes(val)) {
-      onChange(value.filter((v) => v !== val));
+    const exists = value.some((v) => v.toLowerCase() === val.toLowerCase());
+    if (exists) {
+      onChange(value.filter((v) => v.toLowerCase() !== val.toLowerCase()));
     } else {
       onChange([...value, val]);
     }
   }
 
   function remove(val: string) {
-    onChange(value.filter((v) => v !== val));
+    onChange(value.filter((v) => v.toLowerCase() !== val.toLowerCase()));
+  }
+
+  function createFromQuery() {
+    const q = query.trim();
+    if (!q || !canCreate) return;
+    onChange([...value, q]);
+    setQuery("");
   }
 
   return (
@@ -96,11 +127,16 @@ export default function MultiSelect({
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-controls={listId}
+        aria-invalid={invalid}
         onClick={() => {
           if (disabled) return;
           setOpen((v) => !v);
         }}
-        className="flex min-h-11 w-full items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm text-[#0F1B3D] transition focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+        className={`flex min-h-11 w-full items-start gap-2 rounded-lg border bg-white px-3 py-2 text-left text-sm text-[#0F1B3D] transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60 ${
+          invalid
+            ? "border-rose-400 bg-rose-50 focus:border-rose-500 focus:ring-rose-500/15"
+            : "border-slate-200 focus:border-violet-500 focus:ring-violet-500/15"
+        }`}
       >
         <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
           {selected.length === 0 ? (
@@ -150,6 +186,13 @@ export default function MultiSelect({
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (canCreate) createFromQuery();
+                  else if (filtered[0]) toggle(filtered[0].value);
+                }
+              }}
               placeholder={searchPlaceholder}
               className="h-9 w-full bg-transparent text-sm text-[#0F1B3D] outline-none placeholder:text-slate-400"
             />
@@ -160,11 +203,24 @@ export default function MultiSelect({
             aria-multiselectable="true"
             className="max-h-56 overflow-y-auto py-1"
           >
-            {filtered.length === 0 ? (
+            {canCreate ? (
+              <li>
+                <button
+                  type="button"
+                  onClick={createFromQuery}
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-violet-700 hover:bg-violet-50"
+                >
+                  {createLabel(query.trim())}
+                </button>
+              </li>
+            ) : null}
+            {filtered.length === 0 && !canCreate ? (
               <li className="px-3 py-3 text-sm text-slate-400">{emptyLabel}</li>
             ) : (
               filtered.map((opt) => {
-                const active = value.includes(opt.value);
+                const active = value.some(
+                  (v) => v.toLowerCase() === opt.value.toLowerCase(),
+                );
                 return (
                   <li key={opt.value}>
                     <button

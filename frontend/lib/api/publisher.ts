@@ -15,6 +15,7 @@ export type PublisherCommunity = {
   xml_jobs_count?: number;
   status: string;
   members_count: number;
+  clicks_total?: number;
   manager_user_id?: number | null;
   manager?: { id: number; name: string; email: string } | null;
   join_url?: string | null;
@@ -78,12 +79,24 @@ export type PublisherInvitation = {
   created_at?: string | null;
 };
 
+export type NetworkMemberActivitySummary = {
+  clicks_total: number;
+  clicks_valid: number;
+  clicks_duplicate?: number;
+  signups: number;
+  applications: number;
+  leads: number;
+  conversions: number;
+};
+
 export type NetworkMemberRow = {
   id: number;
   display_name?: string | null;
   email?: string | null;
   status: string;
   joined_at?: string | null;
+  registered_at?: string | null;
+  last_activity_at?: string | null;
   left_at?: string | null;
   released_at?: string | null;
   communities?: Array<{
@@ -92,6 +105,7 @@ export type NetworkMemberRow = {
     name: string;
     status: string;
   }>;
+  activity?: NetworkMemberActivitySummary;
   earnings?: {
     settled_usd: number;
     pending_usd: number;
@@ -100,11 +114,22 @@ export type NetworkMemberRow = {
   } | null;
 };
 
-export function fetchPublisherDashboard() {
-  return apiFetch<PublisherDashboard & { recent_communities?: PublisherCommunity[] }>(
-    "/api/v1/publisher/dashboard",
-    { auth: true },
-  );
+export type PublisherDashboardRange =
+  | "1d"
+  | "yesterday"
+  | "3d"
+  | "7d"
+  | "30d"
+  | "all";
+
+export function fetchPublisherDashboard(range: PublisherDashboardRange = "1d") {
+  const q = new URLSearchParams({ range });
+  return apiFetch<
+    PublisherDashboard & {
+      recent_communities?: PublisherCommunity[];
+      range?: { key: string; label: string; start?: string | null; end?: string | null };
+    }
+  >(`/api/v1/publisher/dashboard?${q}`, { auth: true });
 }
 
 export function fetchPublisherCommunities() {
@@ -112,6 +137,53 @@ export function fetchPublisherCommunities() {
     "/api/v1/publisher/communities",
     { auth: true },
   ).then((d) => d.communities);
+}
+
+export type PublisherCommunityDashboard = {
+  community: PublisherCommunity;
+  summary: {
+    members_active: number;
+    members_total: number;
+    clicks: number;
+    signups: number;
+    applications: number;
+    conversions: number;
+    pending_invites: number;
+    xml_jobs_count: number;
+    publisher_earnings_usd?: number | null;
+    campaigns_earned_usd?: number | null;
+    campaigns_pending_usd?: number | null;
+    campaigns_total_usd?: number | null;
+    member_settled_usd?: number | null;
+    member_pending_usd?: number | null;
+  };
+  members: NetworkMemberRow[];
+  assignments: Array<{
+    id: number;
+    status: string;
+    pricing_model?: string | null;
+    accepted_rate_usd?: string | number | null;
+    program_title?: string | null;
+    scope?: string | null;
+    earned_usd?: number | null;
+    pending_usd?: number | null;
+    total_usd?: number | null;
+  }>;
+  recent_activity: Array<{
+    id: number;
+    activity_type: string;
+    title?: string | null;
+    member_name?: string | null;
+    occurred_at?: string | null;
+  }>;
+  can_view_financials: boolean;
+};
+
+export function fetchPublisherCommunityDashboard(communityId: number) {
+  return apiFetch<PublisherCommunityDashboard>(
+    `/api/v1/publisher/communities/${communityId}/dashboard`,
+    { auth: true },
+  );
 }
 
 export function createPublisherCommunity(body: {
@@ -264,6 +336,7 @@ export type MarketplaceCampaign = {
   category?: string | null;
   country_code?: string | null;
   listing_title?: string | null;
+  destination_url?: string | null;
   already_assigned: boolean;
   assigned_community_ids?: number[];
   assigned_community_count?: number;
@@ -275,6 +348,7 @@ export type PublisherAssignment = {
   pricing_model?: string | null;
   accepted_rate_usd?: string | number | null;
   rate_version?: number;
+  destination_url?: string | null;
   program?: {
     id: number;
     title: string;
@@ -308,15 +382,18 @@ export function fetchPublisherAssignments() {
 export function assignPublisherCampaign(body: {
   program_id: number;
   community_id?: number | null;
+  community_ids?: number[];
+  notify_members?: boolean;
 }) {
-  return apiFetch<{ assignment: PublisherAssignment }>(
-    "/api/v1/publisher/assignments",
-    {
-      method: "POST",
-      auth: true,
-      body: JSON.stringify(body),
-    },
-  ).then((d) => d.assignment);
+  return apiFetch<{
+    assignment: PublisherAssignment;
+    assignments?: PublisherAssignment[];
+    notified_members?: number;
+  }>("/api/v1/publisher/assignments", {
+    method: "POST",
+    auth: true,
+    body: JSON.stringify(body),
+  });
 }
 
 export function pausePublisherAssignment(id: number) {
@@ -394,6 +471,9 @@ export type PublisherReport = {
     status: string;
     category?: string | null;
     active_members: number;
+    members?: number;
+    clicks?: number;
+    earnings_usd?: number | null;
   }>;
   assignments: Array<{
     id: number;
@@ -401,8 +481,15 @@ export type PublisherReport = {
     pricing_model?: string | null;
     accepted_rate_usd?: string | number | null;
     program_title?: string | null;
+    community_id?: number | null;
     community_name?: string | null;
+    clicks?: number;
+    members?: number;
+    earned_usd?: number | null;
+    pending_usd?: number | null;
+    earnings_usd?: number | null;
   }>;
+  financials_visible?: boolean;
 };
 
 export function fetchPublisherReports() {
@@ -439,6 +526,13 @@ export type PublisherEarnings = {
     creators_usd: number;
   };
   note: string;
+  by_model?: Array<{
+    pricing_model: string;
+    label: string;
+    credited_net_usd: number;
+    pending_usd: number;
+    assignment_count: number;
+  }>;
   by_assignment: Array<{
     assignment_id: number;
     program_title?: string | null;
@@ -448,23 +542,33 @@ export type PublisherEarnings = {
     rate_version?: number;
     status: string;
     credited_net_usd: number;
+    pending_usd?: number;
+    payable_usd?: number;
+    paid_usd?: number;
+    entries?: PublisherEarningsEntry[];
   }>;
   member_settlements_pending: number;
-  recent_entries: Array<{
-    id: number;
-    entry_type: string;
-    source: string;
-    state: string;
-    gross_usd: string | number;
-    platform_fee_usd: string | number;
-    net_usd: string | number;
-    currency: string;
-    reference?: string | null;
-    community_name?: string | null;
-    reverses_ledger_id?: number | null;
-    occurred_at?: string | null;
-    paid_at?: string | null;
-  }>;
+  recent_entries: PublisherEarningsEntry[];
+};
+
+export type PublisherEarningsEntry = {
+  id: number;
+  entry_type: string;
+  source: string;
+  state: string;
+  gross_usd: string | number;
+  platform_fee_usd: string | number;
+  net_usd: string | number;
+  currency: string;
+  reference?: string | null;
+  community_name?: string | null;
+  campaign_assignment_id?: number | null;
+  program_title?: string | null;
+  pricing_model?: string | null;
+  reverses_ledger_id?: number | null;
+  occurred_at?: string | null;
+  paid_at?: string | null;
+  created_at?: string | null;
 };
 
 export function fetchPublisherEarnings() {
@@ -515,21 +619,88 @@ export function updatePublisherCommission(input: {
   });
 }
 
+export type MemberActivityRecent = {
+  id: number;
+  activity_type: string;
+  status?: string | null;
+  tracking_id?: string | null;
+  campaign_assignment_id?: number | null;
+  title?: string | null;
+  reference_id?: string | null;
+  source?: string | null;
+  occurred_at?: string | null;
+};
+
+export type PublisherMemberDashboard = {
+  member: NetworkMemberRow & {
+    communities?: Array<{
+      id: number;
+      code: string;
+      name: string;
+      status?: string | null;
+    }>;
+  };
+  activity: {
+    clicks_total: number;
+    clicks_valid: number;
+    clicks_duplicate?: number;
+    signups: number;
+    applications: number;
+    leads: number;
+    conversions: number;
+    actions_approved: number;
+    actions_pending: number;
+  };
+  dashboard?: {
+    total_clicks: number;
+    valid_clicks: number;
+    duplicate_clicks?: number;
+    ppr: number;
+    applications: number;
+    leads: number;
+    conversions: number;
+    actions_approved: number;
+    actions_pending: number;
+    total_earning_usd?: number | null;
+    settled_usd?: number | null;
+    pending_usd?: number | null;
+  };
+  earnings?: {
+    settled_usd: number;
+    pending_usd: number;
+    total_usd: number;
+    currency: string;
+  } | null;
+  settlements?: Array<{
+    id: number;
+    status: string;
+    amount_usd: number;
+    currency?: string;
+    period_label?: string | null;
+    community_name?: string | null;
+    settled_at?: string | null;
+    created_at?: string | null;
+    notes?: string | null;
+  }>;
+  by_community?: Array<{
+    id: number;
+    code: string;
+    name: string;
+    status?: string | null;
+    settled_usd?: number | null;
+    pending_usd?: number | null;
+    total_usd?: number | null;
+  }>;
+  recent?: MemberActivityRecent[];
+  can_view_earnings?: boolean;
+  note: string;
+};
+
 export function fetchPublisherMemberActivity(memberId: number) {
-  return apiFetch<{
-    member: NetworkMemberRow;
-    activity: {
-      clicks_total: number;
-      clicks_valid: number;
-      signups: number;
-      applications: number;
-      leads: number;
-      conversions: number;
-      actions_approved: number;
-      actions_pending: number;
-    };
-    note: string;
-  }>(`/api/v1/publisher/members/${memberId}/activity`, { auth: true });
+  return apiFetch<PublisherMemberDashboard>(
+    `/api/v1/publisher/members/${memberId}/activity`,
+    { auth: true },
+  );
 }
 
 export type PublisherPaymentHistory = {
@@ -537,6 +708,8 @@ export type PublisherPaymentHistory = {
     publisher_paid_credits_usd: number;
     publisher_settlement_debits_usd: number;
     member_settlements_count: number;
+    wallet_available_usd?: number;
+    member_pending_usd?: number;
   };
   publisher_settlements: Array<{
     id: number;
@@ -549,6 +722,7 @@ export type PublisherPaymentHistory = {
     community_name?: string | null;
     reverses_ledger_id?: number | null;
     occurred_at?: string | null;
+    evidence?: import("@/lib/api/wallet").WalletEvidence;
   }>;
   member_settlements: Array<{
     id: number;
@@ -563,6 +737,12 @@ export type PublisherPaymentHistory = {
     settled_at?: string | null;
     created_at?: string | null;
     notes?: string | null;
+    evidence?: import("@/lib/api/wallet").WalletEvidence;
+    can_release?: boolean;
+    wallet_shortfall_usd?: number;
+    has_payout_account?: boolean;
+    release_block_reason?: string | null;
+    payout_account?: import("@/lib/api/wallet").WalletPayoutAccount | null;
   }>;
   note: string;
 };
@@ -571,6 +751,44 @@ export function fetchPublisherPayments() {
   return apiFetch<PublisherPaymentHistory>("/api/v1/publisher/payments", {
     auth: true,
   });
+}
+
+export function fetchPublisherWallet() {
+  return apiFetch<import("@/lib/api/wallet").AccountWallet>(
+    "/api/v1/publisher/wallet",
+    { auth: true },
+  );
+}
+
+export function releasePublisherSettlement(
+  settlementId: number,
+  input: {
+    evidence: File;
+    evidence_note?: string;
+    notes?: string;
+  },
+) {
+  const body = new FormData();
+  body.append("evidence", input.evidence);
+  if (input.evidence_note) body.append("evidence_note", input.evidence_note);
+  if (input.notes) body.append("notes", input.notes);
+  return apiFetch<{
+    id: number;
+    status: string;
+    amount_usd: number | string;
+    settled_at?: string | null;
+    evidence?: import("@/lib/api/wallet").WalletEvidence;
+    member_name?: string | null;
+    community_name?: string | null;
+  }>(`/api/v1/publisher/settlements/${settlementId}/release`, {
+    method: "POST",
+    auth: true,
+    body,
+  });
+}
+
+export function publisherSettlementEvidenceUrl(settlementId: number) {
+  return `/api/v1/publisher/settlements/${settlementId}/evidence`;
 }
 
 export type PublisherCredential = {

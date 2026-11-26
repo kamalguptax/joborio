@@ -1,7 +1,9 @@
 import type { User } from "@/lib/api/types";
 import { postLoginRedirect } from "@/lib/auth/session";
-import { ADMIN_LOGIN_URL } from "@/lib/siteUrls";
 import { ONBOARDING_PATHS, isOnboardingPending } from "@/lib/auth/onboardingFlag";
+
+/** Admin console on this site (not a separate admin.joborio.com host). */
+export const ADMIN_HOME_PATH = "/admin/dashboard";
 
 /** Which account types this user has. One user can have more than one. */
 export function roleFlags(me: User) {
@@ -25,7 +27,7 @@ export function hasNoRole(me: User): boolean {
 
 /**
  * Where a signed-in user lands, based on their account type:
- *   admin          -> admin app (separate site)
+ *   admin          -> /admin/dashboard
  *   publisher      -> /publisher/dashboard   (/publisher/onboarding until finished)
  *   network member -> /network/dashboard     (/network/onboarding until finished)
  *   brand/employer -> /employer/dashboard    (/brand/onboarding until finished)
@@ -39,7 +41,7 @@ export function homePathForUser(
   opts?: { prefer?: "employer" },
 ): string {
   const f = roleFlags(me);
-  if (f.isAdmin) return ADMIN_LOGIN_URL;
+  if (f.isAdmin) return ADMIN_HOME_PATH;
   // A freshly registered brand / publisher / network member finishes their own
   // onboarding first (the flag is set by their register form).
   if (f.isPublisher) {
@@ -72,7 +74,7 @@ export function homePathForUser(
 export function canVisit(path: string, me: User): boolean {
   const f = roleFlags(me);
   const p = path.split(/[?#]/)[0];
-  if (p.startsWith("/admin")) return false; // admin is a separate app
+  if (p.startsWith("/admin")) return f.isAdmin;
   if (p.startsWith("/publisher")) return f.isPublisher;
   if (p.startsWith("/network")) return f.isNetworkMember;
   if (p.startsWith("/creator")) return f.isCreator;

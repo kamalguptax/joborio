@@ -51,6 +51,25 @@ function campaignListingId(program: CreatorCampaignRow["program"]): number {
   return Number((program as { listing_id?: number }).listing_id ?? 0);
 }
 
+/** Prefer program rate; fall back to listing rates when program rate is unset. */
+function campaignRateUsd(program: CreatorCampaignRow["program"]): number {
+  const fromProgram = Number(program.rate_usd ?? 0);
+  if (fromProgram > 0) return fromProgram;
+  const listing = program.listing as
+    | {
+        ppc_rate_usd?: string | number | null;
+        ppr_rate_usd?: string | number | null;
+        ppa_rate_usd?: string | number | null;
+      }
+    | undefined;
+  if (!listing) return fromProgram;
+  const model = String(program.pricing_model ?? "ppc").toLowerCase();
+  if (model === "ppr") return Number(listing.ppr_rate_usd ?? 0);
+  if (model === "ppa") return Number(listing.ppa_rate_usd ?? 0);
+  if (model === "ppe") return Number(listing.ppc_rate_usd ?? 0);
+  return Number(listing.ppc_rate_usd ?? listing.ppr_rate_usd ?? listing.ppa_rate_usd ?? 0);
+}
+
 export default function LiveCampaignsPanel({
   currency = "USD",
   initialTab = "all",
@@ -137,7 +156,8 @@ export default function LiveCampaignsPanel({
         <div>
           <h2 className="text-lg font-bold">Live campaigns</h2>
           <p className="mt-1 text-xs text-slate-500">
-            Category-wise active programs you can promote.
+            Offer rates per action (what you can earn next) — separate from
+            Earnings by type above.
           </p>
         </div>
         <Link
@@ -206,8 +226,11 @@ export default function LiveCampaignsPanel({
                 >
                   <h3 className="line-clamp-2 font-bold text-[#172b63]">{p.title}</h3>
                   <p className="mt-2 text-sm text-slate-500">
-                    {model} {formatMoney(Number(p.rate_usd), currency)} /{" "}
+                    {model} {formatMoney(campaignRateUsd(p), currency)} /{" "}
                     {rateUnit(String(p.pricing_model))}
+                    <span className="ml-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                      offer rate
+                    </span>
                   </p>
                   <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
                     <Link

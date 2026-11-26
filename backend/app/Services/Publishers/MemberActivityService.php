@@ -17,6 +17,7 @@ class MemberActivityService
      * @return array{
      *   clicks_total: int,
      *   clicks_valid: int,
+     *   clicks_duplicate: int,
      *   signups: int,
      *   applications: int,
      *   leads: int,
@@ -36,10 +37,16 @@ class MemberActivityService
 
         $clicks = (int) ($rows['click'] ?? 0);
         $valid = (int) ($rows['click_valid'] ?? 0);
+        $duplicates = (int) MemberActivityEvent::query()
+            ->where('network_member_id', $member->id)
+            ->where('activity_type', 'click')
+            ->where('status', 'rejected')
+            ->count();
 
         return [
             'clicks_total' => $clicks + $valid,
             'clicks_valid' => $valid > 0 ? $valid : $clicks,
+            'clicks_duplicate' => $duplicates,
             'signups' => (int) ($rows['signup'] ?? 0),
             'applications' => (int) ($rows['application'] ?? 0),
             'leads' => (int) ($rows['lead'] ?? 0),

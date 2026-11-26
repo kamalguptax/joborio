@@ -26,6 +26,7 @@ class Creator extends Model
         'trust_tier',
         'trust_tier_updated_at',
         'referral_code',
+        'referral_share_count',
         'pending_referral_code',
         'referred_by_creator_id',
         'referral_first_bonus_paid_at',

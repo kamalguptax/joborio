@@ -610,7 +610,7 @@ export default function EarningsCalculator() {
               eyebrow="Earnings calculator"
               title={
                 <>
-                  Estimate Your <br className="hidden sm:block" />
+              Estimate Your <br className="hidden sm:block" />
                   <span className="bg-gradient-to-r from-[#6D3AE0] to-[#8B5CF6] bg-clip-text text-transparent">
                     Earnings
                   </span>{" "}

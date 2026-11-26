@@ -32,6 +32,7 @@ export const MEMBER_LOGIN_PATH = "/login";
 export function loginPathForUser(me?: User | null): string {
   if (!me) return MEMBER_LOGIN_PATH;
   const f = roleFlags(me);
+  if (f.isAdmin) return MEMBER_LOGIN_PATH;
   if (f.isPublisher) return AUTH_ROUTES.publisher.login;
   if (f.isNetworkMember) return MEMBER_LOGIN_PATH;
   if (f.isEmployer && !f.isCreator) return AUTH_ROUTES.brand.login;

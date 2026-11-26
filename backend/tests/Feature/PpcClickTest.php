@@ -47,7 +47,13 @@ class PpcClickTest extends TestCase
         );
 
         $redirect = $this->get('/r/'.$token->token);
-        $redirect->assertRedirect($listing->destination_url);
+        $redirect->assertRedirect();
+        $location = (string) $redirect->headers->get('Location');
+        $this->assertStringContainsString('joborio_token='.$token->token, $location);
+        $this->assertStringStartsWith(
+            rtrim((string) $listing->destination_url, '?&'),
+            explode('?', $location)[0],
+        );
 
         $this->assertDatabaseHas('attribution_events', [
             'creator_id' => $creator->id,

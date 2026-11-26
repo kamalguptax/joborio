@@ -17,6 +17,8 @@ class Employer extends Model
         'country_code',
         'entity_region',
         'business_email',
+        'phone',
+        'primary_contact',
         'gst_number',
         'pan_number',
         'tax_id',
@@ -28,6 +30,8 @@ class Employer extends Model
         'payment_account_number',
         'payment_ifsc',
         'job_preferences',
+        'notification_preferences',
+        'portal_settings',
         'verified_at',
         'billing_completed_at',
         'prepaid_balance_usd',
@@ -39,6 +43,8 @@ class Employer extends Model
             'verified_at' => 'datetime',
             'billing_completed_at' => 'datetime',
             'job_preferences' => 'array',
+            'notification_preferences' => 'array',
+            'portal_settings' => 'array',
             'prepaid_balance_usd' => 'decimal:4',
         ];
     }
@@ -51,6 +57,36 @@ class Employer extends Model
     public function programs(): HasMany
     {
         return $this->hasMany(Program::class);
+    }
+
+    public function contentComplaints(): HasMany
+    {
+        return $this->hasMany(EmployerContentComplaint::class);
+    }
+
+    public function teamMembers(): HasMany
+    {
+        return $this->hasMany(EmployerTeamMember::class);
+    }
+
+    public function assets(): HasMany
+    {
+        return $this->hasMany(EmployerAsset::class);
+    }
+
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(EmployerSupportTicket::class);
+    }
+
+    public function apiKeys(): HasMany
+    {
+        return $this->hasMany(EmployerApiKey::class);
+    }
+
+    public function ledgerEntries(): HasMany
+    {
+        return $this->hasMany(EmployerLedgerEntry::class);
     }
 
     public function canGoLive(): bool
