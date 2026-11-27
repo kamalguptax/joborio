@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Auth\CaptchaService;
+use App\Services\Auth\LoginRoleGuard;
 use App\Services\Creators\CreatorOnboardingService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -50,13 +51,16 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(Request $request, CaptchaService $captcha): JsonResponse
+    public function login(Request $request, CaptchaService $captcha, LoginRoleGuard $roles): JsonResponse
     {
         $data = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
             'captcha_id' => ['required', 'string'],
             'captcha_answer' => ['required', 'string'],
+            // Sent by /creator/login (creator) and /brand/login (employer).
+            // Absent on the universal /login page, which accepts any account.
+            'login_as' => ['nullable', 'string', 'in:'.implode(',', LoginRoleGuard::ROLES)],
         ]);
 
         $captcha->assertValid($data['captcha_id'], $data['captcha_answer']);
@@ -69,6 +73,15 @@ class AuthController extends Controller
 
         if (! $user->is_active) {
             return $this->error('ACCOUNT_DISABLED', 'Account is disabled.', 403);
+        }
+
+        // Role-specific login page: refuse other account types before any token
+        // is issued (and before a creator profile could be auto-created below).
+        $loginAs = LoginRoleGuard::normalize($data['login_as'] ?? null);
+        if ($loginAs !== null && ! $roles->allows($user, $loginAs)) {
+            $mismatch = $roles->mismatch($user, $loginAs);
+
+            return $this->error('ROLE_MISMATCH', $mismatch['message'], 403, $mismatch['details']);
         }
 
         $isPublisher = $user->hasRole('publisher')

@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 type Lead = {
   id: string;
@@ -86,10 +87,8 @@ export default function EmployerLeadQualityPage() {
 
   return (
     <>
+      <PageHeader title="Lead quality centre" />
       <div>
-        <h1 className="text-2xl font-bold text-[#0F1B3D]">
-          Lead quality centre
-        </h1>
         <p className="mt-1 text-sm text-slate-500">
           Received, verified and approved are different. Only Approved leads are
           billable.

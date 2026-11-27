@@ -128,7 +128,7 @@ export default function PayoutPolicyPage() {
         <li>Keep payout details accurate so weekly batches do not fail.</li>
         <li>
           Check <Link href="/creator/earnings">Earnings</Link> and{" "}
-          <Link href="/creator/payout">Payout</Link> for live balances, holds, and history.
+          <Link href="/creator/profile?tab=payout">Payout</Link> for live balances, holds, and history.
         </li>
       </ul>
 

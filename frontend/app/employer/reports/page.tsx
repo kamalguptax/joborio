@@ -8,6 +8,7 @@ import {
 } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 const WORKFLOW = [
   "Submitted",
@@ -183,11 +184,9 @@ export default function EmployerReportsPage() {
 
   return (
     <>
+      <PageHeader title="Reports and content complaints" />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#0F1B3D]">
-            Reports and content complaints
-          </h1>
           <p className="mt-1 text-sm text-slate-500">
             Report a post to JobOrio. JobOrio investigates and handles all
             partner communication. You never contact partners directly.

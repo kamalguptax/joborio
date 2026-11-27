@@ -1,7 +1,7 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import PasswordInput from "@/components/auth/PasswordInput";
 import MultiSelect from "@/components/ui/MultiSelect";
 import { ApiClientError } from "@/lib/api/client";
 import { fetchNiches } from "@/lib/api/creator";
@@ -9,13 +9,13 @@ import type { Niche } from "@/lib/api/types";
 import {
   fetchPublisherSettings,
   revokePublisherOtherSessions,
-  updatePublisherPassword,
   updatePublisherProfile,
   type PublisherNotificationPrefs,
   type PublisherSettings,
 } from "@/lib/api/publisher";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
@@ -61,10 +61,6 @@ export default function PublisherSettingsPage() {
     email_settlements: true,
     email_security: true,
   });
-
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordConfirm, setPasswordConfirm] = useState("");
 
   useEffect(() => {
     Promise.all([fetchPublisherSettings(), fetchNiches()])
@@ -119,32 +115,6 @@ export default function PublisherSettingsPage() {
     }
   }
 
-  async function onPassword(e: FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      const res = await updatePublisherPassword({
-        current_password: currentPassword,
-        password,
-        password_confirmation: passwordConfirm,
-      });
-      setCurrentPassword("");
-      setPassword("");
-      setPasswordConfirm("");
-      toast.success(res.message);
-      const refreshed = await fetchPublisherSettings();
-      setData(refreshed);
-    } catch (err) {
-      toast.error(
-        err instanceof ApiClientError
-          ? err.message
-          : "Could not update password.",
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function onRevokeOthers() {
     setBusy(true);
     try {
@@ -168,11 +138,11 @@ export default function PublisherSettingsPage() {
 
   return (
     <>
+      <PageHeader title="Publisher profile & security" />
       <div className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
           Account Settings
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Publisher profile & security</h1>
         <p className="mt-2 text-slate-500">
           Username and application status stay fixed. Update profile details,
           notifications, and password here.
@@ -379,54 +349,18 @@ export default function PublisherSettingsPage() {
             </button>
           </form>
 
-          <form
-            onSubmit={onPassword}
-            className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
-          >
+          <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-bold">Change password</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Other sessions are signed out after a successful change.
+              Password changes now need an email OTP and are done from your profile.
             </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Current password
-                <PasswordInput
-                  required
-                  autoComplete="current-password"
-                  className={field}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                />
-              </label>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
-                New password
-                <PasswordInput
-                  required
-                  autoComplete="new-password"
-                  className={field}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </label>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Confirm new password
-                <PasswordInput
-                  required
-                  autoComplete="new-password"
-                  className={field}
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                />
-              </label>
-            </div>
-            <button
-              type="submit"
-              disabled={busy}
-              className="mt-4 rounded-full bg-[#172b63] px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+            <Link
+              href="/publisher/profile?tab=security"
+              className="mt-4 inline-block rounded-full bg-[#172b63] px-5 py-2.5 text-sm font-bold text-white"
             >
-              Update password
-            </button>
-          </form>
+              Change password
+            </Link>
+          </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">

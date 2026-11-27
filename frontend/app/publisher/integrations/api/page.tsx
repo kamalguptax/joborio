@@ -15,6 +15,7 @@ import IntegrationSubnav from "@/components/publisher/integrations/IntegrationSu
 import SecretsBanner from "@/components/publisher/integrations/SecretsBanner";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
@@ -86,11 +87,11 @@ export default function PublisherApiIntegrationPage() {
 
   return (
     <>
+      <PageHeader title="Connect with API keys" />
       <div className="mb-6">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
           API integration
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Connect with API keys</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
           Use JobOrio APIs to automate member invites and publisher workflows.
           Keep keys private — rotate or revoke anytime.

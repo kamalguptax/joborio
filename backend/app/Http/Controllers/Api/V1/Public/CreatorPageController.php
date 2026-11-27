@@ -11,7 +11,9 @@ use App\Support\ApiResponse;
 use App\Support\TrackingPublicUrl;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class CreatorPageController extends Controller
 {
@@ -21,26 +23,39 @@ class CreatorPageController extends Controller
 
     /**
      * Directory of approved ("real") creators shown on the public website.
+     *
+     * `?sort=top_earners` ranks ALL approved creators by money paid out
+     * (highest first) before paginating, so `per_page=7` really is the top 7.
+     * Without it the newest creators come first.
      */
     public function index(Request $request): JsonResponse
     {
         $limit = min(max((int) $request->input('per_page', 24), 1), 60);
 
         $query = Creator::query()
-            ->with(['user:id,name,public_code', 'niches:id,name'])
-            ->whereNotNull('onboarding_completed_at')
-            ->whereNotNull('handle');
+            ->with(['user:id,name,public_code,avatar_path,cover_path', 'niches:id,name'])
+            ->whereNotNull('creators.onboarding_completed_at')
+            ->whereNotNull('creators.handle');
 
         if (Schema::hasColumn('creators', 'approval_status')) {
-            $query->where('approval_status', 'approved');
+            $query->where('creators.approval_status', 'approved');
         }
 
-        if (Schema::hasColumn('creators', 'approved_at')) {
-            $query->orderByDesc('approved_at');
+        if ($request->input('sort') === 'top_earners') {
+            $paid = EarningLedger::query()
+                ->selectRaw('creator_id, COALESCE(SUM(net_usd), 0) as total_paid_usd')
+                ->where('state', 'paid')
+                ->groupBy('creator_id');
+
+            $query->leftJoinSub($paid, 'paid_totals', 'paid_totals.creator_id', '=', 'creators.id')
+                ->select('creators.*')
+                ->orderByDesc(DB::raw('COALESCE(paid_totals.total_paid_usd, 0)'));
+        } elseif (Schema::hasColumn('creators', 'approved_at')) {
+            $query->orderByDesc('creators.approved_at');
         }
 
         $rows = $query
-            ->orderByDesc('id')
+            ->orderByDesc('creators.id')
             ->paginate($limit);
 
         $creatorIds = collect($rows->items())->pluck('id')->all();
@@ -64,7 +79,7 @@ class CreatorPageController extends Controller
     public function show(Request $request, string $handle): JsonResponse
     {
         $creator = Creator::where('handle', $handle)
-            ->with(['niches', 'user:id,name,public_code'])
+            ->with(['niches', 'user:id,name,public_code,avatar_path,cover_path'])
             ->first();
 
         if (! $creator || ! $creator->onboarding_completed_at) {
@@ -137,6 +152,11 @@ class CreatorPageController extends Controller
             'name' => $creator->user?->name,
             'bio' => $creator->bio,
             'profile_photo_path' => $creator->profile_photo_path,
+            'avatar_url' => $creator->user?->avatar_url,
+            // Photo to show for this creator: account photo first, then the one set
+            // while onboarding. null = no photo, the frontend shows its default avatar.
+            'photo_url' => $creator->user?->avatar_url ?: $this->profilePhotoUrl($creator->profile_photo_path),
+            'cover_url' => $creator->user?->cover_url,
             'accent_color' => $creator->accent_color,
             'social_links' => $creator->social_links,
             'niches' => $creator->niches,
@@ -154,6 +174,18 @@ class CreatorPageController extends Controller
                 'paid_usd' => round((float) ($stats['paid_usd'] ?? 0), 2),
             ],
         ];
+    }
+
+    private function profilePhotoUrl(?string $path): ?string
+    {
+        $path = trim((string) $path);
+        if ($path === '') {
+            return null;
+        }
+
+        return preg_match('#^(https?:)?//#i', $path) === 1
+            ? $path
+            : Storage::disk('public')->url($path);
     }
 
     /**

@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 type Ticket = {
   id: string;
@@ -81,10 +82,8 @@ export default function EmployerSupportPage() {
 
   return (
     <>
+      <PageHeader title="Support and disputes" />
       <div>
-        <h1 className="text-2xl font-bold text-[#0F1B3D]">
-          Support and disputes
-        </h1>
         <p className="mt-1 text-sm text-slate-500">
           Every ticket has an activity timeline.
         </p>

@@ -7,6 +7,7 @@ import {
   type UserNotificationRow,
 } from "@/lib/api/creator";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default function CreatorNotificationsPage() {
   const [rows, setRows] = useState<UserNotificationRow[]>([]);
@@ -21,9 +22,9 @@ export default function CreatorNotificationsPage() {
 
   return (
     <>
+      <PageHeader title="Notifications" />
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Notifications</h1>
           <p className="mt-2 text-slate-500">Payouts, tier upgrades, and account alerts.</p>
         </div>
         <button

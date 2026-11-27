@@ -30,6 +30,7 @@ import SingleSelect from "@/components/ui/SingleSelect";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
 import BackButton from "@/components/ui/BackButton";
+import PageHeader from "@/components/layout/PageHeader";
 
 const field =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
@@ -621,14 +622,11 @@ export default function PublisherCommunitiesPage() {
 
   return (
     <>
+      <PageHeader title="Manage communities" />
       <div className="mb-8">
         <BackButton href="/publisher/dashboard" label="Back to dashboard" />
         <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
-              Communities
-            </p>
-            <h1 className="mt-1 text-3xl font-bold">Manage communities</h1>
             <p className="mt-2 text-slate-500">
               {isOwner
                 ? "All your communities are listed below. Create a new one anytime."

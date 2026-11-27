@@ -65,7 +65,7 @@ export default function AccountFeaturesPage() {
             Browse campaigns
           </Link>
           <Link
-            href="/creator/payout"
+            href="/creator/profile?tab=payout"
             className="rounded-full border border-purple-200 bg-white px-4 py-2 text-sm font-semibold text-purple-700"
           >
             Set up payout

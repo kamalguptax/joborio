@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import AuthShell from "@/components/auth/AuthShell";
 import PublisherLoginForm from "@/components/auth/PublisherLoginForm";
 import GuestOnly from "@/components/auth/GuestOnly";
+import { FormSkeleton } from "@/components/ui/Skeleton";
 
 export const metadata: Metadata = {
   title: "Publisher login",
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function PublisherLoginPage() {
   return (
-    <GuestOnly>
+    <GuestOnly role="publisher">
     <AuthShell
       title="Publisher Network sign-in"
       subtitle="Publishers manage communities and commissions. Network Members use the member portal after joining via invite."
@@ -21,7 +23,9 @@ export default function PublisherLoginPage() {
       panelHeading="Run your private creator network."
       panelBody="Create communities, invite creators, track reports, and check your 10–15% pool commission."
     >
-      <PublisherLoginForm />
+      <Suspense fallback={<FormSkeleton />}>
+        <PublisherLoginForm />
+      </Suspense>
     </AuthShell>
     </GuestOnly>
   );

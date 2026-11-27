@@ -96,3 +96,94 @@ export function navigateTo(router: { replace: (path: string) => void }, path: st
     router.replace(path);
   }
 }
+
+/**
+ * Which login page the visitor used. Each role-specific login page only lets
+ * its own account type in and sends it to its own dashboard.
+ *   creator   -> /creator/login   -> /creator/dashboard
+ *   employer  -> /brand/login     -> /employer/dashboard
+ *   publisher -> /publisher/login -> /publisher/dashboard
+ */
+export type LoginRole = "creator" | "employer" | "publisher";
+
+export const LOGIN_ROLE_INFO: Record<
+  LoginRole,
+  { label: string; loginPath: string; area: string }
+> = {
+  creator: { label: "Creator", loginPath: "/creator/login", area: "/creator" },
+  employer: { label: "Brand", loginPath: "/brand/login", area: "/employer" },
+  publisher: { label: "Publisher", loginPath: "/publisher/login", area: "/publisher" },
+};
+
+/** Does this user actually have the account type of the login page? */
+export function hasLoginRole(me: User, role: LoginRole): boolean {
+  const f = roleFlags(me);
+  if (role === "creator") return f.isCreator;
+  if (role === "employer") return f.isEmployer;
+  return f.isPublisher;
+}
+
+/** Dashboard (or onboarding, while it is pending) for exactly this account type. */
+export function homePathForRole(me: User, role: LoginRole): string {
+  if (role === "creator") {
+    return isOnboardingPending(me.id, "creator")
+      ? ONBOARDING_PATHS.creator
+      : "/creator/dashboard";
+  }
+  if (role === "employer") {
+    return isOnboardingPending(me.id, "employer")
+      ? ONBOARDING_PATHS.employer
+      : "/employer/dashboard";
+  }
+  return isOnboardingPending(me.id, "publisher")
+    ? ONBOARDING_PATHS.publisher
+    : "/publisher/dashboard";
+}
+
+/** `?next=` is only honoured when it is inside the area of the login page used. */
+export function nextForRole(
+  next: string | null,
+  me: User,
+  role: LoginRole,
+): string | null {
+  if (!next || !canVisit(next, me)) return null;
+  const area = LOGIN_ROLE_INFO[role].area;
+  const p = next.split(/[?#]/)[0];
+  return p === area || p.startsWith(`${area}/`) ? next : null;
+}
+
+/** Which account types this user has, as readable names (for error messages). */
+export function accountTypeNames(me: User): string[] {
+  const f = roleFlags(me);
+  const names: string[] = [];
+  if (f.isAdmin) names.push("Admin");
+  if (f.isPublisher) names.push("Publisher");
+  if (f.isNetworkMember) names.push("Network Member");
+  if (f.isEmployer) names.push("Brand");
+  if (f.isCreator) names.push("Creator");
+  return names;
+}
+
+/** Login page the user should have used (shown in the "wrong login page" message). */
+export function actualLoginPath(me: User): { label: string; href: string } {
+  const f = roleFlags(me);
+  if (f.isAdmin) return { label: "the main login", href: "/login" };
+  if (f.isPublisher) return { label: "Publisher login", href: "/publisher/login" };
+  if (f.isNetworkMember) return { label: "Network Member login", href: "/login" };
+  if (f.isEmployer && !f.isCreator) return { label: "Brand login", href: "/brand/login" };
+  if (f.isCreator) return { label: "Creator login", href: "/creator/login" };
+  if (f.isEmployer) return { label: "Brand login", href: "/brand/login" };
+  return { label: "the main login", href: "/login" };
+}
+
+/** Message + link for signing in on the wrong role page. */
+export function wrongLoginMessage(me: User, role: LoginRole) {
+  const names = accountTypeNames(me);
+  const actual = actualLoginPath(me);
+  const have = names.length ? names.join(" / ") : "different";
+  return {
+    message: `This email is registered as a ${have} account, not a ${LOGIN_ROLE_INFO[role].label} account.`,
+    linkLabel: `Use ${actual.label}`,
+    linkHref: actual.href,
+  };
+}

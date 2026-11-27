@@ -28,6 +28,7 @@ import { formatMoney } from "@/lib/money";
 import { jobMatchesPromoteTypes, PROMOTE_JOB_TYPES } from "@/lib/jobs/promoteTypes";
 import ShareLinkButton from "@/components/share/ShareLinkButton";
 import { syndicatedJobPath } from "@/lib/staticExport";
+import PageHeader from "@/components/layout/PageHeader";
 
 type TabId =
   | "all"
@@ -374,11 +375,8 @@ export default function CreatorCampaignsPage() {
 
   return (
     <>
+      <PageHeader title="Campaigns" />
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wider text-purple-600">
-          Campaigns
-        </p>
-        <h1 className="mt-1 text-3xl font-bold">Campaigns</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
           Browse PPC, PPR, courses, jobs, and tools that match you. Share tracked
           links so clicks count on your account.

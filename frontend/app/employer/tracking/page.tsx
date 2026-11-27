@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 const PAYLOADS: Record<string, string> = {
   registration: `{
@@ -76,10 +77,8 @@ export default function EmployerTrackingPage() {
 
   return (
     <>
+      <PageHeader title="Tracking and integrations" />
       <div>
-        <h1 className="text-2xl font-bold text-[#0F1B3D]">
-          Tracking and integrations
-        </h1>
         <p className="mt-1 text-sm text-slate-500">
           Generate campaign-level links, check diagnostics, manage API keys.
         </p>

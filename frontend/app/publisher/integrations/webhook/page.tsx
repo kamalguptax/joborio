@@ -13,6 +13,7 @@ import GuideSteps from "@/components/publisher/integrations/GuideSteps";
 import IntegrationSubnav from "@/components/publisher/integrations/IntegrationSubnav";
 import SecretsBanner from "@/components/publisher/integrations/SecretsBanner";
 import { PageSkeleton } from "@/components/ui/Skeleton";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default function PublisherWebhookIntegrationPage() {
   const [data, setData] = useState<PublisherIntegrations | null>(null);
@@ -54,11 +55,11 @@ export default function PublisherWebhookIntegrationPage() {
 
   return (
     <>
+      <PageHeader title="Real-time event webhooks" />
       <div className="mb-6">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
           Webhook integration
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Real-time event webhooks</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
           Partners post conversion events to your inbound URL. You can also set
           an outbound URL so JobOrio notifies your system when events occur.

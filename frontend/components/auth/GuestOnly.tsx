@@ -5,7 +5,15 @@ import { useRouter } from "next/navigation";
 import { fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
 import { clearAuthToken, getAuthToken } from "@/lib/auth/session";
-import { canVisit, homePathForUser, navigateTo } from "@/lib/auth/redirect";
+import {
+  canVisit,
+  hasLoginRole,
+  homePathForRole,
+  homePathForUser,
+  navigateTo,
+  nextForRole,
+  type LoginRole,
+} from "@/lib/auth/redirect";
 import { sanitizeNextParam } from "@/lib/auth/safeRedirect";
 import { CenteredCardSkeleton } from "@/components/ui/Skeleton";
 
@@ -20,9 +28,16 @@ import { CenteredCardSkeleton } from "@/components/ui/Skeleton";
 export default function GuestOnly({
   children,
   prefer,
+  role,
 }: {
   children: ReactNode;
   prefer?: "employer";
+  /**
+   * Creator / brand / publisher pages: only a signed-in user of THIS account
+   * type is sent on to the dashboard. Someone signed in as another type still
+   * sees the form, so they can sign in with the right account.
+   */
+  role?: LoginRole;
 }) {
   const router = useRouter();
   const [isGuest, setIsGuest] = useState(false);
@@ -41,6 +56,14 @@ export default function GuestOnly({
         const next = sanitizeNextParam(
           new URLSearchParams(window.location.search).get("next"),
         );
+        if (role) {
+          if (!hasLoginRole(me, role)) {
+            setIsGuest(true);
+            return;
+          }
+          navigateTo(router, nextForRole(next, me, role) ?? homePathForRole(me, role));
+          return;
+        }
         navigateTo(
           router,
           next && canVisit(next, me) ? next : homePathForUser(me, { prefer }),
@@ -59,7 +82,7 @@ export default function GuestOnly({
     return () => {
       cancelled = true;
     };
-  }, [router, prefer]);
+  }, [router, prefer, role]);
 
   if (!isGuest) return <CenteredCardSkeleton />;
   return <>{children}</>;

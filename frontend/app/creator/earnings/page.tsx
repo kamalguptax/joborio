@@ -9,6 +9,7 @@ import {
   fetchCreatorTransactions,
 } from "@/lib/api/creator";
 import { formatMoney } from "@/lib/money";
+import PageHeader from "@/components/layout/PageHeader";
 
 type JobEarningCard = {
   key: string;
@@ -292,11 +293,11 @@ export default function CreatorEarningsPage() {
 
   return (
     <>
+      <PageHeader title="Earnings / Clicks" />
       <div className="mb-6">
         <p className="text-sm font-semibold uppercase tracking-wider text-purple-600">
           {currency} ledger
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Earnings / Clicks</h1>
         <p className="mt-2 text-slate-500">
           Earnings and click traffic for the jobs you share — in one place.
         </p>
@@ -318,7 +319,7 @@ export default function CreatorEarningsPage() {
           </span>
         </Link>
         <Link
-          href="/creator/payout"
+          href="/creator/profile?tab=payout"
           className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-purple-200 hover:shadow-md"
         >
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">

@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft } from "lucide-react";
 
@@ -13,15 +21,83 @@ type Props = {
   /** When set, an icon-only back button is shown to the left of the heading. */
   backHref?: string;
   backLabel?: string;
+  /** Internal: heading rendered automatically by the shell (does not register itself). */
+  isFallback?: boolean;
 };
+
+type HeaderRegistry = { register: () => () => void };
+const PageHeaderContext = createContext<HeaderRegistry | null>(null);
+
+/**
+ * Wraps the page content inside DashboardShell. If a page renders its own
+ * <PageHeader />, that one is used. Otherwise the shell shows a heading
+ * (title taken from the nav / breadcrumb label) so every page has one.
+ */
+export function PageHeaderProvider({
+  children,
+  fallbackTitle,
+  fallbackBackHref,
+  fallbackBackLabel,
+  resetKey,
+}: {
+  children: ReactNode;
+  fallbackTitle?: string;
+  fallbackBackHref?: string;
+  fallbackBackLabel?: string;
+  /** Changes on every route change so the check runs again. */
+  resetKey: string;
+}) {
+  const [count, setCount] = useState(0);
+  const [settled, setSettled] = useState(false);
+
+  const register = useCallback(() => {
+    setCount((c) => c + 1);
+    return () => setCount((c) => Math.max(0, c - 1));
+  }, []);
+  const value = useMemo(() => ({ register }), [register]);
+
+  // Give the page a moment to mount its own <PageHeader /> before falling back.
+  useEffect(() => {
+    setSettled(false);
+    const id = window.setTimeout(() => setSettled(true), 0);
+    return () => window.clearTimeout(id);
+  }, [resetKey]);
+
+  const showFallback = settled && count === 0 && Boolean(fallbackTitle);
+
+  return (
+    <PageHeaderContext.Provider value={value}>
+      {showFallback ? (
+        <PageHeader
+          isFallback
+          title={fallbackTitle as string}
+          backHref={fallbackBackHref}
+          backLabel={fallbackBackLabel}
+        />
+      ) : null}
+      {children}
+    </PageHeaderContext.Provider>
+  );
+}
 
 /**
  * Page heading for dashboard pages. On desktop it is placed in the top bar, on the
  * left of the settings / notification icons, with the back icon just before it.
  * On small screens (no top-bar row) it renders inline at the top of the page.
  */
-export default function PageHeader({ title, backHref, backLabel }: Props) {
+export default function PageHeader({
+  title,
+  backHref,
+  backLabel,
+  isFallback = false,
+}: Props) {
   const [slot, setSlot] = useState<HTMLElement | null>(null);
+  const registry = useContext(PageHeaderContext);
+
+  useEffect(() => {
+    if (isFallback || !registry) return;
+    return registry.register();
+  }, [isFallback, registry]);
 
   useEffect(() => {
     setSlot(document.getElementById(HEADER_SLOT_ID));

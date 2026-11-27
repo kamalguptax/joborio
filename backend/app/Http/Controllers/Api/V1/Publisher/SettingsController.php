@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Publisher;
 
 use App\Http\Controllers\Controller;
 use App\Models\Publisher;
+use App\Services\Auth\PasswordChangeOtpService;
 use App\Support\ApiResponse;
 use App\Support\PublisherAccess;
 use Illuminate\Http\JsonResponse;
@@ -96,13 +97,35 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function updatePassword(Request $request): JsonResponse
+    public function sendPasswordOtp(Request $request, PasswordChangeOtpService $otp): JsonResponse
+    {
+        $user = $request->user();
+        PublisherAccess::membership($user);
+
+        $result = $otp->issue($user);
+        if (! $result['sent']) {
+            return $this->error('OTP_NOT_SENT', 'We could not email the code. Please try again shortly.', 503);
+        }
+
+        $payload = [
+            'message' => 'We sent a 6-digit code to your email.',
+            'otp_sent' => true,
+        ];
+        if ($result['debug_otp'] !== null) {
+            $payload['debug_otp'] = $result['debug_otp'];
+        }
+
+        return $this->success($payload);
+    }
+
+    public function updatePassword(Request $request, PasswordChangeOtpService $otp): JsonResponse
     {
         $user = $request->user();
         // Any publisher team member may change their own login password.
         PublisherAccess::membership($user);
 
         $data = $request->validate([
+            'otp' => ['required', 'string', 'size:6'],
             'current_password' => ['required', 'string'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
@@ -110,6 +133,8 @@ class SettingsController extends Controller
         if (! Hash::check($data['current_password'], $user->password)) {
             return $this->error('INVALID_PASSWORD', 'Current password is incorrect.', 422);
         }
+
+        $otp->assertValid($user, $data['otp']);
 
         $user->password = Hash::make($data['password']);
         $user->save();

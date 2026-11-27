@@ -6,6 +6,7 @@ import {
   fetchCreatorListings,
   generateAiPost,
 } from "@/lib/api/creator";
+import PageHeader from "@/components/layout/PageHeader";
 
 const platforms = [
   { id: "whatsapp", label: "WhatsApp" },
@@ -54,11 +55,8 @@ export default function AiStudioPage() {
 
   return (
     <>
+      <PageHeader title="AI Post Studio" />
       <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-wider text-purple-600">
-          Module K · AI Post Studio
-        </p>
-        <h1 className="mt-1 text-3xl font-bold">AI Post Studio</h1>
         <p className="mt-2 text-slate-500">
           Generate share-ready captions with your tracked link.{" "}
           <strong>{quota.remaining}</strong> of {quota.cap} generations left this month.

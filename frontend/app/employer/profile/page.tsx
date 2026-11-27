@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchEmployerBilling, saveEmployerBilling } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 const FIELDS = [
   ["Company name", "company"],
@@ -75,8 +76,8 @@ export default function EmployerProfilePage() {
 
   return (
     <>
+      <PageHeader title="Brand profile" />
       <div>
-        <h1 className="text-2xl font-bold text-[#0F1B3D]">Brand profile</h1>
         <p className="mt-1 text-sm text-slate-500">
           Verification status:{" "}
           <span

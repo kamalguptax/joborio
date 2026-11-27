@@ -243,7 +243,7 @@ export default function BrandRegisterForm() {
           </p>
         ) : null}
 
-        <p className="-mb-3 text-xs text-slate-500">
+        <p className="text-xs text-slate-500">
           Fields marked <span className="font-semibold text-violet-600">*</span> are mandatory.
         </p>
 

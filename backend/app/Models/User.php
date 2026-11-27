@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -23,15 +24,21 @@ class User extends Authenticatable
         'linkedin_id',
         'is_active',
         'public_code',
+        'avatar_path',
+        'cover_path',
     ];
 
     protected $appends = [
         'public_code',
+        'avatar_url',
+        'cover_url',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'avatar_path',
+        'cover_path',
     ];
 
     protected function casts(): array
@@ -92,6 +99,25 @@ class User extends Authenticatable
         }
 
         return self::codeForId((int) $this->id);
+    }
+
+    /** Public URL of the profile photo (null when none was uploaded). */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return self::storageUrl($this->attributes['avatar_path'] ?? null);
+    }
+
+    /** Public URL of the cover banner (null when none was uploaded). */
+    public function getCoverUrlAttribute(): ?string
+    {
+        return self::storageUrl($this->attributes['cover_path'] ?? null);
+    }
+
+    private static function storageUrl(?string $path): ?string
+    {
+        $path = trim((string) $path);
+
+        return $path === '' ? null : Storage::disk('public')->url($path);
     }
 
     public function creator(): HasOne

@@ -57,7 +57,9 @@ export default function CreatorShell({
 }) {
   const pathname = usePathname() ?? "";
   const settingsActive =
-    pathname === "/creator/settings" || pathname.startsWith("/creator/job-preferences");
+    pathname.startsWith("/creator/profile") ||
+    pathname === "/creator/settings" ||
+    pathname.startsWith("/creator/job-preferences");
 
   return (
     <DashboardShell
@@ -78,7 +80,7 @@ export default function CreatorShell({
       topRight={
         <>
           <Link
-            href="/creator/settings"
+            href="/creator/profile"
             aria-label="Settings"
             title="Settings"
             className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${

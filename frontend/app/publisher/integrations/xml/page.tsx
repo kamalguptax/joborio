@@ -11,6 +11,7 @@ import {
 import GuideSteps from "@/components/publisher/integrations/GuideSteps";
 import IntegrationSubnav from "@/components/publisher/integrations/IntegrationSubnav";
 import { PageSkeleton } from "@/components/ui/Skeleton";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default function PublisherXmlIntegrationPage() {
   const [data, setData] = useState<PublisherIntegrations | null>(null);
@@ -45,11 +46,11 @@ export default function PublisherXmlIntegrationPage() {
 
   return (
     <>
+      <PageHeader title="Partner XML feeds" />
       <div className="mb-6">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
           XML integration
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Partner XML feeds</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
           XML is for publishers and partners that exchange jobs or campaign data
           as a feed. JobOrio does not invent partner contracts — use the URL

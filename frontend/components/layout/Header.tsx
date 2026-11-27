@@ -590,7 +590,7 @@ export default function Header() {
                     {user.creator ? (
                       <Link
                         role="menuitem"
-                        href="/creator/settings"
+                        href="/creator/profile"
                         onClick={() => setAccountOpen(false)}
                         className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-indigo-50 transition hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:outline-none"
                       >

@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 type Member = {
   id: number;
@@ -67,10 +68,8 @@ export default function EmployerTeamPage() {
 
   return (
     <>
+      <PageHeader title="Team and permissions" />
       <div>
-        <h1 className="text-2xl font-bold text-[#0F1B3D]">
-          Team and permissions
-        </h1>
         <p className="mt-1 text-sm text-slate-500">Role changes are audited.</p>
       </div>
 

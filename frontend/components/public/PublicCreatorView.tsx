@@ -43,6 +43,8 @@ export type PublicCreator = {
   name?: string | null;
   bio?: string | null;
   accent_color?: string;
+  cover_url?: string | null;
+  avatar_url?: string | null;
   niches?: Array<{ name: string }>;
   social_links?: {
     linkedin?: string;
@@ -185,15 +187,28 @@ export default function PublicCreatorView({
                 backgroundSize: "18px 18px",
               }}
             />
+            {creator.cover_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={creator.cover_url}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : null}
           </div>
 
           <div className="relative px-5 pb-8 sm:px-10">
             <div className="-mt-12 flex flex-wrap items-end justify-between gap-4 sm:-mt-14">
               <div
-                className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[28px] text-4xl font-bold text-white shadow-xl ring-[6px] ring-white sm:h-28 sm:w-28 sm:text-5xl"
+                className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[28px] text-4xl font-bold text-white shadow-xl ring-[6px] ring-white sm:h-28 sm:w-28 sm:text-5xl"
                 style={{ background: `linear-gradient(135deg, ${accent}, #a855f7)` }}
               >
-                {initialsOf(creator.name, creator.handle)}
+                {creator.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={creator.avatar_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  initialsOf(creator.name, creator.handle)
+                )}
               </div>
 
               <div className="flex flex-wrap gap-2 sm:pb-1">

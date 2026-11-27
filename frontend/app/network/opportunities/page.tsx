@@ -15,6 +15,7 @@ import ShareLinkButton from "@/components/share/ShareLinkButton";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { syndicatedJobPath } from "@/lib/staticExport";
 import Link from "next/link";
+import PageHeader from "@/components/layout/PageHeader";
 
 type TabId = "all" | "ppc" | "jobs";
 
@@ -130,11 +131,11 @@ export default function NetworkOpportunitiesPage() {
 
   return (
     <>
+      <PageHeader title="Opportunities" />
       <div className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
           Share & earn activity
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Opportunities</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
           PPC campaigns and jobs assigned by your publisher. Share tracked links
           — clicks count toward your member activity and show on the publisher

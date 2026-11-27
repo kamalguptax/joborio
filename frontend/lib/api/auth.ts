@@ -22,6 +22,8 @@ export function login(input: {
   password: string;
   captcha_id?: string;
   captcha_answer?: string;
+  /** Role-specific login page; the server refuses any other account type. */
+  login_as?: "creator" | "employer" | "publisher";
 }) {
   return apiFetch<AuthPayload>("/api/v1/auth/login", {
     method: "POST",

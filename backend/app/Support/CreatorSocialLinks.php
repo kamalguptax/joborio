@@ -6,7 +6,16 @@ use Illuminate\Validation\ValidationException;
 
 class CreatorSocialLinks
 {
-    public const KEYS = ['linkedin', 'instagram', 'community', 'website'];
+    public const KEYS = [
+        'linkedin',
+        'instagram',
+        'youtube',
+        'tiktok',
+        'telegram',
+        'whatsapp',
+        'community',
+        'website',
+    ];
 
     /**
      * @param  array<string, mixed>|null  $links

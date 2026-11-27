@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 const inr = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -150,9 +151,9 @@ export default function EmployerProgramsPage() {
 
   return (
     <>
+      <PageHeader title="My campaigns" />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#0F1B3D]">My campaigns</h1>
           <p className="mt-1 text-sm text-slate-500">
             Every status change is logged. You cannot edit partner assignments or
             contact partners.

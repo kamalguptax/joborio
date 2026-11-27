@@ -3,17 +3,30 @@
 import { FcGoogle } from "react-icons/fc";
 import { FaLinkedinIn } from "react-icons/fa";
 import { getApiBaseUrl } from "@/lib/config";
+import { OAUTH_ROLE_KEY } from "@/lib/auth/loginRoleGate";
+import type { LoginRole } from "@/lib/auth/redirect";
 
 export default function SocialAuthButtons({
   // kept for call-site compatibility; both intents now read "Continue with …"
   intent: _intent = "continue",
+  role,
 }: {
   intent?: "login" | "continue";
+  /** Login page used (creator / brand). Remembered so /auth/callback can enforce it. */
+  role?: LoginRole;
 }) {
   const verb = "Continue with";
 
   const startOAuth = (provider: "google" | "linkedin") => {
-    window.location.href = `${getApiBaseUrl()}/api/v1/auth/${provider}/redirect`;
+    try {
+      if (role) sessionStorage.setItem(OAUTH_ROLE_KEY, role);
+      else sessionStorage.removeItem(OAUTH_ROLE_KEY);
+    } catch {
+      /* storage blocked: the user simply lands on their own dashboard */
+    }
+    // The server also checks the account type (login_as) after Google / LinkedIn returns.
+    const query = role && role !== "publisher" ? `?login_as=${role}` : "";
+    window.location.href = `${getApiBaseUrl()}/api/v1/auth/${provider}/redirect${query}`;
   };
 
   return (

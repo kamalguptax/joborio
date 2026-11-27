@@ -32,7 +32,7 @@ const CREATOR_EXTRAS: DashboardSearchItem[] = [
   {
     id: "c-payout",
     title: "Payout",
-    href: "/creator/payout",
+    href: "/creator/profile?tab=payout",
     keywords: ["bank", "withdraw", "transfer"],
     group: "Money",
   },
@@ -53,7 +53,7 @@ const CREATOR_EXTRAS: DashboardSearchItem[] = [
   {
     id: "c-settings",
     title: "Settings",
-    href: "/creator/settings",
+    href: "/creator/profile?tab=preferences",
     keywords: ["account", "profile"],
     group: "Settings",
   },

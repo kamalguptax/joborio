@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\Admin\PayoutController;
 use App\Http\Controllers\Api\V1\Admin\WithdrawalController as AdminWithdrawalController;
 use App\Http\Controllers\Api\V1\Admin\CampaignEarningsController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController as AdminProgramController;
+use App\Http\Controllers\Api\V1\Auth\AccountController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\BrandAuthController;
 use App\Http\Controllers\Api\V1\Auth\PublisherAuthController;
@@ -151,6 +152,15 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
+        Route::put('/auth/profile', [AccountController::class, 'updateProfile']);
+        Route::post('/auth/profile/photo', [AccountController::class, 'uploadPhoto']);
+        Route::delete('/auth/profile/photo', [AccountController::class, 'removePhoto']);
+        Route::post('/auth/profile/cover', [AccountController::class, 'uploadCover']);
+        Route::delete('/auth/profile/cover', [AccountController::class, 'removeCover']);
+        Route::post('/auth/password/otp', [AccountController::class, 'requestPasswordOtp'])
+            ->middleware('throttle:6,1');
+        Route::put('/auth/password', [AccountController::class, 'updatePassword'])
+            ->middleware('throttle:10,1');
 
         Route::post('/creator/onboarding', [OnboardingController::class, 'store']);
         Route::put('/creator/onboarding', [OnboardingController::class, 'update']);
@@ -295,7 +305,10 @@ Route::prefix('v1')->group(function () {
             Route::post('/integrations/members', [PublisherIntegrationController::class, 'createMemberInvite']);
             Route::get('/settings', [PublisherSettingsController::class, 'show']);
             Route::put('/settings/profile', [PublisherSettingsController::class, 'updateProfile']);
-            Route::put('/settings/password', [PublisherSettingsController::class, 'updatePassword']);
+            Route::post('/settings/password/otp', [PublisherSettingsController::class, 'sendPasswordOtp'])
+                ->middleware('throttle:6,1');
+            Route::put('/settings/password', [PublisherSettingsController::class, 'updatePassword'])
+                ->middleware('throttle:10,1');
             Route::post('/settings/sessions/revoke-others', [PublisherSettingsController::class, 'revokeOtherSessions']);
             Route::get('/team', [PublisherTeamController::class, 'index']);
             Route::post('/team/managers', [PublisherTeamController::class, 'inviteManager']);

@@ -8,7 +8,19 @@ import { login, fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
 import { getAuthToken, rememberPublicCode, setAuthToken } from "@/lib/auth/session";
 import { cacheUser } from "@/lib/auth/userCache";
-import { canVisit, homePathForUser, navigateTo } from "@/lib/auth/redirect";
+import {
+  canVisit,
+  homePathForRole,
+  homePathForUser,
+  navigateTo,
+  nextForRole,
+  type LoginRole,
+} from "@/lib/auth/redirect";
+import {
+  rejectWrongRole,
+  wrongRoleFromServer,
+  type WrongRoleError,
+} from "@/lib/auth/loginRoleGate";
 import MathCaptcha, { isCaptchaFailureMessage } from "@/components/auth/MathCaptcha";
 import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
 import AuthDivider from "@/components/auth/AuthDivider";
@@ -34,7 +46,15 @@ const apiFieldMap: Record<string, FieldKey> = {
   captcha_answer: "captcha",
 };
 
-export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
+/**
+ * `role` is set on the creator / brand login pages: only that account type can
+ * sign in there and it always lands on its own dashboard. Without `role` (the
+ * main /login page) any account type is accepted and routed to its own home.
+ */
+export default function LoginForm({
+  prefer,
+  role,
+}: { prefer?: "employer"; role?: LoginRole } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextAfterLogin = sanitizeNextParam(searchParams.get("next"));
@@ -43,6 +63,7 @@ export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
   const [captcha, setCaptcha] = useState({ captcha_id: "", captcha_answer: "" });
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [wrongRole, setWrongRole] = useState<WrongRoleError | null>(null);
   const [loading, setLoading] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { errors, setErrors, clear, setOne } = useFieldErrors<FieldKey>();
@@ -66,6 +87,7 @@ export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
     e.preventDefault();
     if (loading) return;
     setError(null);
+    setWrongRole(null);
 
     const found: Partial<Record<FieldKey, string>> = {};
     (Object.keys(rules) as FieldKey[]).forEach((k) => {
@@ -85,19 +107,34 @@ export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
         password,
         captcha_id: captcha.captcha_id,
         captcha_answer: captcha.captcha_answer,
+        login_as: role,
       });
       setAuthToken(data.token);
       rememberPublicCode(data.user);
 
       const me = await fetchMe();
+
+      // Creator / Brand login page: refuse any other account type.
+      if (role) {
+        const wrong = await rejectWrongRole(me, role);
+        if (wrong) {
+          setError(wrong.message);
+          setWrongRole(wrong);
+          setCaptcha({ captcha_id: "", captcha_answer: "" });
+          setCaptchaResetKey((k) => k + 1);
+          return;
+        }
+      }
+
       rememberPublicCode(me);
       cacheUser(me, getAuthToken()); // header shows the avatar instantly
 
       // ?next= is honoured only if it belongs to THIS account type;
       // otherwise the user goes to their own dashboard / onboarding
       // (admin → /admin/dashboard on this site).
-      const target =
-        nextAfterLogin && canVisit(nextAfterLogin, me)
+      const target = role
+        ? (nextForRole(nextAfterLogin, me, role) ?? homePathForRole(me, role))
+        : nextAfterLogin && canVisit(nextAfterLogin, me)
           ? nextAfterLogin
           : homePathForUser(me, { prefer });
       navigateTo(router, target);
@@ -106,6 +143,15 @@ export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
         err instanceof ApiClientError
           ? err.message
           : "Unable to sign in. Check the API is running.";
+      // The server already refused this account type for this login page.
+      if (err instanceof ApiClientError && err.code === "ROLE_MISMATCH") {
+        const d = (err.details ?? {}) as { use_login_path?: string };
+        setError(message);
+        setWrongRole(wrongRoleFromServer(message, d.use_login_path));
+        setCaptcha({ captcha_id: "", captcha_answer: "" });
+        setCaptchaResetKey((k) => k + 1);
+        return;
+      }
       const mapped = err instanceof ApiClientError ? apiFieldErrors(err, apiFieldMap) : {};
       if (isCaptchaFailureMessage(message)) {
         mapped.captcha = message;
@@ -124,7 +170,7 @@ export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
 
   return (
     <>
-      <SocialAuthButtons intent="login" />
+      <SocialAuthButtons intent="login" role={role} />
 
       <AuthDivider />
 
@@ -132,6 +178,15 @@ export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
         {error ? (
           <p role="alert" className={authAlertError}>
             {error}
+            {wrongRole ? (
+              <>
+                {" "}
+                <Link href={wrongRole.linkHref} className="font-semibold underline">
+                  {wrongRole.linkLabel}
+                </Link>
+                .
+              </>
+            ) : null}
           </p>
         ) : null}
 
@@ -147,7 +202,10 @@ export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
             onChange={(e) => {
               setEmail(e.target.value);
               clear("email");
-              if (error) setError(null);
+              if (error) {
+                setError(null);
+                setWrongRole(null);
+              }
             }}
             onBlur={() => setOne("email", email ? emailProblem(email) ?? undefined : undefined)}
             placeholder="you@example.com"
@@ -174,7 +232,10 @@ export default function LoginForm({ prefer }: { prefer?: "employer" } = {}) {
             onChange={(e) => {
               setPassword(e.target.value);
               clear("password");
-              if (error) setError(null);
+              if (error) {
+                setError(null);
+                setWrongRole(null);
+              }
             }}
             placeholder="Enter your password"
             className={errors.password ? authFieldError : authField}

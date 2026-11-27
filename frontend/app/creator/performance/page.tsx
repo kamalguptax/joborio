@@ -11,6 +11,7 @@ import {
 } from "@/lib/api/creator";
 import { formatMoney } from "@/lib/money";
 import { ListSkeleton, SectionSkeleton } from "@/components/ui/Skeleton";
+import PageHeader from "@/components/layout/PageHeader";
 
 type PromoteId = "all" | "ppc" | "ppr" | "ppa" | "ppe";
 
@@ -184,11 +185,11 @@ export default function CreatorPerformancePage() {
 
   return (
     <>
+      <PageHeader title="Performance" />
       <div className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-wider text-purple-600">
           Analytics
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Performance</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
           See which promote link types are earning — PPC, PPR, PPA, and post-promote
           PPE. Open a PPR campaign to view its registrations.

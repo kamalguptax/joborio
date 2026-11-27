@@ -19,6 +19,7 @@ import { formatMoney } from "@/lib/money";
 import { shareDestinationUrl } from "@/lib/tracking/subid";
 import { CardGridSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 function assignmentShareUrl(
   publicCode: string,
@@ -204,11 +205,11 @@ export default function PublisherMarketplacePage() {
 
   return (
     <>
+      <PageHeader title="Assign campaigns" />
       <div className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
           Campaign Marketplace
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Assign campaigns</h1>
         <p className="mt-2 text-slate-500">
           When a new campaign goes live, click Assign, pick the communities, and
           network members in those communities get notified.

@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 type NotifRow = {
   l: string;
@@ -57,8 +58,8 @@ export default function EmployerNotificationsPage() {
 
   return (
     <>
+      <PageHeader title="Notifications" />
       <div>
-        <h1 className="text-2xl font-bold text-[#0F1B3D]">Notifications</h1>
         <p className="mt-1 text-sm text-slate-500">
           Choose what reaches you in the app and by email.
         </p>

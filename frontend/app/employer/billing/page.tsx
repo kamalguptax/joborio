@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/employer";
 import RazorpayTopUp from "@/components/employer/RazorpayTopUp";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 const money = (n: number) =>
   new Intl.NumberFormat("en-US", {
@@ -77,11 +78,9 @@ export default function EmployerBillingPage() {
 
   return (
     <>
+      <PageHeader title="Billing and wallet" />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#0F1B3D]">
-            Billing and wallet
-          </h1>
           <p className="mt-1 text-sm text-slate-500">
             Top up with Razorpay. Spend is tracked in an append-only ledger.
           </p>

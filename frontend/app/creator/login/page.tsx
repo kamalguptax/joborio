@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function CreatorLoginPage() {
   return (
-    <GuestOnly>
+    <GuestOnly role="creator">
       <AuthShell
         title="Creator login"
         subtitle="Sign in to track your clicks, registrations and earnings."
@@ -26,7 +26,7 @@ export default function CreatorLoginPage() {
         panelBody="Your links, clicks and payouts are right where you left them."
       >
         <Suspense fallback={<FormSkeleton />}>
-          <LoginForm />
+          <LoginForm role="creator" />
         </Suspense>
 
         <p className="mt-6 text-center text-sm text-slate-500">

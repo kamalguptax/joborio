@@ -21,6 +21,7 @@ import {
 import { formatMoney } from "@/lib/money";
 import { toast } from "@/components/ui/Toast";
 import { SectionSkeleton } from "@/components/ui/Skeleton";
+import PageHeader from "@/components/layout/PageHeader";
 
 const LIVE_SITE = "https://joborio.com";
 
@@ -207,11 +208,11 @@ export default function CreatorReferralsPage() {
 
   return (
     <>
+      <PageHeader title="Refer creators" />
       <div className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-wider text-purple-600">
           Module J · Growth
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Refer creators</h1>
         <p className="mt-2 text-slate-500">
           Share your link or code. Referred creators keep about 75% of revenue;
           you earn 2–5% from JobOrio’s platform fee on their earnings.

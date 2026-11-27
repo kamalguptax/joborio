@@ -42,12 +42,6 @@ export default function CreatorWalletPage() {
     <>
       <div className="mb-4 flex justify-end gap-2">
         <Link
-          href="/creator/payout"
-          className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
-        >
-          Payout account
-        </Link>
-        <Link
           href="/creator/earnings"
           className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
         >

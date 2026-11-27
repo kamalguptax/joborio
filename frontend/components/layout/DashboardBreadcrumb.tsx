@@ -61,7 +61,7 @@ const EXTRA_ROUTES: Array<{ href: string; label: string; parentHref?: string }> 
   {
     href: "/creator/job-preferences",
     label: "Job preferences",
-    parentHref: "/creator/settings",
+    parentHref: "/creator/profile",
   },
   {
     href: "/creator/registrations",

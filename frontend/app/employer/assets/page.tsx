@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createEmployerAsset, fetchEmployerAssets } from "@/lib/api/employer";
 import { ApiClientError } from "@/lib/api/client";
 import { toast } from "@/components/ui/Toast";
+import PageHeader from "@/components/layout/PageHeader";
 
 const BUTTONS: Array<{
   l: string;
@@ -135,8 +136,8 @@ export default function EmployerAssetsPage() {
 
   return (
     <>
+      <PageHeader title="Campaign assets" />
       <div>
-        <h1 className="text-2xl font-bold text-[#0F1B3D]">Campaign assets</h1>
         <p className="mt-1 text-sm text-slate-500">
           Logos, banners and guidelines JobOrio gives to distribution partners
           through approved briefs.

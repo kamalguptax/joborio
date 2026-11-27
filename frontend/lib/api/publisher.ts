@@ -972,7 +972,17 @@ export function updatePublisherProfile(input: {
   });
 }
 
+/** Emails a one-time code that must be sent along with the password change. */
+export function requestPublisherPasswordOtp() {
+  return apiFetch<{ message?: string; otp_sent?: boolean }>(
+    "/api/v1/publisher/settings/password/otp",
+    { method: "POST", auth: true },
+  );
+}
+
 export function updatePublisherPassword(input: {
+  /** Required by the API once OTP is enabled (the profile page always sends it). */
+  otp?: string;
   current_password: string;
   password: string;
   password_confirmation: string;

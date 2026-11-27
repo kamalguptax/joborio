@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CirclePlus, Heart, Pencil, Share2 } from "lucide-react";
 import Character from "@/components/art/Character";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import SocialIcon, { SOCIAL_BG, type SocialKey } from "@/components/creators/SocialIcon";
 
 /* ——— Palette: site theme (navy text, violet accent) ——— */
@@ -55,8 +56,9 @@ function ProfileCard() {
     <MockCard>
       <div className="h-24 rounded-2xl bg-[linear-gradient(115deg,#79D3B8_0%,#C6E7A6_38%,#F6E4A0_64%,#F7C8B8_100%)]" />
       <div className="-mt-10 flex flex-col items-center">
-        <span className="block h-20 w-20 overflow-hidden rounded-full bg-orange-100 ring-4 ring-white">
-          <Character hoodie="#F59E0B" className="h-full w-full" />
+        <span className="block h-20 w-20 overflow-hidden rounded-full bg-white ring-4 ring-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={DEFAULT_AVATAR} alt="" className="h-full w-full object-cover" />
         </span>
       </div>
       <div className="-mt-9 flex items-center justify-between px-1">

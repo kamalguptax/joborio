@@ -13,6 +13,7 @@ import {
 } from "@/lib/api/employer";
 import type { Listing } from "@/lib/api/types";
 import { SectionSkeleton } from "@/components/ui/Skeleton";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default function EmployerJobPreferencesPage() {
   const [initial, setInitial] = useState<JobPreferencesValues | null>(null);
@@ -62,11 +63,11 @@ export default function EmployerJobPreferencesPage() {
 
   return (
     <>
+      <PageHeader title="Job preferences" />
       <div className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-wider text-purple-600">
           Market intel
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Job preferences</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
           Tell us what roles you hire for. We surface similar active listings on
           your dashboard.

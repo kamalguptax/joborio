@@ -94,7 +94,7 @@ export default function CreatorJobPreferencesPage() {
   return (
     <>
       <div className="mb-8">
-        <PageHeader title="Opportunity preferences" backHref="/creator/settings" backLabel="Settings" />
+        <PageHeader title="Opportunity preferences" backHref="/creator/profile?tab=preferences" backLabel="Profile" />
         <p className="mt-2 max-w-2xl text-slate-500">
           Categories, targeting, and filters for the opportunities you promote.
           Filters adapt to your selections — jobs unlock salary; courses unlock

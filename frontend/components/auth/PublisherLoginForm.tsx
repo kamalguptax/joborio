@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useCallback, useRef, useState } from "react";
 import MathCaptcha, { isCaptchaFailureMessage } from "@/components/auth/MathCaptcha";
 import FieldError from "@/components/auth/FieldError";
@@ -18,7 +18,9 @@ import {
 import { apiFieldErrors, emailProblem } from "@/lib/validation";
 import { fetchMe } from "@/lib/api/auth";
 import { ApiClientError } from "@/lib/api/client";
-import { homePathForUser, navigateTo } from "@/lib/auth/redirect";
+import { homePathForRole, navigateTo, nextForRole } from "@/lib/auth/redirect";
+import { rejectWrongRole, type WrongRoleError } from "@/lib/auth/loginRoleGate";
+import { sanitizeNextParam } from "@/lib/auth/safeRedirect";
 import { loginPublisher } from "@/lib/api/publisherAuth";
 import { getAuthToken, rememberPublicCode, setAuthToken } from "@/lib/auth/session";
 import { cacheUser } from "@/lib/auth/userCache";
@@ -34,11 +36,14 @@ const apiFieldMap: Record<string, FieldKey> = {
 
 export default function PublisherLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextAfterLogin = sanitizeNextParam(searchParams.get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState({ captcha_id: "", captcha_answer: "" });
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [wrongRole, setWrongRole] = useState<WrongRoleError | null>(null);
   const [loading, setLoading] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { errors, setErrors, clear, setOne } = useFieldErrors<FieldKey>();
@@ -62,6 +67,7 @@ export default function PublisherLoginForm() {
     e.preventDefault();
     if (loading) return;
     setError(null);
+    setWrongRole(null);
 
     const found: Partial<Record<FieldKey, string>> = {};
     (Object.keys(rules) as FieldKey[]).forEach((k) => {
@@ -84,12 +90,25 @@ export default function PublisherLoginForm() {
       });
       setAuthToken(data.token);
       rememberPublicCode(data.user);
-      // Publisher accounts land on the publisher dashboard; any other
-      // account type is sent to its own dashboard instead.
       const me = await fetchMe();
+
+      // Publisher login only lets publishers in; other account types must
+      // use their own login page.
+      const wrong = await rejectWrongRole(me, "publisher");
+      if (wrong) {
+        setError(wrong.message);
+        setWrongRole(wrong);
+        setCaptcha({ captcha_id: "", captcha_answer: "" });
+        setCaptchaResetKey((k) => k + 1);
+        return;
+      }
+
       rememberPublicCode(me);
       cacheUser(me, getAuthToken()); // header shows the avatar instantly
-      navigateTo(router, homePathForUser(me));
+      navigateTo(
+        router,
+        nextForRole(nextAfterLogin, me, "publisher") ?? homePathForRole(me, "publisher"),
+      );
     } catch (err) {
       const message =
         err instanceof ApiClientError
@@ -114,6 +133,15 @@ export default function PublisherLoginForm() {
       {error ? (
         <p role="alert" className={authAlertError}>
           {error}
+          {wrongRole ? (
+            <>
+              {" "}
+              <Link href={wrongRole.linkHref} className="font-semibold underline">
+                {wrongRole.linkLabel}
+              </Link>
+              .
+            </>
+          ) : null}
         </p>
       ) : null}
 
@@ -131,7 +159,10 @@ export default function PublisherLoginForm() {
           onChange={(e) => {
             setEmail(e.target.value);
             clear("email");
-            if (error) setError(null);
+            if (error) {
+              setError(null);
+              setWrongRole(null);
+            }
           }}
           onBlur={() => setOne("email", email ? emailProblem(email) ?? undefined : undefined)}
           aria-invalid={Boolean(errors.email)}
@@ -153,7 +184,10 @@ export default function PublisherLoginForm() {
           onChange={(e) => {
             setPassword(e.target.value);
             clear("password");
-            if (error) setError(null);
+            if (error) {
+              setError(null);
+              setWrongRole(null);
+            }
           }}
           aria-invalid={Boolean(errors.password)}
           aria-describedby={errors.password ? "publisher-password-error" : undefined}

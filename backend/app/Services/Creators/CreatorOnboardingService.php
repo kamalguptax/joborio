@@ -180,7 +180,8 @@ class CreatorOnboardingService
             : CreatorSocialLinks::requireAtLeastOne($creator->social_links);
 
         $payload = [
-            'bio' => $data['bio'] ?? $creator->bio,
+            // array_key_exists: sending an empty bio must clear it (an empty string arrives as null).
+            'bio' => array_key_exists('bio', $data) ? $data['bio'] : $creator->bio,
             'profile_photo_path' => $data['profile_photo_path'] ?? $creator->profile_photo_path,
             'accent_color' => $data['accent_color'] ?? $creator->accent_color,
             'social_links' => $socialLinks,

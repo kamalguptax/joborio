@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
+  Check,
+  Copy,
+  Gift,
+  Users,
   MousePointerClick,
   UserPlus,
   TrendingUp,
@@ -15,7 +19,6 @@ import ReferAndEarnPopup from "@/components/creator/ReferAndEarnPopup";
 import {
   fetchCreatorDashboard,
 } from "@/lib/api/creator";
-import { creatorProfilePath } from "@/lib/staticExport";
 import { formatMoney } from "@/lib/money";
 import { StatCardsSkeleton } from "@/components/ui/Skeleton";
 
@@ -87,6 +90,108 @@ function eventMatchesCampaign(
     return pricing === "ppc" || (!pricing && ["job", "tool", "other", ""].includes(listingType));
   }
   return pricing === campaign;
+}
+
+function ReferralMiniCard({
+  code,
+  signups,
+}: {
+  code?: string;
+  signups: number;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const copyCode = async () => {
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = code;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  };
+
+  return (
+    <div className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-white/20 via-white/10 to-white/5 p-px shadow-[0_18px_40px_-20px_rgba(0,0,0,0.6)] sm:flex-1 xl:w-72 xl:flex-none">
+      <div className="relative h-full rounded-[15px] bg-[#101a55]/80 p-3.5 backdrop-blur-xl">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-fuchsia-500/30 blur-3xl"
+        />
+
+        <div className="relative flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-300 to-pink-500 text-white shadow-lg shadow-pink-500/30">
+            <Gift className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold leading-tight !text-white">
+              Refer &amp; Earn
+            </p>
+            <p className="text-[11px] leading-snug text-indigo-200">
+              Invite creators, earn from their revenue
+            </p>
+          </div>
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white ring-1 ring-white/15">
+            <Users className="h-3 w-3" aria-hidden="true" />
+            {signups}
+          </span>
+        </div>
+
+        <div className="relative mt-3 flex items-center gap-2 rounded-xl border border-dashed border-white/25 bg-white/5 py-1.5 pl-3 pr-1.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-indigo-300">
+              Your code
+            </p>
+            <p className="truncate font-mono text-base font-bold tracking-[0.18em] text-white">
+              {code ?? "—"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void copyCode()}
+            disabled={!code}
+            aria-label="Copy referral code"
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+              copied
+                ? "bg-emerald-400 text-emerald-950"
+                : "bg-white text-[#14296B] hover:bg-indigo-50"
+            }`}
+          >
+            {copied ? (
+              <Check className="h-3.5 w-3.5" aria-hidden="true" />
+            ) : (
+              <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+            )}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
+
+        <Link
+          href="/creator/referrals"
+          className="group relative mt-2.5 flex items-center justify-between text-[11px] font-semibold !text-indigo-100 transition hover:!text-white"
+        >
+          <span>
+            {signups === 0
+              ? "No one joined yet · share your invite"
+              : `${signups} creator${signups === 1 ? "" : "s"} joined with your code`}
+          </span>
+          <span className="inline-flex items-center gap-0.5 text-white">
+            Open
+            <ArrowUpRight
+              className="h-3.5 w-3.5 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </span>
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 export default function CreatorDashboardPage() {
@@ -415,7 +520,7 @@ export default function CreatorDashboardPage() {
       stat: `${formatMoney(Number(earnings.payable_usd ?? 0), currencyCode)} payable`,
     },
     {
-      href: "/creator/settings",
+      href: "/creator/profile",
       title: "Settings",
       desc: "Profile, job preferences, and account options.",
       stat: modules.onboarding_complete ? "Profile complete" : "Finish profile",
@@ -504,7 +609,7 @@ export default function CreatorDashboardPage() {
           <div className="absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-sky-400/20 blur-[90px]" />
           <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:26px_26px] [mask-image:linear-gradient(to_right,black,transparent_75%)]" />
         </div>
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-indigo-200">
               Welcome back{creator?.handle ? `, @${String(creator.handle).replace(/^@/, "")}` : ""}
@@ -517,19 +622,25 @@ export default function CreatorDashboardPage() {
               {" · "}live clicks, registrations and earnings.
             </p>
           </div>
-          <div className="grid min-w-0 grid-cols-2 gap-3 sm:w-full sm:max-w-md">
-            <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur">
+          <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-stretch xl:w-auto xl:shrink-0">
+            <ReferralMiniCard
+              code={referralSummary?.code}
+              signups={referralSummary?.signups ?? 0}
+            />
+          <div className="grid min-w-0 grid-cols-2 gap-3 sm:w-56 sm:grid-cols-1 sm:grid-rows-2 xl:w-44">
+            <div className="rounded-2xl bg-white/10 p-3.5 ring-1 ring-white/15 backdrop-blur">
               <p className="text-xs font-medium text-indigo-200">Total earning</p>
-              <p className="mt-1 text-2xl font-bold tracking-tight">
+              <p className="mt-0.5 text-xl font-bold tracking-tight">
                 {data ? formatMoney(totalEarning, currencyCode) : "—"}
               </p>
             </div>
-            <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur">
+            <div className="rounded-2xl bg-white/10 p-3.5 ring-1 ring-white/15 backdrop-blur">
               <p className="text-xs font-medium text-indigo-200">Payable now</p>
-              <p className="mt-1 text-2xl font-bold tracking-tight">
+              <p className="mt-0.5 text-xl font-bold tracking-tight">
                 {data ? formatMoney(Number(earnings.payable_usd ?? 0), currencyCode) : "—"}
               </p>
             </div>
+          </div>
           </div>
         </div>
       </section>
@@ -715,21 +826,6 @@ export default function CreatorDashboardPage() {
                 Filtered by campaign type. Holds: {pprMeta.hold_days ?? 3} days after
                 verify.
               </p>
-            </div>
-
-            <div className="rounded-3xl border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-6 shadow-sm lg:col-span-2">
-              <h2 className="text-lg font-bold">Account type</h2>
-              <p className="mt-2 text-2xl font-bold text-purple-700">Creator</p>
-              <p className="mt-2 text-sm text-slate-600">
-                Switch campaign above to see PPC, PPR, Courses, and other dashboards
-                separately.
-              </p>
-              <Link
-                href="/creator/trust-tier"
-                className="mt-4 inline-block text-sm font-semibold text-purple-700 hover:text-blue-600"
-              >
-                View creator features →
-              </Link>
             </div>
           </div>
 
@@ -978,64 +1074,6 @@ export default function CreatorDashboardPage() {
               </ul>
             </div>
           ) : null}
-
-          <section className="mt-8 rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-white p-6 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wider text-violet-700">
-                  Refer & Earn
-                </p>
-                <h2 className="mt-1 text-xl font-bold text-[#172b63]">
-                  Your referrals
-                </h2>
-                <p className="mt-1 text-sm text-slate-600">
-                  Code{" "}
-                  <span className="font-mono font-bold text-violet-700">
-                    {referralSummary?.code ?? "—"}
-                  </span>
-                  {" · "}
-                  {referralSummary?.signups ?? 0} creator
-                  {(referralSummary?.signups ?? 0) === 1 ? "" : "s"} joined with your
-                  invite.
-                </p>
-              </div>
-              <Link
-                href="/creator/referrals"
-                className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-bold text-white"
-              >
-                Open Referrals →
-              </Link>
-            </div>
-            {(referralSummary?.recent?.length ?? 0) > 0 ? (
-              <ul className="mt-4 space-y-2">
-                {referralSummary!.recent!.map((row) => (
-                  <li
-                    key={row.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-violet-100 bg-white px-4 py-3 text-sm"
-                  >
-                    <Link
-                      href={creatorProfilePath(row.handle)}
-                      className="font-semibold text-[#172b63] hover:text-purple-700"
-                    >
-                      @{row.handle}
-                    </Link>
-                    <span className="text-xs text-slate-500">
-                      {row.onboarded ? "Onboarded" : "Signed up"}
-                      {row.joined_at
-                        ? ` · ${new Date(row.joined_at).toLocaleDateString()}`
-                        : ""}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-4 text-sm text-slate-500">
-                No one has joined with your code yet. Share your invite link from
-                Referrals.
-              </p>
-            )}
-          </section>
-
         </>
       ) : null}
     </>

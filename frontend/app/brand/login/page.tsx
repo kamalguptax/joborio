@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function BrandLoginPage() {
   return (
-    <GuestOnly prefer="employer">
+    <GuestOnly prefer="employer" role="employer">
       <AuthShell
         title="Brand login"
         subtitle="Sign in to manage your campaigns, billing and results."
@@ -26,7 +26,7 @@ export default function BrandLoginPage() {
         panelBody="Track clicks, registrations and spend by creator, and pay only for results."
       >
         <Suspense fallback={<FormSkeleton />}>
-          <LoginForm prefer="employer" />
+          <LoginForm prefer="employer" role="employer" />
         </Suspense>
 
         <p className="mt-6 text-center text-sm text-slate-500">

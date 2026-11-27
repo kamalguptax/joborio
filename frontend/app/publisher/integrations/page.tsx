@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, Code2, FileCode2, Webhook } from "lucide-react";
 import IntegrationSubnav from "@/components/publisher/integrations/IntegrationSubnav";
+import PageHeader from "@/components/layout/PageHeader";
 
 const cards = [
   {
@@ -46,11 +47,11 @@ const cards = [
 export default function PublisherIntegrationsHubPage() {
   return (
     <>
+      <PageHeader title="Integration guides" />
       <div className="mb-6">
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
           API & Integration
         </p>
-        <h1 className="mt-1 text-3xl font-bold">Integration guides</h1>
         <p className="mt-2 max-w-2xl text-slate-500">
           Choose how your network connects to JobOrio — API for automation, XML
           for feeds, or Webhooks for real-time events. Each mode has its own

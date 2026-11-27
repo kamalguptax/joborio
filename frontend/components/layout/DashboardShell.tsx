@@ -14,8 +14,13 @@ import {
   UserRound,
 } from "lucide-react";
 import { fetchMe } from "@/lib/api/auth";
+import type { User } from "@/lib/api/types";
 import { getAuthToken } from "@/lib/auth/session";
 import { readCachedUser } from "@/lib/auth/userCache";
+import {
+  computeProfileCompletion,
+  type ProfileCompletion,
+} from "@/lib/profileCompletion";
 import Logo from "@/components/layout/Logo";
 import DashboardBreadcrumb, {
   buildDashboardBreadcrumbs,
@@ -23,6 +28,8 @@ import DashboardBreadcrumb, {
 import DashboardGlobalSearch, {
   type DashboardSearchItem,
 } from "@/components/layout/DashboardGlobalSearch";
+import { PageHeaderProvider } from "@/components/layout/PageHeader";
+import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import { Toaster } from "@/components/ui/Toast";
 
 export type DashboardNavItem = {
@@ -95,26 +102,83 @@ type AccountMenuProps = Pick<
   | "settingsHref"
   | "settingsLabel"
   | "onSignOut"
-> & { avatarUrl?: string | null };
+> & { avatarUrl?: string | null; completion?: ProfileCompletion | null };
 
-/** Profile photo of the signed-in user; refreshes when account settings change. */
-function useAccountAvatar(): string | null {
-  const [url, setUrl] = useState<string | null>(() => {
-    const token = getAuthToken();
-    return token ? (readCachedUser(token)?.avatar_url ?? null) : null;
-  });
+/** Profile photo + profile-completion of the signed-in user; refreshes when account settings change. */
+function useAccountProfile(): {
+  avatarUrl: string | null;
+  completion: ProfileCompletion | null;
+} {
+  // Start empty so server and first client render match (localStorage is client-only);
+  // the cached user is applied right after mount, then refreshed from the API.
+  const [user, setUser] = useState<User | null>(null);
   useEffect(() => {
+    const token = getAuthToken();
+    const cached = token ? readCachedUser(token) : null;
+    if (cached) setUser(cached);
     const load = () => {
       if (!getAuthToken()) return;
       fetchMe()
-        .then((u) => setUrl(u.avatar_url ?? null))
+        .then((u) => setUser(u))
         .catch(() => undefined);
     };
     load();
     window.addEventListener("joborio:account-updated", load);
     return () => window.removeEventListener("joborio:account-updated", load);
   }, []);
-  return url;
+  return {
+    avatarUrl: user?.avatar_url ?? null,
+    completion: computeProfileCompletion(user),
+  };
+}
+
+/** Circular progress line drawn around an avatar (percent 0-100). */
+function AvatarRing({
+  percent,
+  className,
+  children,
+}: {
+  percent: number;
+  className: string; // size, e.g. "h-10 w-10"
+  children: ReactNode;
+}) {
+  const r = 46;
+  const c = 2 * Math.PI * r;
+  const complete = percent >= 100;
+  return (
+    <span
+      className={`relative flex shrink-0 items-center justify-center ${className}`}
+      title={`Profile ${percent}% complete`}
+    >
+      <svg
+        viewBox="0 0 100 100"
+        aria-hidden="true"
+        className={`absolute inset-0 h-full w-full -rotate-90 ${
+          complete ? "text-emerald-500" : "text-violet-600"
+        }`}
+      >
+        <circle cx="50" cy="50" r={r} fill="none" strokeWidth="7" className="stroke-slate-200" />
+        <circle
+          cx="50"
+          cy="50"
+          r={r}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="7"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - Math.min(Math.max(percent, 0), 100) / 100)}
+          style={{ transition: "stroke-dashoffset 0.6s ease" }}
+        />
+      </svg>
+      {children}
+      {!complete ? (
+        <span className="absolute -bottom-1 -right-1 rounded-full bg-white px-1 text-[9px] font-bold leading-4 text-violet-700 shadow-sm ring-1 ring-violet-200">
+          {percent}%
+        </span>
+      ) : null}
+    </span>
+  );
 }
 
 /** Optional WhatsApp channel for product updates; the menu item shows only when this is set. */
@@ -160,11 +224,11 @@ function AccountMenu({
   settingsHref,
   settingsLabel = "Account",
   avatarUrl,
+  completion,
   onSignOut,
 }: AccountMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const initial = (userName.replace(/^@/, "").trim()[0] ?? "U").toUpperCase();
   const close = () => setMenuOpen(false);
 
   useEffect(() => {
@@ -192,14 +256,21 @@ function AccountMenu({
         aria-expanded={menuOpen}
         className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500"
       >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-blue-600 text-sm font-bold text-white">
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+        {(() => {
+          const avatar = (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={avatarUrl || DEFAULT_AVATAR} alt="" className="h-full w-full object-cover" />
+            </span>
+          );
+          return completion ? (
+            <AvatarRing percent={completion.percent} className="h-10 w-10">
+              {avatar}
+            </AvatarRing>
           ) : (
-            initial
-          )}
-        </span>
+            avatar
+          );
+        })()}
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-[#0F1B3D]">{userName}</span>
         <ChevronDown
           size={16}
@@ -215,19 +286,59 @@ function AccountMenu({
         >
           {/* Who is signed in */}
           <div className="flex items-center gap-3 px-3 pb-3 pt-2.5">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-blue-600 text-lg font-bold text-white ring-2 ring-violet-100">
-              {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+            {(() => {
+              const avatar = (
+                <span
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 ${
+                    completion ? "" : "ring-2 ring-violet-100"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={avatarUrl || DEFAULT_AVATAR} alt="" className="h-full w-full object-cover" />
+                </span>
+              );
+              return completion ? (
+                <AvatarRing percent={completion.percent} className="h-14 w-14">
+                  {avatar}
+                </AvatarRing>
               ) : (
-                initial
-              )}
-            </span>
+                avatar
+              );
+            })()}
             <div className="min-w-0">
               <p className="truncate text-[15px] font-bold text-[#0F1B3D]">{userName}</p>
               {userHint ? <p className="truncate text-xs text-slate-500">{userHint}</p> : null}
             </div>
           </div>
+
+          {completion && completion.percent < 100 ? (
+            <div className="mx-1 mb-2 rounded-xl bg-violet-50/70 px-3 py-2.5">
+              <div className="flex items-center justify-between text-xs font-semibold text-[#0F1B3D]">
+                <span>Profile {completion.percent}% complete</span>
+                <span className="text-slate-500">
+                  {completion.done}/{completion.total}
+                </span>
+              </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-violet-100">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-violet-600 to-blue-600 transition-all"
+                  style={{ width: `${completion.percent}%` }}
+                />
+              </div>
+              <p className="mt-1.5 text-[11px] leading-snug text-slate-500">
+                Next: {completion.missing.slice(0, 2).join(" · ")}
+              </p>
+              {settingsHref ? (
+                <Link
+                  href={settingsHref}
+                  onClick={close}
+                  className="mt-1.5 inline-block text-xs font-semibold text-violet-700 hover:underline"
+                >
+                  Complete profile →
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
 
           <div role="separator" className="mx-1 border-t border-slate-100" />
           <div className="py-1.5">
@@ -299,13 +410,20 @@ export default function DashboardShell({
 }: Props) {
   const pathname = usePathname();
   const path = normalize(pathname);
-  const avatarUrl = useAccountAvatar();
+  const { avatarUrl, completion } = useAccountProfile();
   const breadcrumbs = buildDashboardBreadcrumbs(pathname, nav, {
     settingsHref,
     settingsLabel,
     profileHref,
     profileLabel,
   });
+
+  // Heading shown on every page that does not render its own <PageHeader />.
+  const lastCrumb = breadcrumbs[breadcrumbs.length - 1];
+  const pageTitle = lastCrumb?.label;
+  // Nested pages (Home > Parent > Page) get a back button to the parent.
+  const backCrumb =
+    breadcrumbs.length > 2 ? breadcrumbs[breadcrumbs.length - 2] : undefined;
 
   const globalSearch = (
     <DashboardGlobalSearch
@@ -336,6 +454,7 @@ export default function DashboardShell({
             settingsHref={settingsHref}
             settingsLabel={settingsLabel}
             avatarUrl={avatarUrl}
+            completion={completion}
             onSignOut={onSignOut}
           />
         </div>
@@ -433,6 +552,7 @@ export default function DashboardShell({
                 settingsHref={settingsHref}
                 settingsLabel={settingsLabel}
                 avatarUrl={avatarUrl}
+                completion={completion}
                 onSignOut={onSignOut}
               />
             </div>
@@ -481,7 +601,14 @@ export default function DashboardShell({
             </div>
           </div>
           <DashboardBreadcrumb items={breadcrumbs} />
-          {children}
+          <PageHeaderProvider
+            resetKey={path}
+            fallbackTitle={pageTitle}
+            fallbackBackHref={backCrumb?.href}
+            fallbackBackLabel={backCrumb?.label}
+          >
+            {children}
+          </PageHeaderProvider>
         </main>
       </div>
     </div>

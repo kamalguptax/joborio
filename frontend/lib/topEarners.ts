@@ -9,8 +9,8 @@ export type TopEarner = {
 };
 
 const PHOTO_KEYS = [
-  "profile_photo_url",
   "photo_url",
+  "profile_photo_url",
   "avatar_url",
   "profile_photo",
   "profile_photo_path",
@@ -46,7 +46,7 @@ function paidOf(c: Record<string, unknown>): number {
 let cache: Promise<TopEarner[]> | null = null;
 
 async function load(): Promise<TopEarner[]> {
-  const res = await fetch(`${getApiBaseUrl()}/api/v1/public/creators?per_page=50`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/v1/public/creators?sort=top_earners&per_page=7`, {
     headers: { Accept: "application/json" },
   });
   const json = await res.json();

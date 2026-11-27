@@ -16,6 +16,8 @@ export type User = {
   public_code?: string | null;
   /** Profile photo (account settings). */
   avatar_url?: string | null;
+  /** Cover banner of the public creator profile. */
+  cover_url?: string | null;
   creator?: Creator | null;
   employer?: { id: number; company_name?: string } | null;
   publisher_users?: Array<{
