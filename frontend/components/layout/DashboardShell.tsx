@@ -258,7 +258,7 @@ function AccountMenu({
       >
         {(() => {
           const avatar = (
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-blue-600 text-sm font-bold text-white">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={avatarUrl || DEFAULT_AVATAR} alt="" className="h-full w-full object-cover" />
             </span>
@@ -289,7 +289,7 @@ function AccountMenu({
             {(() => {
               const avatar = (
                 <span
-                  className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-blue-600 text-lg font-bold text-white ${
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 ${
                     completion ? "" : "ring-2 ring-violet-100"
                   }`}
                 >

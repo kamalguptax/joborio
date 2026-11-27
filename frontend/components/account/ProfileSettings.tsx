@@ -471,10 +471,36 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
           </div>
         ) : null}
         <div className="flex flex-wrap items-center gap-5 p-5 sm:p-6">
-          <span className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-blue-600 text-4xl font-bold text-white ring-4 ring-violet-50">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={avatar || DEFAULT_AVATAR} alt="Your profile photo" className="h-full w-full object-cover" />
-          </span>
+          <div className="relative h-24 w-24 shrink-0">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="sr-only"
+              tabIndex={-1}
+              onChange={(e) => void onPickPhoto(e.target.files?.[0])}
+            />
+            <button
+              type="button"
+              disabled={photoBusy || !loaded}
+              onClick={() => fileRef.current?.click()}
+              aria-label={avatar ? "Change profile photo" : "Upload profile photo"}
+              title={avatar ? "Change photo" : "Upload photo"}
+              className="group relative block h-24 w-24 overflow-hidden rounded-full bg-slate-100 ring-4 ring-white shadow-md outline-none transition focus-visible:ring-violet-300 disabled:cursor-not-allowed"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={avatar || DEFAULT_AVATAR} alt="Your profile photo" className="h-full w-full object-cover" />
+              <span className="absolute inset-0 flex items-center justify-center bg-slate-900/45 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
+                {photoBusy ? "Working…" : "Change"}
+              </span>
+            </button>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-violet-600 text-white shadow-md ring-2 ring-white"
+            >
+              <Camera size={15} />
+            </span>
+          </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2.5">
@@ -484,6 +510,28 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
               </span>
             </div>
             {email ? <p className="mt-1 text-sm text-slate-500">{email}</p> : null}
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-semibold">
+              <button
+                type="button"
+                disabled={photoBusy || !loaded}
+                onClick={() => fileRef.current?.click()}
+                className="inline-flex items-center gap-1.5 text-violet-700 transition hover:text-violet-900 disabled:opacity-60"
+              >
+                <Camera size={13} aria-hidden="true" />
+                {photoBusy ? "Working…" : avatar ? "Change photo" : "Upload photo"}
+              </button>
+              {avatar ? (
+                <button
+                  type="button"
+                  disabled={photoBusy}
+                  onClick={() => void onRemovePhoto()}
+                  className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-red-600 disabled:opacity-60"
+                >
+                  <Trash2 size={13} aria-hidden="true" />
+                  Remove
+                </button>
+              ) : null}
+            </div>
             {completion ? (
               <div className="mt-3 max-w-xs">
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
@@ -629,13 +677,6 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
                   Shown in your sidebar and on your profile. JPG, PNG or WebP, up to 2 MB.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    className="sr-only"
-                    onChange={(e) => void onPickPhoto(e.target.files?.[0])}
-                  />
                   <button
                     type="button"
                     disabled={photoBusy || !loaded}

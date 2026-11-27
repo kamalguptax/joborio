@@ -57,7 +57,9 @@ export async function uploadAccountPhoto(file: File): Promise<{ avatar_url: stri
       body,
     });
   } catch {
-    throw new Error("Cannot reach the server. Check your connection.");
+    throw new Error(
+      "Could not reach the server. Check your connection, or try a smaller image if the problem continues.",
+    );
   }
   const json = (await res.json().catch(() => null)) as {
     success?: boolean;
@@ -83,7 +85,9 @@ export async function uploadCoverBanner(file: File): Promise<{ cover_url: string
       body,
     });
   } catch {
-    throw new Error("Cannot reach the server. Check your connection.");
+    throw new Error(
+      "Could not reach the server. Check your connection, or try a smaller image if the problem continues.",
+    );
   }
   const json = (await res.json().catch(() => null)) as {
     success?: boolean;

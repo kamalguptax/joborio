@@ -84,8 +84,7 @@ export default function CreatorProfilePreview({
         </div>
         <div className="px-5 pb-6">
           <span
-            className="-mt-10 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl text-2xl font-bold text-white shadow-lg ring-4 ring-white"
-            style={{ background: `linear-gradient(135deg, ${accent}, #a855f7)` }}
+            className="-mt-10 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-slate-100 shadow-lg ring-4 ring-white"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={avatarUrl || DEFAULT_AVATAR} alt="" className="h-full w-full object-cover" />
