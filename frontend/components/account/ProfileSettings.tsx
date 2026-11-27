@@ -51,17 +51,12 @@ import {
 } from "@/lib/api/publisher";
 import { computeProfileCompletion } from "@/lib/profileCompletion";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
-import { shrinkImage } from "@/lib/imageShrink";
 
 type Variant = "creator" | "employer" | "publisher";
 type TabId = "personal" | "public" | "preferences" | "payout" | "security";
 
-// Picked files may be big (phone photos); they are resized before upload,
-// and the server limit (2 MB) applies to the resized file.
-const MAX_PHOTO_BYTES = 12 * 1024 * 1024;
-const SERVER_PHOTO_BYTES = 2 * 1024 * 1024;
-const MAX_COVER_BYTES = 12 * 1024 * 1024;
-const SERVER_COVER_BYTES = 3 * 1024 * 1024;
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+const MAX_COVER_BYTES = 3 * 1024 * 1024;
 const OTP_RESEND_SECONDS = 30;
 
 const ROLE_LABEL: Record<Variant, string> = {
@@ -224,17 +219,12 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
       return;
     }
     if (file.size > MAX_PHOTO_BYTES) {
-      toast.error("Photo must be 12 MB or smaller.");
+      toast.error("Photo must be 2 MB or smaller.");
       return;
     }
     setPhotoBusy(true);
     try {
-      const small = await shrinkImage(file, { maxWidth: 800, maxHeight: 800 });
-      if (small.size > SERVER_PHOTO_BYTES) {
-        toast.error("Photo is too large. Choose a smaller image.");
-        return;
-      }
-      const res = await uploadAccountPhoto(small);
+      const res = await uploadAccountPhoto(file);
       setAvatar(res.avatar_url);
       notifyAccountUpdated();
       toast.success("Profile photo updated.");
@@ -269,21 +259,15 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
       return;
     }
     if (file.size > MAX_COVER_BYTES) {
-      toast.error("Cover banner must be 12 MB or smaller.");
+      toast.error("Cover banner must be 3 MB or smaller.");
       return;
     }
     const previous = cover;
+    const local = URL.createObjectURL(file);
+    setCover(local); // show it in the preview straight away
     setCoverBusy(true);
-    let local: string | null = null;
     try {
-      const small = await shrinkImage(file, { maxWidth: 1600, maxHeight: 640 });
-      if (small.size > SERVER_COVER_BYTES) {
-        toast.error("Cover banner is too large. Choose a smaller image.");
-        return;
-      }
-      local = URL.createObjectURL(small);
-      setCover(local); // show it in the preview straight away
-      const res = await uploadCoverBanner(small);
+      const res = await uploadCoverBanner(file);
       setCover(res.cover_url ?? local);
       notifyAccountUpdated();
       toast.success("Cover banner updated.");
@@ -451,7 +435,7 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
               <img src={cover} alt="Your cover banner" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
               <p className="absolute bottom-3 left-5 text-xs font-medium text-slate-600">
-                No cover yet · 1500×400 recommended, resized automatically
+                No cover yet · 1500×400 recommended, up to 3 MB
               </p>
             )}
             <input
@@ -487,36 +471,10 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
           </div>
         ) : null}
         <div className="flex flex-wrap items-center gap-5 p-5 sm:p-6">
-          <div className="relative h-24 w-24 shrink-0">
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="sr-only"
-              tabIndex={-1}
-              onChange={(e) => void onPickPhoto(e.target.files?.[0])}
-            />
-            <button
-              type="button"
-              disabled={photoBusy || !loaded}
-              onClick={() => fileRef.current?.click()}
-              aria-label={avatar ? "Change profile photo" : "Upload profile photo"}
-              title={avatar ? "Change photo" : "Upload photo"}
-              className="group relative block h-24 w-24 overflow-hidden rounded-full bg-slate-100 ring-4 ring-white shadow-md outline-none transition focus-visible:ring-violet-300 disabled:cursor-not-allowed"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={avatar || DEFAULT_AVATAR} alt="Your profile photo" className="h-full w-full object-cover" />
-              <span className="absolute inset-0 flex items-center justify-center bg-slate-900/45 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
-                {photoBusy ? "Working…" : "Change"}
-              </span>
-            </button>
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-violet-600 text-white shadow-md ring-2 ring-white"
-            >
-              <Camera size={15} />
-            </span>
-          </div>
+          <span className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-blue-600 text-4xl font-bold text-white ring-4 ring-violet-50">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={avatar || DEFAULT_AVATAR} alt="Your profile photo" className="h-full w-full object-cover" />
+          </span>
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2.5">
@@ -526,28 +484,6 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
               </span>
             </div>
             {email ? <p className="mt-1 text-sm text-slate-500">{email}</p> : null}
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-semibold">
-              <button
-                type="button"
-                disabled={photoBusy || !loaded}
-                onClick={() => fileRef.current?.click()}
-                className="inline-flex items-center gap-1.5 text-violet-700 transition hover:text-violet-900 disabled:opacity-60"
-              >
-                <Camera size={13} aria-hidden="true" />
-                {photoBusy ? "Working…" : avatar ? "Change photo" : "Upload photo"}
-              </button>
-              {avatar ? (
-                <button
-                  type="button"
-                  disabled={photoBusy}
-                  onClick={() => void onRemovePhoto()}
-                  className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-red-600 disabled:opacity-60"
-                >
-                  <Trash2 size={13} aria-hidden="true" />
-                  Remove
-                </button>
-              ) : null}
-            </div>
             {completion ? (
               <div className="mt-3 max-w-xs">
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
@@ -690,9 +626,16 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
             <div className="space-y-5">
               <Card title="Profile photo">
                 <p className="text-sm text-slate-500">
-                  Shown in your sidebar and on your profile. JPG, PNG or WebP. Large photos are resized automatically.
+                  Shown in your sidebar and on your profile. JPG, PNG or WebP, up to 2 MB.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="sr-only"
+                    onChange={(e) => void onPickPhoto(e.target.files?.[0])}
+                  />
                   <button
                     type="button"
                     disabled={photoBusy || !loaded}
