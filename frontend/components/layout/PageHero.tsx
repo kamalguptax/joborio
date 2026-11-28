@@ -39,8 +39,8 @@ const Check = () => (
 
 /**
  * Banner at the top of every inner page.
- * The site header is solid on inner pages and already reserves its own height,
- * so the hero only needs normal top padding.
+ * The site header is `fixed` and does not reserve space, so every hero keeps its own
+ * top padding (header bottom is about 72px on phones, 80px from sm up).
  */
 export default function PageHero({
   eyebrow,
@@ -55,7 +55,7 @@ export default function PageHero({
   return (
     <section
       className={`relative isolate overflow-hidden border-white/10 text-white ${
-        compact ? "pb-12 pt-10 sm:pb-16 sm:pt-14" : "pb-16 pt-42 sm:pb-24 sm:pt-16 lg:pt-40"
+        compact ? "pb-12 pt-28 sm:pb-16 sm:pt-32" : "pb-16 pt-32 sm:pb-24 sm:pt-36 lg:pt-40"
       } bg-[radial-gradient(60%_90%_at_88%_0%,rgba(139,92,246,0.5),transparent_62%),radial-gradient(45%_70%_at_0%_100%,rgba(56,189,248,0.2),transparent_60%),linear-gradient(135deg,#0B1D4F_0%,#14296B_48%,#2E2297_100%)]`}
     >
       {/* Soft dot grid that fades out toward the bottom */}

@@ -118,7 +118,7 @@ export default function BrandsHero() {
         <div className="absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-indigo-300/25 blur-3xl" />
       </div>
 
-      <div className="mx-auto grid max-w-[1400px] items-center gap-10 px-4 py-12 sm:px-8 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-6 lg:py-20">
+      <div className="mx-auto grid max-w-[1400px] items-center gap-10 px-4 pb-12 pt-28 sm:px-8 sm:pb-16 sm:pt-32 lg:grid-cols-[1.05fr_0.95fr] lg:gap-6 lg:pb-20 lg:pt-36">
         <div className="min-w-0">
           <span className="inline-flex rounded-full bg-violet-100 px-4 py-1.5 text-sm font-semibold text-violet-700 ring-1 ring-violet-200">
             Upclift for Brands

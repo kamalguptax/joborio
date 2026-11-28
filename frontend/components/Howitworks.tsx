@@ -322,12 +322,12 @@ function StepCard({
       ref={cardRef}
       data-step-card
       data-step-index={index}
-      className="sticky w-full"
+      // Stacking sheets only on screens tall and wide enough to show a whole sheet.
+      // Phones and short landscape screens get normal, auto-height sections (nothing is cut off).
+      className="relative w-full [@media(min-width:768px)_and_(min-height:640px)]:sticky [@media(min-width:768px)_and_(min-height:640px)]:h-[100svh] [@media(min-width:768px)_and_(min-height:640px)]:min-h-[560px]"
       style={{
         top: stickyTop(index),
         zIndex: index + 1,
-        height: "100vh",
-        minHeight: 560,
       }}
     >
       <div
@@ -342,9 +342,9 @@ function StepCard({
           <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(10,61,145,0.14)_1px,transparent_1.5px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
         </div>
 
-        <div className="relative mx-auto grid h-full max-w-[1400px] grid-rows-[minmax(0,1fr)_auto] gap-4 px-5 pb-6 pt-20 sm:px-8 sm:pb-8 sm:pt-24 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-10 md:px-12 lg:gap-20 lg:px-16">
+        <div className="relative mx-auto grid h-full max-w-[1400px] grid-rows-[minmax(0,1fr)_auto] gap-4 px-5 pb-8 pt-12 sm:px-8 sm:pt-14 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-10 md:px-12 lg:gap-20 lg:px-16 [@media(min-width:768px)_and_(min-height:640px)]:pb-8 [@media(min-width:768px)_and_(min-height:640px)]:pt-24">
           {/* Image */}
-          <div className={`relative h-full min-h-[160px] md:h-[min(100%,560px)] ${imageRight ? "md:order-last" : ""}`}>
+          <div className={`relative h-[240px] sm:h-[300px] [@media(min-width:768px)_and_(min-height:640px)]:h-[min(100%,560px)] ${imageRight ? "md:order-last" : ""}`}>
             <div aria-hidden className="absolute inset-[6%] rounded-full bg-gradient-to-br from-white/90 via-white/50 to-white/0" />
             <div aria-hidden className={`absolute inset-[20%] rounded-full blur-3xl ${t.glow}`} />
             <div className="relative h-full w-full transition-transform duration-500 ease-out hover:scale-[1.03] motion-reduce:transition-none">

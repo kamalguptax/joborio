@@ -20,7 +20,7 @@ export default function NotFound() {
   return (
     <>
       <RecoverMissingJobLink />
-      <section className="relative isolate overflow-hidden bg-[#F7F8FC] px-4 pb-20 pt-16 sm:px-8 sm:pb-28 sm:pt-24 lg:px-10">
+      <section className="relative isolate overflow-hidden bg-[#F7F8FC] px-4 pb-20 pt-28 sm:px-8 sm:pb-28 sm:pt-32 lg:px-10">
         {/* soft brand glow */}
         <div
           aria-hidden="true"
