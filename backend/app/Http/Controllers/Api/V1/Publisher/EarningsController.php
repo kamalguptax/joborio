@@ -127,7 +127,7 @@ class EarningsController extends Controller
             'platform_fee_percent' => PublisherCommissionSplit::PLATFORM_FEE_PERCENT,
             'permitted_percentages' => PublisherCommissionSplit::permittedPublisherPercents(),
             'example_split' => PublisherCommissionSplit::split(10, $publisherPct),
-            'note' => 'Earning: JobOrio keeps 30% platform fee. Your commission is 10–15% of the remaining creator pool. Member/creator payouts are separate.',
+            'note' => 'Earning: Upclift keeps 30% platform fee. Your commission is 10–15% of the remaining creator pool. Member/creator payouts are separate.',
             'by_model' => $byModel,
             'by_assignment' => $byAssignment,
             'member_settlements_pending' => $memberSettlementsPending,

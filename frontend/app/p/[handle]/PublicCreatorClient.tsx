@@ -65,14 +65,14 @@ export default function PublicCreatorClient() {
     const cleanHandle = handle.replace(/^@/, "");
     const Icon = failed ? WifiOff : UserX;
     return (
-      <main className="flex min-h-svh flex-col bg-gradient-to-b from-[#fbf7ff] via-[#fff9fd] to-white text-[#172b63]">
+      <main className="flex min-h-svh flex-col bg-gradient-to-b from-[#f6faff] via-[#f6faff] to-white text-[#172b63]">
         <header className="px-4 py-5 sm:px-8">
           <Logo tone="dark" />
         </header>
 
         <div className="flex flex-1 items-center justify-center px-4 pb-24 sm:px-8">
-          <section className="w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-7 text-center shadow-[0_1px_2px_rgba(15,27,61,0.04),0_28px_60px_-34px_rgba(91,53,213,0.35)] sm:p-10">
-            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-50 to-blue-50 text-violet-600 ring-1 ring-violet-100">
+          <section className="w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-7 text-center shadow-[0_1px_2px_rgba(10,33,80,0.04),0_28px_60px_-34px_rgba(10,95,207,0.35)] sm:p-10">
+            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-50 to-fuchsia-500 text-violet-600 ring-1 ring-violet-100">
               <Icon size={28} aria-hidden="true" />
             </span>
 
@@ -82,7 +82,7 @@ export default function PublicCreatorClient() {
               </p>
             ) : null}
 
-            <h1 className={`${failed || !cleanHandle ? "mt-6" : "mt-3"} text-2xl font-bold tracking-tight text-[#0F1B3D]`}>
+            <h1 className={`${failed || !cleanHandle ? "mt-6" : "mt-3"} text-2xl font-bold tracking-tight text-[#0A2150]`}>
               {failed ? "Couldn’t load this profile" : "Profile not public"}
             </h1>
             <p className="mx-auto mt-3 max-w-sm text-[15px] leading-7 text-slate-500">
@@ -96,7 +96,7 @@ export default function PublicCreatorClient() {
                 <button
                   type="button"
                   onClick={() => setAttempt((n) => n + 1)}
-                  className="btn-tap inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-6 text-sm font-semibold text-white shadow-[0_14px_30px_-16px_rgba(91,53,213,0.7)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+                  className="btn-tap inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] px-6 text-sm font-semibold text-white shadow-[0_14px_30px_-16px_rgba(10,95,207,0.7)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
                 >
                   <RefreshCw size={16} aria-hidden="true" />
                   Try again
@@ -104,7 +104,7 @@ export default function PublicCreatorClient() {
               ) : (
                 <Link
                   href="/creators"
-                  className="btn-tap group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-6 text-sm font-semibold text-white shadow-[0_14px_30px_-16px_rgba(91,53,213,0.7)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+                  className="btn-tap group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] px-6 text-sm font-semibold text-white shadow-[0_14px_30px_-16px_rgba(10,95,207,0.7)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
                 >
                   Browse creators
                   <ArrowRight size={16} className="transition group-hover:translate-x-0.5" aria-hidden="true" />

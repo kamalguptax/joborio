@@ -1,4 +1,4 @@
-# JobOrio Backend (Laravel 12)
+# Upclift Backend (Laravel 12)
 
 ## Database: MySQL (XAMPP local)
 

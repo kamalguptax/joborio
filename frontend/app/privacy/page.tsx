@@ -4,7 +4,7 @@ import LegalPage from "@/components/layout/LegalPage";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "What JobOrio collects and why, to run the creator marketplace.",
+  description: "What Upclift collects and why, to run the creator marketplace.",
 };
 
 export default function PrivacyPage() {
@@ -12,12 +12,12 @@ export default function PrivacyPage() {
     <LegalPage
       eyebrow="Legal"
       title="Privacy Policy"
-      description="How JobOrio collects, uses, and shares information to run the creator marketplace."
+      description="How Upclift collects, uses, and shares information to run the creator marketplace."
       updated="Last updated: 16 November 2026"
     >
       <h2>1. Who we are</h2>
       <p>
-        JobOrio (“we”, “us”) operates joborio.com and related apps. This Privacy Policy explains what
+        Upclift (“we”, “us”) operates joborio.com and related apps. This Privacy Policy explains what
         we collect when you visit the site, create an account, share tracking links, or run
         campaigns. Related rules for payments are in the{" "}
         <Link href="/payout-policy">Payout Policy</Link> and{" "}

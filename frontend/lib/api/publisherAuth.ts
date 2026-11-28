@@ -116,10 +116,11 @@ export function registerPublisher(input: {
   email: string;
   password: string;
   password_confirmation: string;
-  country: "IN" | "AE" | "US";
-  niche_ids: number[];
-  job_preferences: string[];
-  network_type: string;
+  // Collected later, in publisher onboarding.
+  country?: "IN" | "AE" | "US";
+  niche_ids?: number[];
+  job_preferences?: string[];
+  network_type?: string;
   social_url?: string;
   website_url?: string;
   integration_preference?: string;

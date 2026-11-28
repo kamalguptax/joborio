@@ -200,13 +200,13 @@ function EarningsChart({
     >
       <defs>
         <linearGradient id={`${gid}-area`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#C4B5FD" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#C4B5FD" stopOpacity="0" />
+          <stop offset="0%" stopColor="#8DBBFF" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#8DBBFF" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`${gid}-line`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor="#A5B4FC" />
-          <stop offset="55%" stopColor="#C4B5FD" />
-          <stop offset="100%" stopColor="#F0ABFC" />
+          <stop offset="55%" stopColor="#8DBBFF" />
+          <stop offset="100%" stopColor="#8AF7E6" />
         </linearGradient>
         <clipPath id={`${gid}-done`}>
           <rect x={0} y={0} width={hx} height={CH.h} />
@@ -267,15 +267,15 @@ function EarningsChart({
         x2={hx}
         y1={hy}
         y2={CH.base}
-        stroke="#F0ABFC"
+        stroke="#8AF7E6"
         strokeOpacity={0.55}
         strokeDasharray="3 4"
       />
-      <circle cx={hx} cy={CH.base} r={2.5} fill="#F0ABFC" />
+      <circle cx={hx} cy={CH.base} r={2.5} fill="#8AF7E6" />
 
       {/* Marker */}
-      <circle cx={hx} cy={hy} r={13} fill="#F0ABFC" fillOpacity={0.2} />
-      <circle cx={hx} cy={hy} r={6.5} fill="#fff" stroke="#E879F9" strokeWidth={3} />
+      <circle cx={hx} cy={hy} r={13} fill="#8AF7E6" fillOpacity={0.2} />
+      <circle cx={hx} cy={hy} r={6.5} fill="#fff" stroke="#1fd6bf" strokeWidth={3} />
 
       {/* Tooltip */}
       <g style={{ transform: `translate(${tx}px, ${ty}px)` }}>
@@ -288,7 +288,7 @@ function EarningsChart({
           stroke="white"
           strokeOpacity={0.2}
         />
-        <text x={tw / 2} y={13} textAnchor="middle" fontSize={8.5} fill="#DDD6FE">
+        <text x={tw / 2} y={13} textAnchor="middle" fontSize={8.5} fill="#BCD6FF">
           {label} followers
         </text>
         <text x={tw / 2} y={25} textAnchor="middle" fontSize={11.5} fontWeight={700} fill="#fff">
@@ -307,7 +307,7 @@ function EarningsChart({
             textAnchor={i === 0 ? "start" : i === 4 ? "end" : "middle"}
             fontSize={9.5}
             fontWeight={near ? 700 : 400}
-            fill={near ? "#fff" : "#C4B5FD"}
+            fill={near ? "#fff" : "#8DBBFF"}
             fillOpacity={near ? 1 : 0.7}
           >
             {t}
@@ -346,7 +346,7 @@ function EarningsVisual({
   const hires = Math.max(1, Math.round(followers * 0.00022));
 
   return (
-    <div className="relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-[28px] bg-gradient-to-br from-[#1B1464] via-[#2A1B7A] to-[#5B2BE0] p-5 text-white shadow-xl sm:min-h-[500px] sm:rounded-[32px] sm:p-6 lg:min-h-full">
+    <div className="relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-[28px] bg-gradient-to-br from-[#1B1464] via-[#0a2a60] to-[#0a5fcf] p-5 text-white shadow-xl sm:min-h-[500px] sm:rounded-[32px] sm:p-6 lg:min-h-full">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-fuchsia-400/20 blur-3xl"
@@ -598,7 +598,7 @@ export default function EarningsCalculator() {
       aria-label="Earnings calculator"
       className="section-pad mx-auto w-full max-w-[1600px] px-4 sm:px-8 lg:px-10"
     >
-      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-white via-[#FBFAFF] to-[#F3EEFF] p-4 sm:rounded-[48px] sm:p-8 lg:p-12">
+      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-white via-[#FBFAFF] to-[#eef5ff] p-4 sm:rounded-[48px] sm:p-8 lg:p-12">
         <div className="pointer-events-none absolute -left-24 top-24 h-72 w-72 rounded-full bg-violet-100/60 blur-3xl" />
         <div className="pointer-events-none absolute -right-24 top-0 h-80 w-80 rounded-full bg-sky-100/60 blur-3xl" />
 
@@ -611,10 +611,10 @@ export default function EarningsCalculator() {
               title={
                 <>
               Estimate Your <br className="hidden sm:block" />
-                  <span className="bg-gradient-to-r from-[#6D3AE0] to-[#8B5CF6] bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-[#0A5FCF] to-[#1F73E6] bg-clip-text text-transparent">
                     Earnings
                   </span>{" "}
-                  Joborio
+                  Upclift
                 </>
               }
               description="See how much you can earn based on your audience size and engagement. Turn your followers into real opportunities."
@@ -641,14 +641,14 @@ export default function EarningsCalculator() {
 
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4">
                   <p className="text-xs text-slate-500">Based on</p>
-                  <p className="mt-1 text-base font-semibold text-[#0F1B3D] sm:text-lg">
+                  <p className="mt-1 text-base font-semibold text-[#0A2150] sm:text-lg">
                     {label} Followers
                   </p>
                 </div>
               </div>
 
               <p className="mt-8 text-sm text-slate-500">Audience size</p>
-              <p className="mt-1 text-xl font-semibold text-[#0F1B3D]">{label} Followers</p>
+              <p className="mt-1 text-xl font-semibold text-[#0A2150]">{label} Followers</p>
 
               <div
                 ref={trackRef}
@@ -681,7 +681,7 @@ export default function EarningsCalculator() {
               >
                 <div className="absolute left-0 right-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-indigo-100" />
                 <div
-                  className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#6366F1]"
+                  className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#6366F1]"
                   style={{ width: thumbLeft(p) }}
                 />
                 <div
@@ -692,7 +692,7 @@ export default function EarningsCalculator() {
                     <span className="absolute inset-0 animate-ping rounded-full bg-violet-400/50 motion-reduce:animate-none" />
                   )}
                   <span
-                    className={`relative block h-6 w-6 rounded-full bg-[#6D3AE0] shadow-lg shadow-violet-500/40 ring-4 ring-white transition-transform duration-150 ${
+                    className={`relative block h-6 w-6 rounded-full bg-[#0A5FCF] shadow-lg shadow-violet-500/40 ring-4 ring-white transition-transform duration-150 ${
                       dragging ? "scale-110" : ""
                     }`}
                   />
@@ -712,7 +712,7 @@ export default function EarningsCalculator() {
                         setTouched(true);
                       }}
                       className={`absolute top-0 -translate-x-1/2 rounded px-1 text-xs transition-colors hover:text-violet-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500 ${
-                        near ? "font-semibold text-[#0F1B3D]" : "text-slate-500"
+                        near ? "font-semibold text-[#0A2150]" : "text-slate-500"
                       }`}
                       style={{ left: thumbLeft(tp) }}
                     >
@@ -764,7 +764,7 @@ export default function EarningsCalculator() {
                   <FeatureIcon name={f.icon} />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-[#0F1B3D]">{f.title}</p>
+                  <p className="text-sm font-semibold text-[#0A2150]">{f.title}</p>
                   <p className="mt-0.5 text-xs text-slate-500">{f.sub}</p>
                 </div>
               </li>

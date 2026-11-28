@@ -7,7 +7,7 @@ import EmployerAwareness from "@/components/employer/EmployerAwareness";
 export const metadata: Metadata = {
   title: "Brand & Company Registration",
   description:
-    "Amplifying your brand presence through modern creator campaigns. Create your brand account on JobOrio.",
+    "Amplifying your brand presence through modern creator campaigns. Create your brand account on Upclift.",
 };
 
 export default function BrandRegisterPage() {
@@ -16,7 +16,7 @@ export default function BrandRegisterPage() {
       <>
         <AuthShell
           title="Brand & Company Registration"
-          subtitle="Amplify your brand through modern creator campaigns. Scroll down to see who JobOrio is for and how campaigns work."
+          subtitle="Amplify your brand through modern creator campaigns. Scroll down to see who Upclift is for and how campaigns work."
           topPrompt="Already registered?"
           topLinkLabel="Brand login"
           topLinkHref="/brand/login"

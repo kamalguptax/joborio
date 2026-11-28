@@ -138,7 +138,7 @@ export default function SingleSelect({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={searchPlaceholder}
-              className="h-9 w-full bg-transparent text-sm text-[#0F1B3D] outline-none placeholder:text-slate-400"
+              className="h-9 w-full bg-transparent text-sm text-[#0A2150] outline-none placeholder:text-slate-400"
             />
           </div>
           <ul

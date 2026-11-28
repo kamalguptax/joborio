@@ -251,7 +251,7 @@ export default function LoginForm({
         </div>
 
         <button type="submit" disabled={loading} className={authPrimaryButton}>
-          {loading ? "Signing in…" : "Log in to JobOrio"}
+          {loading ? "Signing in…" : "Log in to Upclift"}
         </button>
       </form>
     </>

@@ -96,7 +96,7 @@ export default function OnboardingShell({
                     {done ? <Check size={18} aria-hidden="true" /> : <Icon size={18} aria-hidden="true" />}
                   </span>
                   <div className="min-w-0 pt-0.5">
-                    <p className={`text-[15px] font-bold ${active || done ? "text-[#0F1B3D]" : "text-slate-500"}`}>
+                    <p className={`text-[15px] font-bold ${active || done ? "text-[#0A2150]" : "text-slate-500"}`}>
                       {s.title}
                     </p>
                     <p className="mt-1 text-[13px] leading-relaxed text-slate-500">{s.description}</p>
@@ -112,7 +112,7 @@ export default function OnboardingShell({
             <p className="text-xs font-bold text-violet-600">
               Step {current + 1} of {steps.length}
             </p>
-            <h1 className="mt-2 text-[1.75rem] font-bold leading-tight tracking-tight text-[#0F1B3D] sm:text-[2rem]">
+            <h1 className="mt-2 text-[1.75rem] font-bold leading-tight tracking-tight text-[#0A2150] sm:text-[2rem]">
               {step.title}
             </h1>
             <p className="mt-2.5 max-w-xl text-[15px] leading-relaxed text-slate-600">{step.description}</p>

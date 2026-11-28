@@ -24,7 +24,7 @@ export default function BrandTrustStrip() {
             </li>
           ))}
         </ul>
-        <p className="font-hand mt-6 text-right text-lg text-[#7030A0] sm:mt-8 sm:text-2xl">
+        <p className="font-hand mt-6 text-right text-lg text-[#0A4AA8] sm:mt-8 sm:text-2xl">
           Real Opportunities. Real People. Real Impact. ↗
         </p>
       </div>

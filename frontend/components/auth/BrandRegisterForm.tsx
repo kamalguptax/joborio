@@ -529,7 +529,7 @@ export default function BrandRegisterForm() {
               {...input("accepted")}
             />
             <span>
-              I agree to JobOrio&apos;s{" "}
+              I agree to Upclift&apos;s{" "}
               <Link href="/terms" className={authLink}>
                 Terms & Conditions
               </Link>

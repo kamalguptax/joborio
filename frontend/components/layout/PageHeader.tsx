@@ -115,7 +115,7 @@ export default function PageHeader({
           <ArrowLeft size={18} aria-hidden="true" />
         </Link>
       ) : null}
-      <h1 className="min-w-0 truncate text-2xl font-bold text-[#0F1B3D]">{title}</h1>
+      <h1 className="min-w-0 truncate text-2xl font-bold text-[#0A2150]">{title}</h1>
     </>
   );
 

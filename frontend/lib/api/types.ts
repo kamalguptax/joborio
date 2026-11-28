@@ -42,6 +42,14 @@ export type Creator = {
   accent_color?: string;
   social_links?: Record<string, string> | null;
   niches?: Niche[];
+  /** Payout account (used only to work out profile completion). */
+  payout_method?: string | null;
+  payout_holder_name?: string | null;
+  payout_upi_id?: string | null;
+  payout_paypal_email?: string | null;
+  payout_bank_name?: string | null;
+  payout_account_number?: string | null;
+  payout_ifsc?: string | null;
 };
 
 export type Listing = {

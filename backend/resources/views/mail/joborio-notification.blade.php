@@ -4,7 +4,7 @@
 {{ $body }}
 
 <x-mail::button :url="$dashboardUrl">
-View in JobOrio
+View in Upclift
 </x-mail::button>
 
 Thanks,<br>

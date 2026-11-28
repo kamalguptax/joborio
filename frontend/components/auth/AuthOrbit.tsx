@@ -36,7 +36,7 @@ function Chip({ children, accent = false }: { children: React.ReactNode; accent?
   return (
     <span
       className={`inline-block whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-semibold shadow-lg shadow-black/20 ${
-        accent ? "bg-violet-500 text-white" : "bg-white text-[#0F1B3D]"
+        accent ? "bg-violet-500 text-white" : "bg-white text-[#0A2150]"
       }`}
     >
       {children}

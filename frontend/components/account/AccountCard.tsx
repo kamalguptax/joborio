@@ -21,7 +21,7 @@ export function Card({
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
-        <h2 className="flex min-w-0 items-center gap-2 text-lg font-bold text-[#0F1B3D]">
+        <h2 className="flex min-w-0 items-center gap-2 text-lg font-bold text-[#0A2150]">
           <span className="truncate">{title}</span>
           {badge}
         </h2>
@@ -46,7 +46,7 @@ export function Field({ label, value, wide }: { label: string; value: ReactNode;
   return (
     <div className={wide ? "sm:col-span-2" : ""}>
       <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className="mt-1 whitespace-pre-line break-words text-[15px] font-semibold text-[#0F1B3D]">
+      <dd className="mt-1 whitespace-pre-line break-words text-[15px] font-semibold text-[#0A2150]">
         {value || <span className="font-normal text-slate-400">Not added</span>}
       </dd>
     </div>

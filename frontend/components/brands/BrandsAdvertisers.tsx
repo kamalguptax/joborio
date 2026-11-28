@@ -13,11 +13,11 @@ export default function BrandsAdvertisers() {
   return (
     <section className="mx-auto w-full max-w-[1400px] px-4 py-14 sm:px-8 md:py-20">
       <div className="text-center">
-        <h2 className="text-[clamp(1.6rem,1.1rem+1.8vw,2.4rem)] font-bold tracking-tight text-[#0F1B3D]">
-          Who Can Advertise on JobOrio?
+        <h2 className="text-[clamp(1.6rem,1.1rem+1.8vw,2.4rem)] font-bold tracking-tight text-[#0A2150]">
+          Who Can Advertise on Upclift?
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-base text-slate-600 sm:text-lg">
-          Whether you are looking for job applicants, students or customers, JobOrio helps you reach the right audience.
+          Whether you are looking for job applicants, students or customers, Upclift helps you reach the right audience.
         </p>
       </div>
 
@@ -25,12 +25,12 @@ export default function BrandsAdvertisers() {
         {audiences.map(({ label, icon: Icon, goal, model, tone }) => (
           <li
             key={label}
-            className="group flex flex-col items-center rounded-3xl border border-violet-100 bg-gradient-to-b from-white to-violet-50/50 px-3 py-6 text-center shadow-sm transition duration-200 hover:-translate-y-1 hover:border-violet-300 hover:shadow-[0_22px_40px_-26px_rgba(91,53,213,0.5)] sm:px-4"
+            className="group flex flex-col items-center rounded-3xl border border-violet-100 bg-gradient-to-b from-white to-violet-50/50 px-3 py-6 text-center shadow-sm transition duration-200 hover:-translate-y-1 hover:border-violet-300 hover:shadow-[0_22px_40px_-26px_rgba(10,95,207,0.5)] sm:px-4"
           >
             <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${tone}`}>
               <Icon size={26} aria-hidden="true" />
             </span>
-            <p className="mt-4 text-[15px] font-semibold leading-snug text-[#0F1B3D]">{label}</p>
+            <p className="mt-4 text-[15px] font-semibold leading-snug text-[#0A2150]">{label}</p>
             <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 ring-1 ring-slate-200">
               {goal}
               <span className="text-violet-600">· {model}</span>

@@ -62,7 +62,7 @@ export default function PublisherWebhookIntegrationPage() {
         </p>
         <p className="mt-2 max-w-2xl text-slate-500">
           Partners post conversion events to your inbound URL. You can also set
-          an outbound URL so JobOrio notifies your system when events occur.
+          an outbound URL so Upclift notifies your system when events occur.
         </p>
       </div>
 
@@ -84,7 +84,7 @@ export default function PublisherWebhookIntegrationPage() {
 
       <GuideSteps
         title="How webhooks work"
-        intro="Webhooks are HTTP callbacks. Unlike XML polling, events arrive as soon as the partner (or JobOrio) posts them."
+        intro="Webhooks are HTTP callbacks. Unlike XML polling, events arrive as soon as the partner (or Upclift) posts them."
         steps={[
           {
             title: "Copy your inbound URL",
@@ -100,7 +100,7 @@ export default function PublisherWebhookIntegrationPage() {
           },
           {
             title: "Optional outbound URL",
-            body: "Set an outbound webhook URL on a credential if you want JobOrio to push events to your own endpoint.",
+            body: "Set an outbound webhook URL on a credential if you want Upclift to push events to your own endpoint.",
           },
         ]}
       />

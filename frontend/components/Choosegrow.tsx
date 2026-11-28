@@ -26,7 +26,7 @@ const cards: Card[] = [
     text: "Share relevant opportunities, courses and campaigns. Earn from every qualified action.",
     cta: "Start Earning",
     href: "/signup",
-    bg: "bg-[#F0E8FE]",
+    bg: "bg-[#eef5ff]",
     img: "/images/grow/creator.png",
     alt: "Young Indian content creator holding a smartphone and camera light",
     note: "Your\nAudience\n= Income",
@@ -141,7 +141,7 @@ export default function ChooseGrow() {
             <div
               onPointerMove={onMove}
               onPointerLeave={onLeave}
-              className={`group relative flex h-full flex-col overflow-hidden rounded-[32px] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_60px_rgba(76,29,149,0.14)] sm:rounded-[28px] ${c.bg}`}
+              className={`group relative flex h-full flex-col overflow-hidden rounded-[32px] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_60px_rgba(10,61,145,0.14)] sm:rounded-[28px] ${c.bg}`}
             >
               {/* Copy */}
               <div className="relative z-10 flex flex-1 flex-col p-6 sm:p-8 xl:p-10">
@@ -158,7 +158,7 @@ export default function ChooseGrow() {
 
                 <Link
                   href={c.href}
-                  className="btn-tap group/btn mt-8 inline-flex h-12 min-h-11 w-fit items-center gap-3 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-8 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+                  className="btn-tap group/btn mt-8 inline-flex h-12 min-h-11 w-fit items-center gap-3 rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] px-8 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
                 >
                   {c.cta}
                   <svg
@@ -197,12 +197,12 @@ export default function ChooseGrow() {
     {/* Soft gradient */}
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 rounded-tl-[160px] bg-gradient-to-t from-[#0F1B3D]/25 to-transparent"
+      className="pointer-events-none absolute inset-0 rounded-tl-[160px] bg-gradient-to-t from-[#0A2150]/25 to-transparent"
     />
   </div>
 
   <p
-    className="font-hand pointer-events-none absolute bottom-5 left-5 z-10 max-w-[32%] whitespace-pre-line text-card-heading leading-snug text-[#0F1B3D] sm:bottom-6 sm:left-6 xl:bottom-8 xl:left-8"
+    className="font-hand pointer-events-none absolute bottom-5 left-5 z-10 max-w-[32%] whitespace-pre-line text-card-heading leading-snug text-[#0A2150] sm:bottom-6 sm:left-6 xl:bottom-8 xl:left-8"
     style={
       {
         "--rot": `${c.rot}deg`,

@@ -297,7 +297,7 @@ export default function MathCaptcha({
           setAnswer(v);
           onChange({ captcha_id: captchaId, captcha_answer: v });
         }}
-        className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3.5 text-sm text-[#0F1B3D] placeholder:text-slate-400 transition focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15"
+        className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3.5 text-sm text-[#0A2150] placeholder:text-slate-400 transition focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15"
         placeholder="Answer"
       />
       {error ? (

@@ -9,7 +9,7 @@ import { FormSkeleton } from "@/components/ui/Skeleton";
 
 export const metadata: Metadata = {
   title: "Brand login",
-  description: "Sign in to your JobOrio brand account to manage campaigns, billing and results.",
+  description: "Sign in to your Upclift brand account to manage campaigns, billing and results.",
 };
 
 export default function BrandLoginPage() {

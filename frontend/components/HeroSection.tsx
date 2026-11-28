@@ -15,11 +15,11 @@ export default function HeroSection() {
             <h1 className="font-heading text-[38px] font-extrabold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-[46px] lg:text-[52px]">
               Your Audience
               <br /> Trusts You. <br />
-              <span className="bg-gradient-to-r from-[#6547F5] via-[#5C55F4] to-[#3478F4] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#1F73E6] via-[#5C55F4] to-[#3478F4] bg-clip-text text-transparent">
                 Now Make Every
               </span>
               <br />
-              <span className="bg-gradient-to-r from-[#6547F5] to-[#3478F4] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#1F73E6] to-[#3478F4] bg-clip-text text-transparent">
                 Recommendation Count.
               </span>
             </h1>
@@ -39,8 +39,8 @@ export default function HeroSection() {
                 />
               </Link>
               <Link
-                href="/employer/onboarding"
-                className="hidden items-center gap-2 rounded-[10px] border-2 border-[#7030A0] bg-white px-6 py-3.5 text-sm font-semibold text-[#7030A0] transition hover:bg-[#7030A0]/5 sm:inline-flex"
+                href="/brand/setup"
+                className="hidden items-center gap-2 rounded-[10px] border-2 border-[#0A4AA8] bg-white px-6 py-3.5 text-sm font-semibold text-[#0A4AA8] transition hover:bg-[#0A4AA8]/5 sm:inline-flex"
               >
                 I&apos;m Hiring
                 <ArrowRight size={15} />
@@ -52,11 +52,11 @@ export default function HeroSection() {
           <div className="relative z-[9] w-full lg:min-h-[540px]">
             <div className="relative mx-auto h-[min(540px,92vw)] w-full max-w-[620px] lg:mx-0">
               <div
-                className="pointer-events-none absolute -left-[8%] top-[-6%] z-0 h-[min(400px,68vw)] w-[min(400px,68vw)] rounded-full bg-gradient-to-br from-[#8B7CFF] via-[#9810fa] to-[#e9d5ff]/30 opacity-60 animate-[floatCircle_8s_ease-in-out_infinite] sm:-left-[6%] sm:top-[-4%]"
+                className="pointer-events-none absolute -left-[8%] top-[-6%] z-0 h-[min(400px,68vw)] w-[min(400px,68vw)] rounded-full bg-gradient-to-br from-[#8B7CFF] via-[#0f8be3] to-[#dbe9ff]/30 opacity-60 animate-[floatCircle_8s_ease-in-out_infinite] sm:-left-[6%] sm:top-[-4%]"
                 aria-hidden
               />
               <div
-                className="pointer-events-none absolute -left-[4%] top-[6%] z-0 h-[min(440px,72vw)] w-[min(440px,72vw)] rounded-full bg-gradient-to-bl from-[#9810fa]/80 via-[#C5DCFF] to-transparent opacity-50 animate-[floatCircleReverse_10s_ease-in-out_infinite] sm:-left-[2%] sm:top-[8%]"
+                className="pointer-events-none absolute -left-[4%] top-[6%] z-0 h-[min(440px,72vw)] w-[min(440px,72vw)] rounded-full bg-gradient-to-bl from-[#0f8be3]/80 via-[#C5DCFF] to-transparent opacity-50 animate-[floatCircleReverse_10s_ease-in-out_infinite] sm:-left-[2%] sm:top-[8%]"
                 aria-hidden
               />
 
@@ -113,7 +113,7 @@ function SocialIconSlot({
 }) {
   return (
     <div
-      className="absolute z-[4] flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/90 bg-white shadow-[0_10px_24px_rgba(79,70,229,0.2)] sm:h-12 sm:w-12"
+      className="absolute z-[4] flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/90 bg-white shadow-[0_10px_24px_rgba(31,115,230,0.2)] sm:h-12 sm:w-12"
       style={{ left: style.left, top: style.top }}
     >
       {children}

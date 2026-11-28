@@ -17,7 +17,7 @@ const creatorFeatures = [
   },
   {
     title: "Referrals",
-    text: "Invite other creators and earn a share of JobOrio’s platform fee when they succeed.",
+    text: "Invite other creators and earn a share of Upclift’s platform fee when they succeed.",
     icon: Gift,
   },
   {

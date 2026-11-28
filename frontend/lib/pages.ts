@@ -3,11 +3,11 @@ import type { PageContent } from "@/components/layout/PageTemplate";
 /** Copy for the simple marketing pages. Edit the text here. */
 export const pages = {
   about: {
-    eyebrow: "About Joborio",
+    eyebrow: "About Upclift",
     title: "We help every audience",
     highlight: "turn trust into opportunity.",
     description:
-      "Joborio connects creators and community owners with employers and brands, so useful jobs, courses and campaigns reach the people who need them, and the people who share them get rewarded.",
+      "Upclift connects creators and community owners with employers and brands, so useful jobs, courses and campaigns reach the people who need them, and the people who share them get rewarded.",
     primary: { label: "Start Earning", href: "/signup" },
     secondary: { label: "Live Campaigns", href: "/hiring" },
     sectionLabel: "What we believe",
@@ -41,7 +41,7 @@ export const pages = {
       ],
     },
     benefits: {
-      label: "Why people trust Joborio",
+      label: "Why people trust Upclift",
       title: "Built to be fair and measurable",
       intro: "Trust is the whole product, so we design for it in every step.",
       items: [
@@ -53,7 +53,7 @@ export const pages = {
     },
     faqs: {
       items: [
-        { q: "What is Joborio?", a: "Joborio is a marketplace that connects creators and community owners with employers and brands. Useful opportunities reach the right audiences, and the people who share them get rewarded." },
+        { q: "What is Upclift?", a: "Upclift is a marketplace that connects creators and community owners with employers and brands. Useful opportunities reach the right audiences, and the people who share them get rewarded." },
         { q: "Who can join?", a: "Creators, employers, brands and community partners can all create an account. Creator accounts are reviewed so that audiences stay genuine." },
         { q: "Is it free to join?", a: "Creating a profile is free. Employers and brands fund the campaigns they launch." },
         { q: "How do creators get paid?", a: "Earnings move from pending to approved to payable as actions are verified. Payable earnings are sent to the payout account you add in your dashboard." },
@@ -212,7 +212,7 @@ export const pages = {
     secondary: { label: "See opportunities", href: "/opportunities" },
     sectionLabel: "Learn and earn",
     sectionTitle: "Learning that pays back",
-    sectionIntro: "Good courses help your audience. Joborio makes sure you are rewarded for recommending them.",
+    sectionIntro: "Good courses help your audience. Upclift makes sure you are rewarded for recommending them.",
     features: [
       { title: "Hand-picked programmes", text: "We highlight courses that are relevant to careers and skills your audience is already asking about." },
       { title: "Tracked enrolments", text: "Your link records who enrolled, so credit always goes to the right creator." },
@@ -253,9 +253,9 @@ export const pages = {
     title: "Where creators and employers",
     highlight: "find each other.",
     description:
-      "The Joborio marketplace brings audiences, opportunities and brands together in one place, with trust and tracking built in.",
+      "The Upclift marketplace brings audiences, opportunities and brands together in one place, with trust and tracking built in.",
     primary: { label: "Get Started", href: "/signup" },
-    secondary: { label: "About Joborio", href: "/about" },
+    secondary: { label: "About Upclift", href: "/about" },
     sectionLabel: "Inside the marketplace",
     sectionTitle: "Everything in one place",
     sectionIntro: "One marketplace for every side of the opportunity.",
@@ -298,11 +298,11 @@ export const pages = {
     title: "Resources to help you",
     highlight: "grow and earn more.",
     description:
-      "Guides, tips and answers for creators, employers and partners using Joborio.",
+      "Guides, tips and answers for creators, employers and partners using Upclift.",
     primary: { label: "Start Earning", href: "/signup" },
     secondary: { label: "How it works", href: "/#how-it-works" },
     sectionLabel: "Learn the platform",
-    sectionTitle: "Make the most of Joborio",
+    sectionTitle: "Make the most of Upclift",
     sectionIntro: "We are adding new guides regularly. These are the areas they cover.",
     features: [
       { title: "Getting started", text: "Set up your profile, connect your accounts and understand how tracking works." },
@@ -316,7 +316,7 @@ export const pages = {
     ctaHref: "/signup",
     steps: {
       label: "Start here",
-      title: "Your first week on Joborio",
+      title: "Your first week on Upclift",
       intro: "A simple order that gets you from sign-up to your first earnings.",
       items: [
         { title: "Create your account", text: "Sign up as a creator, employer, brand or partner." },
@@ -327,7 +327,7 @@ export const pages = {
     },
     faqs: {
       items: [
-        { q: "Where do I find help?", a: "Start with the FAQ. For anything else, use the contact page and we will get back to you." },
+        { q: "Where do I find help?", a: "Ask the chat assistant first. For anything else, use the contact page and we will get back to you." },
         { q: "Will more guides be added?", a: "Yes. We add guides regularly for creators, employers and partners." },
       ],
     },
@@ -340,7 +340,7 @@ export const pages = {
       "Reach the right communities and get qualified candidates through trusted creators. Better candidates, faster.",
     primary: { label: "Register your brand", href: "/brand/register" },
     secondary: { label: "How campaigns work", href: "/campaigns" },
-    sectionLabel: "Why employers use Joborio",
+    sectionLabel: "Why employers use Upclift",
     sectionTitle: "Better candidates, faster",
     sectionIntro: "Skip the noise and reach people through voices they already follow.",
     features: [
@@ -371,7 +371,7 @@ export const pages = {
       ],
     },
     benefits: {
-      label: "Why employers use Joborio",
+      label: "Why employers use Upclift",
       title: "Candidates who already trust the source",
       intro: "Hiring through communities beats a generic job board for roles that need the right people.",
       items: [
@@ -396,7 +396,7 @@ export const pages = {
     description:
       "Monetise your traffic with relevant opportunities and long-term partnerships, without spamming the people who trust you.",
     primary: { label: "Become a Partner", href: "/publisher/register" },
-    secondary: { label: "About Joborio", href: "/about" },
+    secondary: { label: "About Upclift", href: "/about" },
     sectionLabel: "Partner with us",
     sectionTitle: "Built for community owners",
     sectionIntro: "Whether you run a group, a newsletter or a website, there is a place for you.",
@@ -451,13 +451,13 @@ export const pages = {
     title: "Invite creators.",
     highlight: "Earn from their success.",
     description:
-      "Share your referral link or code. When someone signs up through you and starts earning, they keep about 75% of revenue — and you earn 2–5% from JobOrio’s platform fee on their earnings.",
+      "Share your referral link or code. When someone signs up through you and starts earning, they keep about 75% of revenue — and you earn 2–5% from Upclift’s platform fee on their earnings.",
     primary: { label: "Create account", href: "/signup" },
-    secondary: { label: "Read FAQ", href: "/faq" },
+    secondary: { label: "Contact us", href: "/contact" },
     sectionLabel: "How it works",
     sectionTitle: "Your link. Their earnings. Shared upside.",
     sectionIntro:
-      "Example: Aman refers Pankaj. When Pankaj earns $100 in qualified revenue, Pankaj receives about $75. JobOrio’s platform fee is about $25 — and Aman earns 2–5% of that fee for the override window.",
+      "Example: Aman refers Pankaj. When Pankaj earns $100 in qualified revenue, Pankaj receives about $75. Upclift’s platform fee is about $25 — and Aman earns 2–5% of that fee for the override window.",
     features: [
       {
         title: "Get your code",
@@ -473,7 +473,7 @@ export const pages = {
       },
       {
         title: "You earn 2–5%",
-        text: "You receive a share of the platform fee on their earnings for a limited override period — paid from JobOrio’s cut, not from theirs.",
+        text: "You receive a share of the platform fee on their earnings for a limited override period — paid from Upclift’s cut, not from theirs.",
       },
     ],
     ctaTitle: "Start referring creators",
@@ -488,7 +488,7 @@ export const pages = {
     ],
     faqs: {
       items: [
-        { q: "Who pays the referral share?", a: "It is paid from Joborio's platform fee, not from the earnings of the creator you referred." },
+        { q: "Who pays the referral share?", a: "It is paid from Upclift's platform fee, not from the earnings of the creator you referred." },
         { q: "Does referring someone reduce what they earn?", a: "No. The referred creator keeps their share of the revenue as normal." },
         { q: "Where do I find my referral link and code?", a: "After you join as a creator, open Referrals in your dashboard to copy your invite link and personal code." },
         { q: "How long does the override last?", a: "The override applies for a limited period after the person you referred starts earning. Your dashboard shows the details." },
@@ -503,7 +503,7 @@ export const pages = {
       "Paste any LinkedIn, Instagram, or X post you want amplified. Matched creators engage on that post — like, comment, and repost — then you approve proof and pay per engagement.",
     primary: {
       label: "Promote my post",
-      href: "/employer/programs/new?launch=post_promote",
+      href: "/brand/programs/new?launch=post_promote",
     },
     secondary: { label: "Earn as a creator", href: "/creator/campaigns" },
     sectionLabel: "How post promote works",
@@ -531,7 +531,7 @@ export const pages = {
     ctaTitle: "Ready to amplify a post?",
     ctaText: "Launch a Promote a post campaign, or join one as a creator and start earning PPE.",
     ctaLabel: "Launch post promote",
-    ctaHref: "/employer/programs/new?launch=post_promote",
+    ctaHref: "/brand/programs/new?launch=post_promote",
     stats: [
       { value: "3", label: "Platforms: LinkedIn, Instagram and X" },
       { value: "3", label: "Actions: like, comment and repost" },
@@ -562,7 +562,7 @@ export const pages = {
     title: "Reach audiences that trust",
     highlight: "the creators they follow.",
     description:
-      "Launch campaigns for your product, course, tool or hiring drive. Joborio matches you with creators and communities, tracks every click, and lets you pay only for the outcomes you choose.",
+      "Launch campaigns for your product, course, tool or hiring drive. Upclift matches you with creators and communities, tracks every click, and lets you pay only for the outcomes you choose.",
     primary: { label: "Register your brand", href: "/brand/register" },
     secondary: { label: "See how campaigns work", href: "/campaigns" },
     sectionLabel: "Campaign models",
@@ -596,7 +596,7 @@ export const pages = {
       ],
     },
     benefits: {
-      label: "Why brands choose Joborio",
+      label: "Why brands choose Upclift",
       title: "Measurable reach instead of vague impressions",
       intro: "Every part of a campaign can be traced back to a creator and a result.",
       items: [
@@ -610,7 +610,7 @@ export const pages = {
     },
     faqs: {
       items: [
-        { q: "What kinds of brands can use Joborio?", a: "Employers, course providers, software and tool companies and other businesses that want measurable reach through creators and communities." },
+        { q: "What kinds of brands can use Upclift?", a: "Employers, course providers, software and tool companies and other businesses that want measurable reach through creators and communities." },
         { q: "How do I pay?", a: "You fund your account and rewards are deducted for qualified actions according to the pricing model you chose." },
         { q: "How do I know the results are genuine?", a: "Duplicate clicks are filtered, suspicious traffic is reviewed and you can dispute any action you do not accept." },
         { q: "Can I promote a specific social post?", a: "Yes. Use Promote a post to get creators to like, comment or repost a public LinkedIn, Instagram or X post, and approve each proof before paying." },

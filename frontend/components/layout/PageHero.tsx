@@ -87,7 +87,7 @@ export default function PageHero({
                 <>
                   {title}
                   {highlight ? (
-                    <span className="mt-1 block bg-gradient-to-r from-[#E9D5FF] via-[#C4B5FD] to-[#93C5FD] bg-clip-text pb-1 text-transparent">
+                    <span className="mt-1 block bg-gradient-to-r from-[#DBE9FF] via-[#8DBBFF] to-[#93C5FD] bg-clip-text pb-1 text-transparent">
                       {highlight}
                     </span>
                   ) : null}
@@ -103,7 +103,7 @@ export default function PageHero({
                 {primary && (
                   <Link
                     href={primary.href}
-                    className="btn-tap group inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-8 text-[15px] font-semibold shadow-[0_14px_30px_-12px_rgba(99,102,241,0.8)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
+                    className="btn-tap group inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] px-8 text-[15px] font-semibold shadow-[0_14px_30px_-12px_rgba(31,115,230,0.8)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
                   >
                     {primary.label} <Arrow />
                   </Link>

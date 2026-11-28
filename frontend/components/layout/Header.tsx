@@ -106,10 +106,10 @@ const IconResources = () => (
     <path d="M8 7h8M8 11h6" />
   </svg>
 );
-const IconFaq = () => (
+const IconFeedback = () => (
   <svg className={iconCls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3M12 17h.01" />
+    <path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    <path d="M8 9h8M8 13h5" />
   </svg>
 );
 
@@ -149,10 +149,10 @@ const navGroups: NavGroup[] = [
         icon: <IconResources />,
       },
       {
-        label: "FAQ",
-        href: "/faq",
-        description: "Earnings, payouts and how it works",
-        icon: <IconFaq />,
+        label: "Share feedback",
+        href: "/feedback",
+        description: "Tell us what to improve",
+        icon: <IconFeedback />,
       },
     ],
   },
@@ -280,7 +280,7 @@ function DesktopDropdown({
         {group.label}
         <Chevron open={open} />
         <span
-          className={`absolute inset-x-0 bottom-0 h-0.5 origin-left rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] transition-transform duration-300 ${
+          className={`absolute inset-x-0 bottom-0 h-0.5 origin-left rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] transition-transform duration-300 ${
             open || groupActive ? "scale-x-100" : "scale-x-0"
           }`}
         />
@@ -299,7 +299,7 @@ function DesktopDropdown({
         onMouseEnter={clearClose}
         onMouseLeave={scheduleClose}
       >
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0B1D4F]/95 p-2 shadow-2xl shadow-black/30 backdrop-blur-xl">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0A2150]/95 p-2 shadow-2xl shadow-black/30 backdrop-blur-xl">
           {group.items.map((item) => {
             const active = isItemActive(item.href);
             return (
@@ -489,7 +489,7 @@ export default function Header() {
       <header ref={headerRef} className="fixed inset-x-0 top-3 z-[100] w-full px-3 sm:top-4 sm:px-4 xl:px-6">
      
         <nav
-          className={`relative mx-auto flex max-w-[1600px]  items-center justify-between gap-3 px-4 transition-[height] duration-300 sm:px-8 xl:px-10 rounded-[12px] lg:rounded-[34px] bg-[#0c1e52] ${
+          className={`relative mx-auto flex max-w-[1600px]  items-center justify-between gap-3 px-4 transition-[height] duration-300 sm:px-8 xl:px-10 rounded-[12px] lg:rounded-[34px] bg-[#0a2150] ${
             scrolled || drawerOpen ? "py-2 " : "py-2"
           }`}
           aria-label="Primary"
@@ -511,7 +511,7 @@ export default function Header() {
                   >
                     {l.label}
                     <span
-                      className={`absolute inset-x-0 bottom-0 h-0.5 origin-left rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] transition-transform duration-300 ${
+                      className={`absolute inset-x-0 bottom-0 h-0.5 origin-left rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] transition-transform duration-300 ${
                         active ? "scale-x-100" : "scale-x-0"
                       }`}
                     />
@@ -545,7 +545,7 @@ export default function Header() {
                 >
                   <span
                     aria-hidden="true"
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#2563EB] text-xs font-bold uppercase text-white"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#0A5FCF] to-[#2563EB] text-xs font-bold uppercase text-white"
                   >
                     {accountLabel(user).replace(/^@/, "").charAt(0) || "U"}
                   </span>
@@ -555,16 +555,16 @@ export default function Header() {
                 {accountOpen ? (
                   <div
                     role="menu"
-                    className="menu-pop absolute right-0 z-[130] mt-3 w-64 origin-top-right rounded-2xl border border-white/10 bg-[#0B1D4F] p-2 shadow-2xl shadow-black/40 ring-1 ring-black/10"
+                    className="menu-pop absolute right-0 z-[130] mt-3 w-64 origin-top-right rounded-2xl border border-white/10 bg-[#0A2150] p-2 shadow-2xl shadow-black/40 ring-1 ring-black/10"
                   >
                     <span
                       aria-hidden="true"
-                      className="absolute -top-1.5 right-8 h-3 w-3 rotate-45 border-l border-t border-white/10 bg-[#0B1D4F]"
+                      className="absolute -top-1.5 right-8 h-3 w-3 rotate-45 border-l border-t border-white/10 bg-[#0A2150]"
                     />
                     <div className="mb-1 flex items-center gap-3 rounded-xl bg-white/[0.06] px-3 py-3">
                       <span
                         aria-hidden="true"
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#2563EB] text-base font-bold uppercase text-white ring-2 ring-white/15"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#0A5FCF] to-[#2563EB] text-base font-bold uppercase text-white ring-2 ring-white/15"
                       >
                         {accountLabel(user).replace(/^@/, "").charAt(0) || "U"}
                       </span>
@@ -603,7 +603,7 @@ export default function Header() {
                     {user.roles?.some((r) => r.name === "employer") ? (
                       <Link
                         role="menuitem"
-                        href="/employer/dashboard"
+                        href="/brand/dashboard"
                         onClick={() => setAccountOpen(false)}
                         className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-indigo-50 transition hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:outline-none"
                       >
@@ -655,7 +655,7 @@ export default function Header() {
                   {loginOpen ? (
                     <div
                       id="login-menu"
-                      className="absolute right-0 top-full z-[100] mt-3 w-[min(19rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#0B1D4F] shadow-2xl shadow-black/40"
+                      className="absolute right-0 top-full z-[100] mt-3 w-[min(19rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#0A2150] shadow-2xl shadow-black/40"
                     >
                       <ul className="py-2">
                         {LOGIN_ROLES.map(({ label, desc, login, Icon }) => (
@@ -728,7 +728,7 @@ export default function Header() {
           />
 
           <div
-            className="fixed inset-x-0 bottom-0 top-16 z-[95] flex flex-col overflow-hidden border-t border-white/10 bg-[#0B1D4F] md:left-auto md:w-[420px] md:rounded-bl-3xl md:border-l"
+            className="fixed inset-x-0 bottom-0 top-16 z-[95] flex flex-col overflow-hidden border-t border-white/10 bg-[#0A2150] md:left-auto md:w-[420px] md:rounded-bl-3xl md:border-l"
             role="dialog"
             aria-modal="true"
             aria-label="Site menu"
@@ -835,11 +835,11 @@ export default function Header() {
             </div>
 
             {/* Sticky CTAs at bottom */}
-            <div className="shrink-0 space-y-2 border-t border-white/10 bg-[#0B1D4F] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-6">
+            <div className="shrink-0 space-y-2 border-t border-white/10 bg-[#0A2150] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-6">
               <Link
                 href="/signup"
                 onClick={() => setDrawerOpen(false)}
-                className="btn-tap flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-6 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25"
+                className="btn-tap flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] px-6 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25"
               >
                 Start Earning
                 <Arrow />

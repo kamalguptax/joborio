@@ -31,7 +31,7 @@ type Step = {
 
 const themes: Record<string, Theme> = {
   violet: {
-    card: "from-[#8f5cff] to-[#EBE4FF]",
+    card: "from-[#4f93f5] to-[#dbe9ff]",
     ring: "ring-violet-200/70",
     chip: "bg-violet-600 text-white",
     panel: "from-violet-200/80 via-violet-100/60 to-white",
@@ -51,7 +51,7 @@ const themes: Record<string, Theme> = {
     dot: "bg-sky-600",
   },
   pink: {
-    card: "from-[#FFF3FA] to-[#ff9fd3]",
+    card: "from-[#FFF3FA] to-[#4fe9d3]",
     ring: "ring-pink-200/70",
     chip: "bg-pink-600 text-white",
     panel: "from-pink-200/80 via-pink-100/60 to-white",
@@ -174,16 +174,16 @@ const stickyTop = (i: number) => NAV_H + i * PEEK;
 function StepArt({ n, alt }: { n: number; alt: string }) {
   return (
     <svg viewBox="0 0 240 180" role="img" aria-label={alt} className="h-full w-full">
-      <ellipse cx="120" cy="168" rx="86" ry="8" fill="#6D3FE0" opacity=".08" />
+      <ellipse cx="120" cy="168" rx="86" ry="8" fill="#0a5fcf" opacity=".08" />
       {n === 0 && (
         <>
-          <rect x="52" y="22" width="136" height="132" rx="18" fill="#fff" stroke="#DDD3FB" strokeWidth="2" />
+          <rect x="52" y="22" width="136" height="132" rx="18" fill="#fff" stroke="#BCD6FF" strokeWidth="2" />
           <circle cx="120" cy="62" r="22" fill="url(#hw-a)" />
           <circle cx="120" cy="56" r="8" fill="#fff" opacity=".9" />
           <path d="M106 78c3-9 25-9 28 0" stroke="#fff" strokeWidth="6" strokeLinecap="round" fill="none" opacity=".9" />
-          <rect x="84" y="96" width="72" height="8" rx="4" fill="#E7DFFD" />
-          <rect x="98" y="110" width="44" height="6" rx="3" fill="#F1EDFE" />
-          <circle cx="94" cy="134" r="9" fill="#F25ECA" />
+          <rect x="84" y="96" width="72" height="8" rx="4" fill="#DBE9FF" />
+          <rect x="98" y="110" width="44" height="6" rx="3" fill="#EEF5FF" />
+          <circle cx="94" cy="134" r="9" fill="#1FD6BF" />
           <circle cx="120" cy="134" r="9" fill="#2563EB" />
           <circle cx="146" cy="134" r="9" fill="#34D399" />
         </>
@@ -192,22 +192,22 @@ function StepArt({ n, alt }: { n: number; alt: string }) {
         <>
           <path d="M120 18l50 18v40c0 34-21 58-50 70-29-12-50-36-50-70V36l50-18z" fill="url(#hw-a)" />
           <path d="M96 80l17 17 31-33" stroke="#fff" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <rect x="30" y="112" width="52" height="30" rx="8" fill="#fff" stroke="#DDD3FB" strokeWidth="2" />
+          <rect x="30" y="112" width="52" height="30" rx="8" fill="#fff" stroke="#BCD6FF" strokeWidth="2" />
           <path d="M40 122l4 4 7-8" stroke="#34D399" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <rect x="56" y="123" width="18" height="5" rx="2.5" fill="#E7DFFD" />
-          <rect x="158" y="112" width="52" height="30" rx="8" fill="#fff" stroke="#DDD3FB" strokeWidth="2" />
+          <rect x="56" y="123" width="18" height="5" rx="2.5" fill="#DBE9FF" />
+          <rect x="158" y="112" width="52" height="30" rx="8" fill="#fff" stroke="#BCD6FF" strokeWidth="2" />
           <path d="M168 122l4 4 7-8" stroke="#34D399" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <rect x="184" y="123" width="18" height="5" rx="2.5" fill="#E7DFFD" />
+          <rect x="184" y="123" width="18" height="5" rx="2.5" fill="#DBE9FF" />
         </>
       )}
       {n === 2 && (
         <>
           {[0, 1, 2].map((i) => (
             <g key={i} transform={`translate(0 ${i * 44})`}>
-              <rect x="40" y="20" width="160" height="38" rx="12" fill="#fff" stroke="#DDD3FB" strokeWidth="2" />
-              <rect x="50" y="29" width="20" height="20" rx="6" fill={["#7C3AED", "#2563EB", "#F25ECA"][i]} />
-              <rect x="80" y="30" width="62" height="6" rx="3" fill="#E7DFFD" />
-              <rect x="80" y="42" width="40" height="5" rx="2.5" fill="#F1EDFE" />
+              <rect x="40" y="20" width="160" height="38" rx="12" fill="#fff" stroke="#BCD6FF" strokeWidth="2" />
+              <rect x="50" y="29" width="20" height="20" rx="6" fill={["#0A5FCF", "#2563EB", "#1FD6BF"][i]} />
+              <rect x="80" y="30" width="62" height="6" rx="3" fill="#DBE9FF" />
+              <rect x="80" y="42" width="40" height="5" rx="2.5" fill="#EEF5FF" />
               <rect x="158" y="31" width="32" height="16" rx="8" fill="#DDF6EC" />
               <path d="M168 39l4 4 8-8" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" transform="translate(-3 0)" />
             </g>
@@ -216,35 +216,35 @@ function StepArt({ n, alt }: { n: number; alt: string }) {
       )}
       {n === 3 && (
         <>
-          <rect x="78" y="14" width="84" height="148" rx="16" fill="#fff" stroke="#DDD3FB" strokeWidth="3" />
-          <rect x="108" y="20" width="24" height="4" rx="2" fill="#E7DFFD" />
+          <rect x="78" y="14" width="84" height="148" rx="16" fill="#fff" stroke="#BCD6FF" strokeWidth="3" />
+          <rect x="108" y="20" width="24" height="4" rx="2" fill="#DBE9FF" />
           <rect x="90" y="50" width="60" height="30" rx="10" fill="url(#hw-a)" />
           <path d="M108 65h24M122 59l6 6-6 6" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <rect x="90" y="92" width="60" height="8" rx="4" fill="#E7DFFD" />
-          <rect x="90" y="106" width="40" height="6" rx="3" fill="#F1EDFE" />
+          <rect x="90" y="92" width="60" height="8" rx="4" fill="#DBE9FF" />
+          <rect x="90" y="106" width="40" height="6" rx="3" fill="#EEF5FF" />
           <circle cx="178" cy="46" r="20" fill="#34D399" />
           <path d="M168 46l7 7 11-13" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <circle cx="58" cy="112" r="13" fill="#F25ECA" />
+          <circle cx="58" cy="112" r="13" fill="#1FD6BF" />
           <path d="M52 112h12M59 107l5 5-5 5" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
         </>
       )}
       {n === 4 && (
         <>
-          <rect x="36" y="22" width="168" height="128" rx="18" fill="#fff" stroke="#DDD3FB" strokeWidth="2" />
+          <rect x="36" y="22" width="168" height="128" rx="18" fill="#fff" stroke="#BCD6FF" strokeWidth="2" />
           {[44, 62, 52, 80, 70, 96].map((h, i) => (
-            <rect key={i} x={54 + i * 24} y={134 - h} width="14" height={h} rx="5" fill={i === 5 ? "url(#hw-a)" : "#E7DFFD"} />
+            <rect key={i} x={54 + i * 24} y={134 - h} width="14" height={h} rx="5" fill={i === 5 ? "url(#hw-a)" : "#DBE9FF"} />
           ))}
-          <path d="M60 100l24-14 24 6 24-24 24 8 20-24" stroke="#F25ECA" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <path d="M60 100l24-14 24 6 24-24 24 8 20-24" stroke="#1FD6BF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           <rect x="146" y="30" width="48" height="22" rx="11" fill="#DDF6EC" />
           <text x="170" y="45" textAnchor="middle" fontSize="12" fontWeight="700" fill="#059669">+32%</text>
         </>
       )}
       {n === 5 && (
         <>
-          <rect x="30" y="30" width="110" height="110" rx="18" fill="#fff" stroke="#DDD3FB" strokeWidth="2" />
-          <path d="M44 120l24-20 20 10 28-34 14 6" stroke="#7C3AED" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <rect x="44" y="46" width="52" height="8" rx="4" fill="#E7DFFD" />
-          <rect x="44" y="60" width="32" height="6" rx="3" fill="#F1EDFE" />
+          <rect x="30" y="30" width="110" height="110" rx="18" fill="#fff" stroke="#BCD6FF" strokeWidth="2" />
+          <path d="M44 120l24-20 20 10 28-34 14 6" stroke="#0A5FCF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <rect x="44" y="46" width="52" height="8" rx="4" fill="#DBE9FF" />
+          <rect x="44" y="60" width="32" height="6" rx="3" fill="#EEF5FF" />
           {[0, 1, 2].map((i) => (
             <g key={i}>
               <ellipse cx="180" cy={138 - i * 14} rx="30" ry="11" fill="#FFAD6D" />
@@ -257,7 +257,7 @@ function StepArt({ n, alt }: { n: number; alt: string }) {
       )}
       <defs>
         <linearGradient id="hw-a" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#7C3AED" />
+          <stop stopColor="#0A5FCF" />
           <stop offset="1" stopColor="#2563EB" />
         </linearGradient>
       </defs>
@@ -339,7 +339,7 @@ function StepCard({
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-[inherit]">
           <div className={`absolute -left-24 top-1/4 h-80 w-80 rounded-full blur-[90px] ${t.glow}`} />
           <div className={`absolute -right-24 bottom-0 h-96 w-96 rounded-full blur-[110px] ${t.glow}`} />
-          <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(60,30,160,0.14)_1px,transparent_1.5px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
+          <div className="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(10,61,145,0.14)_1px,transparent_1.5px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
         </div>
 
         <div className="relative mx-auto grid h-full max-w-[1400px] grid-rows-[minmax(0,1fr)_auto] gap-4 px-5 pb-6 pt-20 sm:px-8 sm:pb-8 sm:pt-24 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-10 md:px-12 lg:gap-20 lg:px-16">
@@ -351,7 +351,7 @@ function StepCard({
               <StepImage item={item} index={index} />
             </div>
 
-            <span className="absolute bottom-2 left-2 inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 text-sm font-semibold text-[#2A2A40] shadow-[0_10px_30px_-10px_rgba(40,20,120,0.35)] backdrop-blur-md sm:bottom-4 sm:left-4">
+            <span className="absolute bottom-2 left-2 inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-2 text-sm font-semibold text-[#2A2A40] shadow-[0_10px_30px_-10px_rgba(10,45,110,0.35)] backdrop-blur-md sm:bottom-4 sm:left-4">
               <span className={`flex h-6 w-6 items-center justify-center rounded-full text-white ${t.check}`}>
                 <ClockIcon />
               </span>
@@ -384,7 +384,7 @@ function StepCard({
                 {item.points.map((p) => (
                   <li
                     key={p}
-                    className="flex items-center gap-3 rounded-2xl bg-white/65 px-4 py-3 text-sm font-medium text-[#2A2A40] shadow-[0_8px_24px_-12px_rgba(40,20,120,0.25)] backdrop-blur-sm sm:text-base"
+                    className="flex items-center gap-3 rounded-2xl bg-white/65 px-4 py-3 text-sm font-medium text-[#2A2A40] shadow-[0_8px_24px_-12px_rgba(10,45,110,0.25)] backdrop-blur-sm sm:text-base"
                   >
                     <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white ${t.check}`}>
                       <CheckIcon />

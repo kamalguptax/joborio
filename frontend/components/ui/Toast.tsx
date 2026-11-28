@@ -92,7 +92,7 @@ export function Toaster() {
             className={`toast-in pointer-events-auto flex items-start gap-3 rounded-xl border bg-white px-4 py-3 shadow-lg shadow-slate-900/10 ${s.ring}`}
           >
             <Icon size={18} aria-hidden="true" className={`mt-0.5 shrink-0 ${s.icon}`} />
-            <p className="min-w-0 flex-1 text-sm font-medium text-[#0F1B3D]">{t.message}</p>
+            <p className="min-w-0 flex-1 text-sm font-medium text-[#0A2150]">{t.message}</p>
             <button
               type="button"
               onClick={() => dismiss(t.id)}

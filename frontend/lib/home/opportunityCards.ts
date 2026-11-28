@@ -159,7 +159,7 @@ export function mapListing(listing: Listing, index: number): HomeOpportunityCard
 
   return {
     id: `listing-${listing.id}`,
-    company: listing.company_name || "JobOrio",
+    company: listing.company_name || "Upclift",
     initial: companyInitial(listing.company_name || "J"),
     logoColor: logoColors[index % logoColors.length],
     category,

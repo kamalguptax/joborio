@@ -74,7 +74,7 @@ export default function LiveOpportunities() {
         compact
         eyebrow="Opportunities"
         title="Jobs worth sharing"
-        description="Live openings from the JobOrio feed. Open a job to see details."
+        description="Live openings from the Upclift feed. Open a job to see details."
       />
       <section className="bg-[#F7F8FC] px-5 pb-20 pt-2 sm:px-8 sm:pb-28">
       <div className="mx-auto max-w-[1600px]">

@@ -38,9 +38,9 @@ import MultiSelect from "@/components/ui/MultiSelect";
 import { toast } from "@/components/ui/Toast";
 
 const fieldOk =
-  "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#0F1B3D] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
+  "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-[#0A2150] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
 const fieldBad =
-  "mt-1 w-full rounded-xl border border-rose-400 bg-rose-50 px-3 py-2.5 text-sm font-medium text-[#0F1B3D] outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10";
+  "mt-1 w-full rounded-xl border border-rose-400 bg-rose-50 px-3 py-2.5 text-sm font-medium text-[#0A2150] outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10";
 
 const REQUIRED_BY_STEP: Record<number, string[]> = {
   1: ["Campaign name"],
@@ -580,7 +580,7 @@ export default function BrandCampaignWizard({
             : "Campaign saved. Complete billing to go live.",
       );
       const id = Number(created.program?.id ?? 0);
-      router.push(id ? `/employer/programs/${id}` : "/employer/programs");
+      router.push(id ? `/brand/programs/${id}` : "/brand/programs");
     } catch (err) {
       toast.error(
         err instanceof ApiClientError
@@ -627,7 +627,7 @@ export default function BrandCampaignWizard({
     ],
   ];
 
-  const prevText = `JobOrio ops sees: ${form["Campaign name"] || "Untitled"}, ${mdl.code} at ${brandInr.format(priceN)}, budget ${brandInr.format(budget)}, targeting ${audSel.join(", ") || "any audience"}. Prohibited claims: ${form["Prohibited claims"] || "none listed"}.`;
+  const prevText = `Upclift ops sees: ${form["Campaign name"] || "Untitled"}, ${mdl.code} at ${brandInr.format(priceN)}, budget ${brandInr.format(budget)}, targeting ${audSel.join(", ") || "any audience"}. Prohibited claims: ${form["Prohibited claims"] || "none listed"}.`;
 
   const testLabel =
     testRes === ""
@@ -636,7 +636,7 @@ export default function BrandCampaignWizard({
         ? "Passed: 200 OK, event_id evt_test_01 (sample)"
         : "Failed: destination must start with https://";
 
-  const instr = `POST ${form["Callback endpoint"] || "https://your-domain.com/hooks/joborio"}
+  const instr = `POST ${form["Callback endpoint"] || "https://your-domain.com/hooks/upclift"}
 X-JobOrio-Signature: HMAC-SHA256(secret, raw_body)
 X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
 { "event_id":"evt_...", "click_id":"clk_...", "event":"${form["Conversion event name"] || "registration_complete"}" }`;
@@ -644,9 +644,9 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#0F1B3D]">Create campaign</h1>
+        <h1 className="text-2xl font-bold text-[#0A2150]">Create campaign</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Nine-step setup. Fields change by category. JobOrio reviews before
+          Nine-step setup. Fields change by category. Upclift reviews before
           distribution.
         </p>
         {!canGoLive && billingMissing.length > 0 ? (
@@ -688,7 +688,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-bold text-[#0F1B3D]">
+        <h2 className="text-lg font-bold text-[#0A2150]">
           Step {step}: {WIZARD_STEPS[step - 1]}
         </h2>
 
@@ -715,7 +715,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
                       : "border-slate-200 bg-white hover:border-violet-200"
                   }`}
                 >
-                  <p className="font-bold text-[#0F1B3D]">{c.label}</p>
+                  <p className="font-bold text-[#0A2150]">{c.label}</p>
                   <p className="mt-1 text-xs text-slate-500">{c.sub}</p>
                 </button>
               ))}
@@ -815,7 +815,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
               })}
             </div>
             <div className="mt-4 rounded-xl bg-[#FAFAFE] p-4 text-sm">
-              <p className="font-bold text-[#0F1B3D]">{mdl.label} rules</p>
+              <p className="font-bold text-[#0A2150]">{mdl.label} rules</p>
               <dl className="mt-3 grid gap-2 sm:grid-cols-2">
                 {[
                   ["Price label", mdl.label],
@@ -877,7 +877,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
               <>
                 <div className="grid gap-3 lg:grid-cols-2">
                   <div className="rounded-xl bg-[#FAFAFE] p-4">
-                    <h3 className="font-bold text-[#0F1B3D]">
+                    <h3 className="font-bold text-[#0A2150]">
                       Benchmark (estimate)
                     </h3>
                     <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-bold">
@@ -907,7 +907,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
                       ].map(([k, v]) => (
                         <div key={k} className="flex justify-between gap-3">
                           <dt className="text-slate-400">{k}</dt>
-                          <dd className="text-right font-medium text-[#0F1B3D]">
+                          <dd className="text-right font-medium text-[#0A2150]">
                             {v}
                           </dd>
                         </div>
@@ -918,7 +918,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
                     </p>
                   </div>
                   <div className="rounded-xl bg-[#FAFAFE] p-4">
-                    <h3 className="font-bold text-[#0F1B3D]">Likely impact</h3>
+                    <h3 className="font-bold text-[#0A2150]">Likely impact</h3>
                     <dl className="mt-3 grid gap-1 text-sm">
                       {[
                         ["Partner participation", pricingIntel.i1],
@@ -928,7 +928,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
                       ].map(([k, v]) => (
                         <div key={k} className="flex justify-between gap-3">
                           <dt className="text-slate-400">{k}</dt>
-                          <dd className="text-right font-medium text-[#0F1B3D]">
+                          <dd className="text-right font-medium text-[#0A2150]">
                             {v}
                           </dd>
                         </div>
@@ -937,13 +937,13 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
                   </div>
                 </div>
                 <div className="rounded-xl border border-slate-200 p-4">
-                  <h3 className="font-bold text-[#0F1B3D]">
+                  <h3 className="font-bold text-[#0A2150]">
                     Who gets what (per approved result)
                   </h3>
                   <dl className="mt-3 grid gap-1 text-sm sm:grid-cols-2">
                     {[
                       ["Advertiser gross price", pricingIntel.mine],
-                      ["JobOrio commission", `${pricingIntel.com} (assumed 20%)`],
+                      ["Upclift commission", `${pricingIntel.com} (assumed 20%)`],
                       [
                         "Partner allocation",
                         `${pricingIntel.pool} (remaining 80%)`,
@@ -959,7 +959,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
                     ].map(([k, v]) => (
                       <div key={k}>
                         <dt className="text-xs text-slate-400">{k}</dt>
-                        <dd className="font-medium text-[#0F1B3D]">{v}</dd>
+                        <dd className="font-medium text-[#0A2150]">{v}</dd>
                       </div>
                     ))}
                   </dl>
@@ -998,7 +998,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
               requiredLabels={REQUIRED_BY_STEP[5]}
             />
             <div className="mt-4 rounded-xl bg-[#FAFAFE] p-4">
-              <h3 className="font-bold text-[#0F1B3D]">
+              <h3 className="font-bold text-[#0A2150]">
                 Estimates (not guarantees)
               </h3>
               <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
@@ -1012,7 +1012,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
                 ].map(([k, v]) => (
                   <div key={k}>
                     <dt className="text-xs text-slate-400">{k}</dt>
-                    <dd className="font-semibold text-[#0F1B3D]">{v}</dd>
+                    <dd className="font-semibold text-[#0A2150]">{v}</dd>
                   </div>
                 ))}
               </dl>
@@ -1069,7 +1069,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
               </div>
               <p className="mt-2 text-sm text-slate-500">
                 After approval, eligibility rules cannot be edited retroactively.
-                A change creates a new rule version that needs JobOrio approval
+                A change creates a new rule version that needs Upclift approval
                 and applies only to future conversions.
               </p>
             </div>
@@ -1094,7 +1094,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
                       : "border-slate-200 hover:border-violet-200"
                   }`}
                 >
-                  <p className="font-bold text-[#0F1B3D]">{i.label}</p>
+                  <p className="font-bold text-[#0A2150]">{i.label}</p>
                   <p className="mt-1 text-xs text-slate-500">{i.sub}</p>
                 </button>
               ))}
@@ -1225,7 +1225,7 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
                   <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
                     {k}
                   </dt>
-                  <dd className="mt-0.5 text-sm font-semibold text-[#0F1B3D]">
+                  <dd className="mt-0.5 text-sm font-semibold text-[#0A2150]">
                     {v}
                   </dd>
                 </div>
@@ -1233,8 +1233,8 @@ X-JobOrio-Timestamp: 2026-11-25T07:30:00Z
             </dl>
             {preview ? (
               <div className="mt-4 rounded-xl bg-[#F3F2FF] p-4">
-                <h3 className="font-bold text-[#0F1B3D]">
-                  Preview: how JobOrio ops will see this brief
+                <h3 className="font-bold text-[#0A2150]">
+                  Preview: how Upclift ops will see this brief
                 </h3>
                 <p className="mt-2 text-sm text-slate-600">{prevText}</p>
               </div>

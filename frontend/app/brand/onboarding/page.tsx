@@ -104,7 +104,7 @@ export default function BrandOnboardingPage() {
       setStep(step + 1);
       return;
     }
-    finish("/employer/programs/new");
+    finish("/brand/programs/new");
   };
 
   const toggle = <T,>(list: T[], v: T) =>
@@ -120,7 +120,7 @@ export default function BrandOnboardingPage() {
           : "Let's set up your brand account."
       }
       error={error}
-      exitHref="/employer/dashboard"
+      exitHref="/brand/dashboard"
       exitLabel="Skip for now"
       onExit={() => {
         if (userId.current != null) clearOnboardingPending(userId.current, "employer");
@@ -176,7 +176,7 @@ export default function BrandOnboardingPage() {
               </ul>
               <button
                 type="button"
-                onClick={() => finish("/employer/billing")}
+                onClick={() => finish("/brand/billing")}
                 className="rounded-lg border border-violet-200 bg-violet-50 px-4 py-2 text-[13px] font-semibold text-violet-700 hover:bg-violet-100"
               >
                 Add billing details now
@@ -193,7 +193,7 @@ export default function BrandOnboardingPage() {
             create one now, or open your dashboard first.
           </p>
           <Link
-            href="/employer/dashboard"
+            href="/brand/dashboard"
             onClick={() => {
               if (userId.current != null) clearOnboardingPending(userId.current, "employer");
             }}

@@ -9,16 +9,16 @@ import GuestOnly from "@/components/auth/GuestOnly";
 
 export const metadata: Metadata = {
   title: "Log in",
-  description: "Sign in to your JobOrio account and continue earning on performance.",
+  description: "Sign in to your Upclift account and continue earning on performance.",
 };
 
 export default function LoginPage() {
   return (
     <GuestOnly>
     <AuthShell
-      title="Log in to JobOrio"
+      title="Log in to Upclift"
       subtitle="Pick your account type above, or sign in below and we'll take you to the right dashboard."
-      topPrompt="New to JobOrio?"
+      topPrompt="New to Upclift?"
       topLinkLabel="Create an account"
       topLinkHref="/signup"
       roleSwitch={{ mode: "login", current: null }}

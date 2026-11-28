@@ -7,7 +7,7 @@ import GuestOnly from "@/components/auth/GuestOnly";
 
 export const metadata: Metadata = {
   title: "Get Started",
-  description: "Create your Joborio profile and start sharing opportunities.",
+  description: "Create your Upclift profile and start sharing opportunities.",
 };
 
 export default function SignupPage() {

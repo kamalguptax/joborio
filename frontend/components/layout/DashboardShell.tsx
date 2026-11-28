@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 import {
-  BookOpen,
   ChevronDown,
   CircleHelp,
   Globe,
@@ -203,7 +202,7 @@ function MenuLink({
       href={href}
       onClick={onDone}
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium text-slate-700 transition hover:bg-slate-50 hover:text-[#0F1B3D] focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500"
+      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium text-slate-700 transition hover:bg-slate-50 hover:text-[#0A2150] focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500"
     >
       <Icon size={18} aria-hidden="true" />
       <span className="truncate">{children}</span>
@@ -271,7 +270,7 @@ function AccountMenu({
             avatar
           );
         })()}
-        <span className="min-w-0 flex-1 truncate text-sm font-bold text-[#0F1B3D]">{userName}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-bold text-[#0A2150]">{userName}</span>
         <ChevronDown
           size={16}
           aria-hidden="true"
@@ -306,14 +305,14 @@ function AccountMenu({
               );
             })()}
             <div className="min-w-0">
-              <p className="truncate text-[15px] font-bold text-[#0F1B3D]">{userName}</p>
+              <p className="truncate text-[15px] font-bold text-[#0A2150]">{userName}</p>
               {userHint ? <p className="truncate text-xs text-slate-500">{userHint}</p> : null}
             </div>
           </div>
 
           {completion && completion.percent < 100 ? (
             <div className="mx-1 mb-2 rounded-xl bg-violet-50/70 px-3 py-2.5">
-              <div className="flex items-center justify-between text-xs font-semibold text-[#0F1B3D]">
+              <div className="flex items-center justify-between text-xs font-semibold text-[#0A2150]">
                 <span>Profile {completion.percent}% complete</span>
                 <span className="text-slate-500">
                   {completion.done}/{completion.total}
@@ -321,7 +320,7 @@ function AccountMenu({
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-violet-100">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-violet-600 to-blue-600 transition-all"
+                  className="h-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 transition-all"
                   style={{ width: `${completion.percent}%` }}
                 />
               </div>
@@ -364,10 +363,7 @@ function AccountMenu({
             <MenuLink href="/contact" icon={CircleHelp} onDone={close}>
               Ask question
             </MenuLink>
-            <MenuLink href="/faq" icon={BookOpen} onDone={close}>
-              Help Topics
-            </MenuLink>
-            <MenuLink href="/contact" icon={Lightbulb} onDone={close}>
+            <MenuLink href="/feedback" icon={Lightbulb} onDone={close}>
               Share Feedback
             </MenuLink>
           </div>
@@ -437,7 +433,7 @@ export default function DashboardShell({
   );
 
   return (
-    <div className="min-h-svh bg-[#F8F8FB] text-[#0F1B3D] lg:grid lg:grid-cols-[16.5rem_minmax(0,1fr)]">
+    <div className="min-h-svh bg-[#F8F8FB] text-[#0A2150] lg:grid lg:grid-cols-[16.5rem_minmax(0,1fr)]">
       <Toaster />
       {/* Desktop sidebar: full height, pinned */}
       <aside className="hidden border-r border-slate-200/80 bg-white lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col">
@@ -476,14 +472,14 @@ export default function DashboardShell({
                 aria-current={active ? "page" : undefined}
                 className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
                   active
-                    ? "bg-gradient-to-r from-violet-50 to-blue-50/60 text-violet-700 shadow-[inset_0_0_0_1px_rgba(196,181,253,0.45)]"
+                    ? "bg-gradient-to-r from-violet-50 to-fuchsia-500/60 text-violet-700 shadow-[inset_0_0_0_1px_rgba(196,181,253,0.45)]"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
                 {active ? (
                   <span
                     aria-hidden="true"
-                    className="absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-[#7C3AED] to-[#2563EB]"
+                    className="absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-[#0A5FCF] to-[#2563EB]"
                   />
                 ) : null}
                 <span
@@ -508,17 +504,17 @@ export default function DashboardShell({
 
         <div className="shrink-0 space-y-3 border-t border-slate-100 p-4">
           {sidebarExtra ? <div>{sidebarExtra}</div> : null}
-          <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-blue-50/70 p-4">
-            <p className="text-sm font-bold text-[#0F1B3D]">Need a hand?</p>
+          <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-fuchsia-500/70 p-4">
+            <p className="text-sm font-bold text-[#0A2150]">Need a hand?</p>
             <p className="mt-1 text-xs leading-relaxed text-slate-500">
-              Read the FAQ or get in touch and we will help you out.
+              Ask the chat assistant, get in touch or share feedback and we will help you out.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Link
-                href="/faq"
+                href="/feedback"
                 className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-violet-700 shadow-sm ring-1 ring-violet-100 transition hover:bg-violet-50"
               >
-                FAQ
+                Feedback
               </Link>
               <Link
                 href="/contact"
@@ -539,7 +535,7 @@ export default function DashboardShell({
         </div>
       </aside>
 
-      <div className="min-w-0 overflow-x-hidden bg-[radial-gradient(55%_38%_at_100%_0%,rgba(124,58,237,0.07),transparent_65%)]">
+      <div className="min-w-0 overflow-x-hidden bg-[radial-gradient(55%_38%_at_100%_0%,rgba(10,95,207,0.07),transparent_65%)]">
         {/* Mobile top bar */}
         <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between gap-3 px-4 py-3">

@@ -57,7 +57,7 @@ class SupportTicketController extends Controller
         ]);
         EmployerSupportTicketEvent::create([
             'employer_support_ticket_id' => $ticket->id,
-            'message' => 'Queued for JobOrio triage',
+            'message' => 'Queued for Upclift triage',
             'actor' => 'system',
         ]);
 

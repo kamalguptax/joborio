@@ -221,10 +221,10 @@ export default function JobsPage() {
         title="Jobs in India"
         description={
           sourceMeta.lastbuilddate || sourceMeta.publisher
-            ? `Live openings from the JobOrio feed. ${
+            ? `Live openings from the Upclift feed. ${
                 sourceMeta.lastbuilddate ? `Updated ${String(sourceMeta.lastbuilddate)}` : ""
               }${sourceMeta.publisher ? ` · ${String(sourceMeta.publisher)}` : ""}`
-            : "Live openings from the JobOrio feed."
+            : "Live openings from the Upclift feed."
         }
       />
 
@@ -325,7 +325,7 @@ export default function JobsPage() {
                   Creator marketplace listings
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Tracked opportunities from your JobOrio database (separate from Jobrapido XML).
+                  Tracked opportunities from your Upclift database (separate from Jobrapido XML).
                 </p>
               </div>
               <div className="flex gap-2">

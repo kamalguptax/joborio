@@ -53,7 +53,7 @@ export default function BrandsPlanner() {
           <span className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-4 py-1.5 text-sm font-semibold text-violet-700">
             Campaign planner
           </span>
-          <h2 className="mt-4 text-[clamp(1.6rem,1.1rem+1.8vw,2.4rem)] font-bold tracking-tight text-[#0F1B3D]">
+          <h2 className="mt-4 text-[clamp(1.6rem,1.1rem+1.8vw,2.4rem)] font-bold tracking-tight text-[#0A2150]">
             Find the model that fits your goal
           </h2>
           <p className="mt-3 text-base text-slate-600 sm:text-lg">
@@ -77,19 +77,19 @@ export default function BrandsPlanner() {
                   onClick={() => setGoalId(g.id)}
                   className={`flex items-center gap-4 rounded-2xl border px-4 py-4 text-left transition duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 ${
                     active
-                      ? "border-violet-300 bg-gradient-to-r from-violet-50 to-indigo-50 shadow-[0_16px_34px_-24px_rgba(91,53,213,0.6)]"
+                      ? "border-violet-300 bg-gradient-to-r from-violet-50 to-indigo-50 shadow-[0_16px_34px_-24px_rgba(10,95,207,0.6)]"
                       : "border-slate-200 bg-white hover:border-violet-200 hover:bg-violet-50/40"
                   }`}
                 >
                   <span
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
-                      active ? "bg-gradient-to-br from-[#7C3AED] to-[#2563EB] text-white" : "bg-slate-100 text-slate-500"
+                      active ? "bg-gradient-to-br from-[#0A5FCF] to-[#2563EB] text-white" : "bg-slate-100 text-slate-500"
                     }`}
                   >
                     <Icon size={20} aria-hidden="true" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-base font-semibold text-[#0F1B3D]">{g.label}</span>
+                    <span className="block text-base font-semibold text-[#0A2150]">{g.label}</span>
                     <span className="block text-sm text-slate-500">{g.hint}</span>
                   </span>
                   <span
@@ -106,14 +106,14 @@ export default function BrandsPlanner() {
 
           {/* Recommendation + estimate */}
           <div className="min-w-0 space-y-5" aria-live="polite">
-            <div className="rounded-3xl border border-violet-100 bg-white p-6 shadow-[0_24px_50px_-34px_rgba(46,34,151,0.45)] sm:p-8">
+            <div className="rounded-3xl border border-violet-100 bg-white p-6 shadow-[0_24px_50px_-34px_rgba(10,61,145,0.45)] sm:p-8">
               <div className="flex items-center gap-4">
                 <span className={`flex h-14 w-14 items-center justify-center rounded-2xl border ${model.tile} ${model.iconTone}`}>
                   <ModelIcon size={28} aria-hidden="true" />
                 </span>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Recommended model</p>
-                  <h3 className="text-xl font-bold text-[#0F1B3D]">
+                  <h3 className="text-xl font-bold text-[#0A2150]">
                     {model.code} <span className="font-semibold text-slate-500">· {model.label}</span>
                   </h3>
                 </div>
@@ -128,7 +128,7 @@ export default function BrandsPlanner() {
             </div>
 
             <div className="rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 to-indigo-50 p-6 sm:p-8">
-              <h3 className="text-lg font-bold text-[#0F1B3D]">What could your budget deliver?</h3>
+              <h3 className="text-lg font-bold text-[#0A2150]">What could your budget deliver?</h3>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor={`${baseId}-budget`} className="text-sm font-semibold text-slate-700">
@@ -140,7 +140,7 @@ export default function BrandsPlanner() {
                     value={budget}
                     onChange={(e) => setBudget(e.target.value.replace(/[^0-9.]/g, ""))}
                     aria-invalid={budgetInvalid}
-                    className={`mt-1.5 w-full rounded-xl border bg-white px-4 py-3 text-base text-[#0F1B3D] outline-none transition focus:ring-2 ${
+                    className={`mt-1.5 w-full rounded-xl border bg-white px-4 py-3 text-base text-[#0A2150] outline-none transition focus:ring-2 ${
                       budgetInvalid
                         ? "border-red-400 focus:ring-red-200"
                         : "border-slate-200 focus:border-violet-400 focus:ring-violet-200"
@@ -157,7 +157,7 @@ export default function BrandsPlanner() {
                     value={rate}
                     onChange={(e) => setRate(e.target.value.replace(/[^0-9.]/g, ""))}
                     aria-invalid={rateInvalid}
-                    className={`mt-1.5 w-full rounded-xl border bg-white px-4 py-3 text-base text-[#0F1B3D] outline-none transition focus:ring-2 ${
+                    className={`mt-1.5 w-full rounded-xl border bg-white px-4 py-3 text-base text-[#0A2150] outline-none transition focus:ring-2 ${
                       rateInvalid
                         ? "border-red-400 focus:ring-red-200"
                         : "border-slate-200 focus:border-violet-400 focus:ring-violet-200"
@@ -169,7 +169,7 @@ export default function BrandsPlanner() {
               <div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white px-5 py-4 ring-1 ring-violet-100">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Estimated results</p>
-                  <p className="text-3xl font-bold tracking-tight text-[#0F1B3D]">
+                  <p className="text-3xl font-bold tracking-tight text-[#0A2150]">
                     {estimate === null ? "—" : `≈ ${whole.format(estimate)}`}
                     <span className="ml-2 text-base font-semibold text-slate-500">
                       {model.short.toLowerCase()}
@@ -192,7 +192,7 @@ export default function BrandsPlanner() {
 
               <Link
                 href="/brand/register"
-                className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-full bg-[#4C2BD6] px-6 py-3 text-base font-semibold text-white transition hover:bg-[#3F22B8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4C2BD6]"
+                className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-full bg-[#0A4AA8] px-6 py-3 text-base font-semibold text-white transition hover:bg-[#0B3B85] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0A4AA8]"
               >
                 Start a {model.code} campaign
                 <ArrowRight size={18} aria-hidden="true" />

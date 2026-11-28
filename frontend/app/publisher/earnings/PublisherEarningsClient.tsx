@@ -407,13 +407,13 @@ export default function PublisherEarningsClient() {
           </p>
         )}
         <p className="mt-1 text-sm text-violet-800">
-          JobOrio keeps {(data.platform_fee_percent ?? 30).toFixed(0)}% platform
+          Upclift keeps {(data.platform_fee_percent ?? 30).toFixed(0)}% platform
           fee. Your rate is 10–15% of the remaining pool; creators get the rest.
         </p>
         {data.example_split ? (
           <p className="mt-2 rounded-xl bg-white/70 px-3 py-2 text-xs text-violet-900">
             Example on ${Number(data.example_split.campaign_earnings_usd).toFixed(0)}:{" "}
-            JobOrio {money(data.example_split.platform_fee_usd)} · you{" "}
+            Upclift {money(data.example_split.platform_fee_usd)} · you{" "}
             {money(data.example_split.publisher_usd)} · creators{" "}
             {money(data.example_split.creators_usd)}
           </p>

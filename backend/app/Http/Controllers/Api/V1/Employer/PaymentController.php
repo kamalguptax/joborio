@@ -74,7 +74,7 @@ class PaymentController extends Controller
             'fx_rate' => (float) $order->fx_rate,
             'purpose' => $order->purpose,
             'program_id' => $order->program_id,
-            'name' => 'JobOrio campaign funds',
+            'name' => 'Upclift campaign funds',
             'description' => $purpose === 'program_budget'
                 ? 'Campaign budget top-up'
                 : 'Prepaid wallet top-up',

@@ -80,7 +80,7 @@ export default function AdminWebsiteTrackingPage() {
     <>
       <AdminPageHeader
         title="Website tracking"
-        description="Add external sites and install the JobOrio script (like Search Console / Analytics). Page views are sent to the API."
+        description="Add external sites and install the Upclift script (like Search Console / Analytics). Page views are sent to the API."
       />
 
       {msg ? (

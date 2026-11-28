@@ -123,7 +123,7 @@ function OpportunityCard({ o }: { o: Opportunity }) {
   const badge = CATEGORY_BADGE[o.category] ?? CATEGORY_BADGE.hiring;
 
   return (
-    <article className="opportunity-card flex h-full flex-col rounded-3xl border border-indigo-100 bg-white p-5 shadow-[0_8px_30px_rgba(76,29,149,0.06)] sm:p-6">
+    <article className="opportunity-card flex h-full flex-col rounded-3xl border border-indigo-100 bg-white p-5 shadow-[0_8px_30px_rgba(10,61,145,0.06)] sm:p-6">
       {/* top row */}
       <div className="flex items-center gap-2.5">
         <span
@@ -285,7 +285,7 @@ export default function OpportunitiesSlider() {
                   type="button"
                   onClick={() => sliderRef.current?.slickPrev()}
                   aria-label="Previous opportunities"
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#1E3A8A] shadow-[0_6px_20px_rgba(76,29,149,0.12)] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#1E3A8A] shadow-[0_6px_20px_rgba(10,61,145,0.12)] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
                 >
                   <ChevronIcon dir="left" />
                 </button>
@@ -293,7 +293,7 @@ export default function OpportunitiesSlider() {
                   type="button"
                   onClick={() => sliderRef.current?.slickNext()}
                   aria-label="Next opportunities"
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
                 >
                   <ChevronIcon dir="right" />
                 </button>

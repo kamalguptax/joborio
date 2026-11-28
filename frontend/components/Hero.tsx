@@ -142,21 +142,21 @@ export default function Hero() {
         <defs>
           <linearGradient id="paint0_linear_2007_1436" x1="1498.33" y1="134.175" x2="1010.42" y2="979.257" gradientUnits="userSpaceOnUse">
             <stop stopColor="#1D4EB8" />
-            <stop offset="1" stopColor="#9635EC" />
+            <stop offset="1" stopColor="#0572C4" />
           </linearGradient>
           <linearGradient id="paint1_linear_2007_1436" x1="10.343" y1="755.523" x2="773.714" y2="1111.29" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#5535D4" />
-            <stop offset="0.48" stopColor="#F47BD2" />
+            <stop stopColor="#0a5fcf" />
+            <stop offset="0.48" stopColor="#4fe9d3" />
             <stop offset="0.7" stopColor="#FFAD6D" />
             <stop offset="1" stopColor="#2D5EE7" />
           </linearGradient>
           <linearGradient id="paint2_linear_2007_1436" x1="1348.07" y1="261.911" x2="955.127" y2="942.502" gradientUnits="userSpaceOnUse">
             <stop stopColor="#1D4EB8" />
-            <stop offset="1" stopColor="#9635EC" />
+            <stop offset="1" stopColor="#0572C4" />
           </linearGradient>
           <linearGradient id="paint3_linear_2007_1436" x1="1452.97" y1="199.948" x2="1023.2" y2="944.329" gradientUnits="userSpaceOnUse">
             <stop stopColor="#1D4EB8" />
-            <stop offset="1" stopColor="#9635EC" />
+            <stop offset="1" stopColor="#0572C4" />
           </linearGradient>
         </defs>
       </svg>
@@ -179,7 +179,7 @@ export default function Hero() {
             style={{ fontSize: "var(--hero-h1)" }}
           >
             Your audience has value.
-            <span className="mt-1 block bg-gradient-to-r from-[#D8B4FE] via-[#A78BFA] to-[#D8B4FE] bg-clip-text text-transparent">
+            <span className="mt-1 block bg-gradient-to-r from-[#8DBBFF] via-[#7CC8FB] to-[#8DBBFF] bg-clip-text text-transparent">
               Make every useful share count.
             </span>
           </h1>
@@ -195,7 +195,7 @@ export default function Hero() {
           <div className="mt-5 flex flex-wrap gap-3 min-[993px]:mt-7 min-[993px]:flex-nowrap min-[993px]:gap-4">
             <Link
               href="/signup"
-              className="btn-tap group inline-flex h-12 min-w-[150px] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-5 text-sm font-semibold shadow-lg shadow-indigo-900/40 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-8 sm:text-base min-[993px]:h-[52px] min-[993px]:flex-none min-[993px]:px-10"
+              className="btn-tap group inline-flex h-12 min-w-[150px] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] px-5 text-sm font-semibold shadow-lg shadow-indigo-900/40 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:px-8 sm:text-base min-[993px]:h-[52px] min-[993px]:flex-none min-[993px]:px-10"
             >
               Start Earning <Arrow />
             </Link>
@@ -212,7 +212,7 @@ export default function Hero() {
               {["from-amber-400 to-rose-500", "from-sky-400 to-indigo-500", "from-emerald-400 to-teal-600"].map((g, i) => (
                 <span
                   key={i}
-                  className={`h-10 w-10 rounded-full border-2 border-[#14296B] bg-gradient-to-br sm:h-11 sm:w-11 ${g}`}
+                  className={`h-10 w-10 rounded-full border-2 border-[#0B3D91] bg-gradient-to-br sm:h-11 sm:w-11 ${g}`}
                 />
               ))}
             </div>
@@ -334,7 +334,7 @@ export default function Hero() {
                 <div className="h-full w-full rounded-2xl bg-white p-3.5 text-slate-900 shadow-xl">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-[#14296B]">👑 Top Creator</p>
+                      <p className="text-sm font-bold text-[#0B3D91]">👑 Top Creator</p>
                       <p className="ml-6 text-[10px] uppercase tracking-widest text-slate-400">This week</p>
                     </div>
                     <span className="shrink-0 rounded-lg bg-violet-100 px-2 py-1 text-[11px] font-bold text-violet-700">
@@ -347,7 +347,7 @@ export default function Hero() {
                       S
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-bold text-[#14296B]">
+                      <p className="truncate text-xs font-bold text-[#0B3D91]">
                         Sneha Verma <span className="text-sky-500">●</span>
                       </p>
                       <p className="truncate text-[11px] text-slate-500">Career &amp; Job Updates</p>
@@ -360,7 +360,7 @@ export default function Hero() {
                   <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-emerald-50 px-3 py-2">
                     <div className="min-w-0">
                       <p className="text-[11px] text-slate-600">Total earnings this week</p>
-                      <p className="text-xl font-bold text-[#14296B]">₹18,420</p>
+                      <p className="text-xl font-bold text-[#0B3D91]">₹18,420</p>
                     </div>
                     <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                       +32%

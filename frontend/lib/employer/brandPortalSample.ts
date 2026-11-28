@@ -1,4 +1,4 @@
-/** Sample / scaffold data shaped like JobOrio Brand Portal Design.html */
+/** Sample / scaffold data shaped like Upclift Brand Portal Design.html */
 
 export const brandInr = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -26,7 +26,7 @@ export const WIZARD_CATEGORIES = [
   { id: "AI Tools", label: "AI Tools", sub: "Tool sign-ups" },
   { id: "SaaS", label: "SaaS", sub: "Trials and demos" },
   { id: "Products", label: "Products", sub: "Purchases" },
-  { id: "Other", label: "Other", sub: "Needs JobOrio approval" },
+  { id: "Other", label: "Other", sub: "Needs Upclift approval" },
 ] as const;
 
 /** Field spec: string = text; [label,'area'|'date'|'multi'] or [label, options[]] or [label,'multi', options[]] */
@@ -282,7 +282,7 @@ export const REJECTION_REASONS = [
 ] as const;
 
 export const TRACKING_INTEGRATIONS = [
-  { id: "link", label: "JobOrio tracking link", sub: "Default, no code" },
+  { id: "link", label: "Upclift tracking link", sub: "Default, no code" },
   { id: "pixel", label: "Pixel", sub: "Thank-you page tag" },
   { id: "s2s", label: "S2S postback", sub: "Server call per conversion" },
   { id: "capi", label: "Conversion API", sub: "Signed server events" },
@@ -349,7 +349,7 @@ export const CONVERSION_MODELS: Record<
     rej: "Invalid, duplicate or bot clicks are not billed",
     be: "Valid click recorded",
     earn:
-      "Partner pool = gross price minus JobOrio commission, per valid click",
+      "Partner pool = gross price minus Upclift commission, per valid click",
   },
   ppr: {
     code: "PPR",
@@ -399,7 +399,7 @@ export const CONVERSION_MODELS: Record<
     code: "CPM",
     label: "Cost Per 1,000 Impressions",
     bill: "1,000 verified impressions (only if reliably measurable)",
-    req: "Impression measurement agreed with JobOrio",
+    req: "Impression measurement agreed with Upclift",
     val: "Viewability and invalid-traffic filtering",
     win: "Daily",
     rej: "Invalid impressions removed before billing",
@@ -437,7 +437,7 @@ export const DEFAULT_WIZARD_FORM: Record<string, string> = {
   "Mandatory lead fields": "Name, Email, Phone, City",
   Language: "Hindi",
   "Destination URL": "https://",
-  "Callback endpoint": "https://your-domain.com/hooks/joborio",
+  "Callback endpoint": "https://your-domain.com/hooks/upclift",
 };
 
 export function fieldLabel(spec: CatFieldSpec): string {

@@ -11,7 +11,7 @@ const cards = [
     title: "API",
     icon: Code2,
     blurb:
-      "Call JobOrio with an API key to invite members, sync communities, and automate publisher workflows.",
+      "Call Upclift with an API key to invite members, sync communities, and automate publisher workflows.",
     points: [
       "Generate & rotate API keys",
       "Create member invites by API",
@@ -23,7 +23,7 @@ const cards = [
     title: "XML",
     icon: FileCode2,
     blurb:
-      "Pull or publish job/campaign data through a partner XML feed when JobOrio provisions your feed URL.",
+      "Pull or publish job/campaign data through a partner XML feed when Upclift provisions your feed URL.",
     points: [
       "Feed URL for your publisher code",
       "Use for job boards & aggregators",
@@ -53,7 +53,7 @@ export default function PublisherIntegrationsHubPage() {
           API & Integration
         </p>
         <p className="mt-2 max-w-2xl text-slate-500">
-          Choose how your network connects to JobOrio — API for automation, XML
+          Choose how your network connects to Upclift — API for automation, XML
           for feeds, or Webhooks for real-time events. Each mode has its own
           guide and tools.
         </p>

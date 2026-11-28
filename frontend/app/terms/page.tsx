@@ -4,7 +4,7 @@ import LegalPage from "@/components/layout/LegalPage";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions",
-  description: "The terms for using JobOrio as a creator, employer or publisher.",
+  description: "The terms for using Upclift as a creator, employer or publisher.",
 };
 
 export default function TermsPage() {
@@ -12,12 +12,12 @@ export default function TermsPage() {
     <LegalPage
       eyebrow="Legal"
       title="Terms & Conditions"
-      description="The rules for using JobOrio as a creator, employer, publisher, or visitor."
+      description="The rules for using Upclift as a creator, employer, publisher, or visitor."
       updated="Last updated: 16 November 2026"
     >
       <h2>1. Who these terms cover</h2>
       <p>
-        These Terms &amp; Conditions (“Terms”) apply when you use JobOrio websites, apps, APIs,
+        These Terms &amp; Conditions (“Terms”) apply when you use Upclift websites, apps, APIs,
         tracking links, XML feeds, and related services (together, the “Service”). By creating an
         account or using the Service you agree to these Terms and our{" "}
         <Link href="/privacy">Privacy Policy</Link> and{" "}
@@ -28,7 +28,7 @@ export default function TermsPage() {
       <ul>
         <li>You must provide accurate registration details and keep them up to date.</li>
         <li>
-          Creator accounts may require social or website links and can stay pending until JobOrio
+          Creator accounts may require social or website links and can stay pending until Upclift
           approves the profile.
         </li>
         <li>
@@ -42,7 +42,7 @@ export default function TermsPage() {
       <ul>
         <li>
           <strong>Creators</strong> promote jobs, courses, tools, branding, and related offers using
-          JobOrio share links and feeds.
+          Upclift share links and feeds.
         </li>
         <li>
           <strong>Employers / brands</strong> create campaigns, set budgets and rates, and fund
@@ -56,7 +56,7 @@ export default function TermsPage() {
 
       <h2>4. Tracking, clicks, and fraud</h2>
       <p>
-        JobOrio records attribution events (views, clicks, applies, registrations, and similar) to
+        Upclift records attribution events (views, clicks, applies, registrations, and similar) to
         measure performance and calculate earnings. We may mark events as not counted, duplicate,
         self-click, trial, or fraud when our systems or reviews detect abuse. Duplicate clicks from
         the same visitor and job within a short window may be stored but not paid.
@@ -83,8 +83,8 @@ export default function TermsPage() {
 
       <h2>7. Intellectual property</h2>
       <p>
-        JobOrio branding, software, and documentation remain our property. You keep rights to your
-        own profile content, and grant JobOrio a licence to host and display it to operate the
+        Upclift branding, software, and documentation remain our property. You keep rights to your
+        own profile content, and grant Upclift a licence to host and display it to operate the
         Service.
       </p>
 

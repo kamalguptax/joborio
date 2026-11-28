@@ -93,7 +93,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               </span>
               <div>
                 <p className="font-display text-sm font-bold leading-none text-zinc-50">
-                  JobOrio Ops
+                  Upclift Ops
                 </p>
                 <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
                   Admin console

@@ -5,7 +5,7 @@ import LegalPage from "@/components/layout/LegalPage";
 export const metadata: Metadata = {
   title: "Payout Policy",
   description:
-    "JobOrio payout rules: minimum payout, hold periods, weekly payments, and conversion reversals.",
+    "Upclift payout rules: minimum payout, hold periods, weekly payments, and conversion reversals.",
 };
 
 export default function PayoutPolicyPage() {
@@ -18,7 +18,7 @@ export default function PayoutPolicyPage() {
     >
       <h2>1. Purpose</h2>
       <p>
-        This Payout Policy explains how JobOrio pays creators for tracked results (clicks,
+        This Payout Policy explains how Upclift pays creators for tracked results (clicks,
         registrations, applications, engagement, and similar). Platform settings in Admin can adjust
         the numbers below; if a figure in your dashboard differs from this page, the live dashboard /
         ledger value applies. Also read the{" "}
@@ -80,7 +80,7 @@ export default function PayoutPolicyPage() {
           and have a saved payout method are included.
         </li>
         <li>
-          JobOrio may also run a manual payout batch from Admin if needed (for example after a
+          Upclift may also run a manual payout batch from Admin if needed (for example after a
           review).
         </li>
         <li>
@@ -101,7 +101,7 @@ export default function PayoutPolicyPage() {
       </p>
       <ul>
         <li>
-          JobOrio may mark the related earning as <strong>reversed</strong> (or create a matching
+          Upclift may mark the related earning as <strong>reversed</strong> (or create a matching
           debit / clawback on the ledger).
         </li>
         <li>
@@ -118,13 +118,13 @@ export default function PayoutPolicyPage() {
         </li>
       </ul>
       <p>
-        Disputes are reviewed by JobOrio and, where needed, with the employer. Final ledger state
+        Disputes are reviewed by Upclift and, where needed, with the employer. Final ledger state
         after a resolved dispute is binding for payout.
       </p>
 
       <h2>6. What you should do</h2>
       <ul>
-        <li>Use only your official JobOrio share /go links so clicks are attributed correctly.</li>
+        <li>Use only your official Upclift share /go links so clicks are attributed correctly.</li>
         <li>Keep payout details accurate so weekly batches do not fail.</li>
         <li>
           Check <Link href="/creator/earnings">Earnings</Link> and{" "}

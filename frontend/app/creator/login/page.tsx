@@ -9,7 +9,7 @@ import { FormSkeleton } from "@/components/ui/Skeleton";
 
 export const metadata: Metadata = {
   title: "Creator login",
-  description: "Sign in to your JobOrio creator account to track clicks, registrations and earnings.",
+  description: "Sign in to your Upclift creator account to track clicks, registrations and earnings.",
 };
 
 export default function CreatorLoginPage() {

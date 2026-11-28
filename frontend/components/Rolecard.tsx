@@ -34,7 +34,7 @@ const themes: Record<
   }
 > = {
   violet: {
-    card: "border-violet-100 from-violet-100 via-violet-50 to-white shadow-[0_10px_30px_rgba(124,58,237,0.12)]",
+    card: "border-violet-100 from-violet-100 via-violet-50 to-white shadow-[0_10px_30px_rgba(10,95,207,0.12)]",
     glow: "bg-violet-300/40",
     badge: "from-violet-600 to-indigo-600",
     button: "from-violet-700 to-indigo-700 hover:from-violet-600 hover:to-indigo-600 shadow-indigo-600/25 focus-visible:ring-violet-300",

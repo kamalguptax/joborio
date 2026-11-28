@@ -78,7 +78,7 @@ export default function CommunityInviteMenu({
   async function onShare() {
     const link = await resolveInviteLink();
     if (!link) return;
-    const text = `Join my JobOrio community "${community.name}": ${link}`;
+    const text = `Join my Upclift community "${community.name}": ${link}`;
     try {
       if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({

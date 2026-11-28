@@ -90,7 +90,7 @@ export default function EmployerAwareness({
     <div className={`text-[#172b63] ${className}`}>
       <section className={compact ? "mb-8" : "mb-14"}>
         <p className="text-center text-xs font-bold uppercase tracking-[0.14em] text-violet-600">
-          Who can advertise on JobOrio?
+          Who can advertise on Upclift?
         </p>
         <h2
           className={`mt-2 text-center font-bold tracking-tight ${
@@ -172,7 +172,7 @@ export default function EmployerAwareness({
       {!compact ? (
         <section className="mb-14">
           <p className="text-center text-xs font-bold uppercase tracking-[0.14em] text-violet-600">
-            How JobOrio works
+            How Upclift works
           </p>
           <h2 className="mt-2 text-center text-2xl font-bold tracking-tight sm:text-3xl">
             From brand account to measurable growth
@@ -203,9 +203,9 @@ export default function EmployerAwareness({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-violet-600">
-                Why JobOrio
+                Why Upclift
               </p>
-              <h3 className="mt-1 text-lg font-bold">Why choose JobOrio?</h3>
+              <h3 className="mt-1 text-lg font-bold">Why choose Upclift?</h3>
             </div>
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
               <Target size={20} />

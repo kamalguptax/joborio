@@ -77,7 +77,7 @@ export default function CampaignPerformance() {
   return (
     <>
       <div>
-        <h1 className="text-2xl font-bold text-[#0F1B3D]">Campaign performance</h1>
+        <h1 className="text-2xl font-bold text-[#0A2150]">Campaign performance</h1>
         <p className="mt-1 text-sm text-slate-500">
           Funnel metrics for your selected campaign.{" "}
           {loading ? <span className="text-slate-400">Loading…</span> : null}
@@ -94,7 +94,7 @@ export default function CampaignPerformance() {
             <select
               value={campaignId}
               onChange={(e) => setCampaignId(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-[#0F1B3D] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-[#0A2150] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10"
             >
               <option value="all">All campaigns</option>
               {options.map((c) => (
@@ -114,14 +114,14 @@ export default function CampaignPerformance() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                   {k.l}
                 </p>
-                <p className="mt-2 text-2xl font-bold text-[#0F1B3D]">{k.v}</p>
+                <p className="mt-2 text-2xl font-bold text-[#0A2150]">{k.v}</p>
                 <p className="mt-1 text-[11px] text-slate-500">{k.n}</p>
               </div>
             ))}
           </div>
 
           <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-base font-bold text-[#0F1B3D]">
+            <h2 className="text-base font-bold text-[#0A2150]">
               Source reporting (anonymised)
             </h2>
             <p className="mt-1 text-sm text-slate-500">

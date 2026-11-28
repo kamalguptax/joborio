@@ -64,7 +64,7 @@ export default function SectionHeading({
         className={[
           variant === "hero" ? "text-page-hero" : "text-section-heading",
           eyebrow ? "mt-3" : "",
-          onDark ? "text-white" : "text-[#0F1B3D]",
+          onDark ? "text-white" : "text-[#0A2150]",
           centered ? "mx-auto" : "",
           titleClassName,
         ]

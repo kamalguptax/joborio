@@ -82,7 +82,7 @@ export default function PublicCreatorView({
   const [copied, setCopied] = useState(false);
   const [query, setQuery] = useState("");
   const [remoteOnly, setRemoteOnly] = useState(false);
-  const accent = creator.accent_color ?? "#633BFF";
+  const accent = creator.accent_color ?? "#0A5FCF";
   const paidUsd = Number(creator.payout?.paid_usd ?? creator.stats?.paid_usd ?? 0);
   // Calculated by the API (previous calendar month). Always shown, $0.00 when nothing was paid.
   const paidLastMonthUsd = Number(
@@ -113,7 +113,7 @@ export default function PublicCreatorView({
     }
   };
 
-  const shareText = `Check out opportunities from @${creator.handle} on JobOrio: ${pageUrl}`;
+  const shareText = `Check out opportunities from @${creator.handle} on Upclift: ${pageUrl}`;
   const whatsappShare = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
   const telegramShare = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(shareText)}`;
 
@@ -157,7 +157,7 @@ export default function PublicCreatorView({
     "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500";
 
   return (
-    <main className="min-h-svh bg-gradient-to-b from-[#fbf7ff] via-[#fff9fd] to-white pb-24 pt-24 text-[#172b63] sm:pt-28">
+    <main className="min-h-svh bg-gradient-to-b from-[#f6faff] via-[#f6faff] to-white pb-24 pt-24 text-[#172b63] sm:pt-28">
       <div className="mx-auto max-w-3xl px-4 sm:px-8">
         {/* ——— Profile card ——— */}
         <div
@@ -167,7 +167,7 @@ export default function PublicCreatorView({
           <div
             className="relative h-32 overflow-hidden sm:h-40"
             style={{
-              background: `linear-gradient(120deg, ${accent}40 0%, #a855f733 50%, #38bdf833 100%)`,
+              background: `linear-gradient(120deg, ${accent}40 0%, #1f73e633 50%, #38bdf833 100%)`,
             }}
           >
             <span
@@ -201,7 +201,7 @@ export default function PublicCreatorView({
             <div className="-mt-12 flex flex-wrap items-end justify-between gap-4 sm:-mt-14">
               <div
                 className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[28px] text-4xl font-bold text-white shadow-xl ring-[6px] ring-white sm:h-28 sm:w-28 sm:text-5xl"
-                style={{ background: `linear-gradient(135deg, ${accent}, #a855f7)` }}
+                style={{ background: `linear-gradient(135deg, ${accent}, #1f73e6)` }}
               >
                 {creator.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -509,7 +509,7 @@ export default function PublicCreatorView({
           </p>
           <Link
             href="/creator/register"
-            className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#172b63] px-6 py-2.5 text-sm font-bold text-white transition hover:bg-[#0F1B3D]"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#172b63] px-6 py-2.5 text-sm font-bold text-white transition hover:bg-[#0A2150]"
           >
             Join as a creator
             <ArrowUpRight size={16} aria-hidden="true" />

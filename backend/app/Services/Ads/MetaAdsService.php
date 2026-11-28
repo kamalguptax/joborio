@@ -32,7 +32,7 @@ class MetaAdsService
         $dailyBudgetCents = max(100, (int) round(((float) $program->budget_total_usd) * 100 / 7));
 
         $payload = [
-            'name' => 'JobOrio · '.$program->title,
+            'name' => 'Upclift · '.$program->title,
             'objective' => 'OUTCOME_TRAFFIC',
             'status' => 'PAUSED', // start paused so spend is controlled after review
             'special_ad_categories' => ['NONE'],
@@ -54,7 +54,7 @@ class MetaAdsService
 
         $countries = $program->target_countries ?: ['IN'];
         $adsetPayload = [
-            'name' => 'JobOrio Ad Set · '.$program->title,
+            'name' => 'Upclift Ad Set · '.$program->title,
             'campaign_id' => $campaignId,
             'daily_budget' => $dailyBudgetCents,
             'billing_event' => 'IMPRESSIONS',

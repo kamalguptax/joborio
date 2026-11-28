@@ -10,6 +10,7 @@ import {
   type FormEvent,
 } from "react";
 import {
+  ArrowRight,
   Camera,
   Check,
   Circle,
@@ -49,7 +50,7 @@ import {
   updatePublisherPassword,
   updatePublisherProfile,
 } from "@/lib/api/publisher";
-import { computeProfileCompletion } from "@/lib/profileCompletion";
+import { computeProfileCompletion, type ProfileTarget } from "@/lib/profileCompletion";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 
 type Variant = "creator" | "employer" | "publisher";
@@ -211,6 +212,22 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
   }, [previewOpen]);
 
   const completion = computeProfileCompletion(user);
+
+  /** Takes the person to the right place for a profile step. */
+  function onCompleteStep(target: ProfileTarget) {
+    if (target === "photo") {
+      fileRef.current?.click();
+      return;
+    }
+    if (target === "personal") {
+      selectTab("personal");
+      setEditPersonal(true);
+      return;
+    }
+    selectTab(target);
+    if (target === "public") setEditPublic(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   async function onPickPhoto(file: File | undefined) {
     if (!file) return;
@@ -427,7 +444,7 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
           <div
             className="relative h-32 sm:h-40"
             style={{
-              background: `linear-gradient(120deg, ${accent}55 0%, #a855f733 55%, #38bdf833 100%)`,
+              background: `linear-gradient(120deg, ${accent}55 0%, #1f73e633 55%, #38bdf833 100%)`,
             }}
           >
             {cover ? (
@@ -504,7 +521,7 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="break-words text-2xl font-bold text-[#0F1B3D]">{shownName}</h1>
+              <h1 className="break-words text-2xl font-bold text-[#0A2150]">{shownName}</h1>
               <span className="rounded-md bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-700">
                 {ROLE_LABEL[variant]}
               </span>
@@ -545,7 +562,7 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
                     className={`h-full rounded-full transition-all ${
                       completion.percent >= 100
                         ? "bg-emerald-500"
-                        : "bg-gradient-to-r from-violet-600 to-blue-600"
+                        : "bg-gradient-to-r from-violet-600 to-fuchsia-500"
                     }`}
                     style={{ width: `${completion.percent}%` }}
                   />
@@ -671,58 +688,81 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
               )}
             </Card>
 
-            <div className="space-y-5">
-              <Card title="Profile photo">
-                <p className="text-sm text-slate-500">
-                  Shown in your sidebar and on your profile. JPG, PNG or WebP, up to 2 MB.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    disabled={photoBusy || !loaded}
-                    onClick={() => fileRef.current?.click()}
-                    className={ghostBtn}
+            {completion ? (
+              <Card
+                title="Complete your profile"
+                badge={
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                      completion.percent >= 100
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-violet-50 text-violet-700"
+                    }`}
                   >
-                    <Camera size={16} aria-hidden="true" />
-                    {photoBusy ? "Working…" : avatar ? "Change photo" : "Upload photo"}
-                  </button>
-                  {avatar ? (
-                    <button
-                      type="button"
-                      disabled={photoBusy}
-                      onClick={() => void onRemovePhoto()}
-                      className={`${ghostBtn} hover:border-red-200 hover:text-red-600`}
-                    >
-                      <Trash2 size={16} aria-hidden="true" />
-                      Remove
-                    </button>
+                    {completion.percent}%
+                  </span>
+                }
+              >
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
+                  <span>
+                    {completion.done} of {completion.total} steps done
+                  </span>
+                  {completion.percent >= 100 ? (
+                    <span className="inline-flex items-center gap-1 text-emerald-600">
+                      <Check size={13} aria-hidden="true" />
+                      All set
+                    </span>
                   ) : null}
                 </div>
-              </Card>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      completion.percent >= 100
+                        ? "bg-emerald-500"
+                        : "bg-gradient-to-r from-violet-600 to-fuchsia-500"
+                    }`}
+                    style={{ width: `${completion.percent}%` }}
+                  />
+                </div>
 
-              {completion && completion.missing.length > 0 ? (
-                <Card title="Complete your profile">
-                  <p className="text-sm text-slate-500">
-                    {completion.done} of {completion.total} steps done.
-                  </p>
-                  <ul className="mt-3 space-y-2">
-                    {completion.missing.map((m) => (
-                      <li key={m} className="flex items-center gap-2 text-sm text-slate-700">
-                        <Circle size={14} className="shrink-0 text-slate-300" aria-hidden="true" />
-                        {m}
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              ) : completion ? (
-                <Card title="Complete your profile">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-emerald-600">
-                    <Check size={16} aria-hidden="true" />
-                    Your profile is 100% complete.
-                  </p>
-                </Card>
-              ) : null}
-            </div>
+                <ul className="mt-4 divide-y divide-slate-100">
+                  {completion.steps.map((step) => (
+                    <li key={step.id}>
+                      {step.done ? (
+                        <div className="flex items-center gap-3 py-2.5">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                            <Check size={14} aria-hidden="true" />
+                          </span>
+                          <span className="text-sm text-slate-400 line-through decoration-slate-300">
+                            {step.label}
+                          </span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onCompleteStep(step.target)}
+                          className="group flex w-full items-center gap-3 rounded-lg py-2.5 text-left transition hover:bg-violet-50/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500"
+                        >
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center text-slate-300">
+                            <Circle size={18} aria-hidden="true" />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-semibold text-[#0A2150]">
+                              {step.label}
+                            </span>
+                            <span className="block text-xs text-slate-500">{step.hint}</span>
+                          </span>
+                          <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-violet-700 opacity-80 transition group-hover:opacity-100">
+                            {step.target === "photo" ? "Upload" : "Fix"}
+                            <ArrowRight size={13} aria-hidden="true" />
+                          </span>
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ) : null}
           </>
         ) : null}
 
@@ -936,7 +976,7 @@ function ProfileSettingsInner({ variant }: { variant: Variant }) {
           />
           <div className="relative h-full w-full max-w-md overflow-y-auto bg-[#F8F8FB] p-5 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-[#0F1B3D]">Preview &amp; share</h2>
+              <h2 className="text-lg font-bold text-[#0A2150]">Preview &amp; share</h2>
               <button
                 type="button"
                 onClick={() => setPreviewOpen(false)}

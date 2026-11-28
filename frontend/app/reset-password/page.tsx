@@ -77,9 +77,8 @@ function ResetForm() {
 
       <label className={authLabel}>
         New password<span className="text-violet-600">*</span>
-        <input
+        <PasswordInput
           required
-          type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className={authField}
@@ -88,9 +87,8 @@ function ResetForm() {
 
       <label className={authLabel}>
         Confirm password<span className="text-violet-600">*</span>
-        <input
+        <PasswordInput
           required
-          type="password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           className={authField}
@@ -122,7 +120,7 @@ export default function ResetPasswordPage() {
   return (
     <AuthShell
       title="Reset password"
-      subtitle="Choose a new password for your JobOrio account."
+      subtitle="Choose a new password for your Upclift account."
       topPrompt="Remembered it?"
       topLinkLabel="Log in"
       topLinkHref="/login"

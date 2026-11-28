@@ -32,7 +32,7 @@ class LinkedInAdsService
 
         $payload = [
             'account' => 'urn:li:sponsoredAccount:'.$accountId,
-            'name' => 'JobOrio · '.$program->title,
+            'name' => 'Upclift · '.$program->title,
             'status' => 'PAUSED',
             'type' => 'SPONSORED_UPDATES',
             'costType' => 'CPC',

@@ -144,7 +144,7 @@ export default function CreatorPostStudioPage() {
         category: promo,
         summary:
           promo === "course"
-            ? `Explore this ${badge.toLowerCase()} opportunity and grow your skills with a tracked JobOrio link.`
+            ? `Explore this ${badge.toLowerCase()} opportunity and grow your skills with a tracked Upclift link.`
             : "Open role / campaign worth sharing with your audience.",
       });
     }

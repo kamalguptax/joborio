@@ -83,6 +83,8 @@ use App\Http\Controllers\Api\V1\Admin\AdminGeoController;
 use App\Http\Controllers\Api\V1\Admin\PlatformSettingsController;
 use App\Http\Controllers\Api\V1\Public\ListingController;
 use App\Http\Controllers\Api\V1\Public\MapsController;
+use App\Http\Controllers\Api\V1\Public\FeedbackController;
+use App\Http\Controllers\Api\V1\Public\ChatbotController;
 use App\Http\Controllers\Api\V1\Public\LeaderboardController;
 use App\Http\Controllers\Api\V1\Public\WebsiteTrackingController;
 use App\Http\Controllers\Api\V1\Public\XmlClickController;
@@ -111,6 +113,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/public/creators/{handle}', [CreatorPageController::class, 'show'])
         ->where('handle', '[A-Za-z0-9_\\-]+');
     Route::get('/public/leaderboard', [LeaderboardController::class, 'index']);
+
+    Route::post('/feedback', [FeedbackController::class, 'store'])
+        ->middleware('throttle:5,1');
+    Route::post('/chatbot/message', [ChatbotController::class, 'message'])
+        ->middleware('throttle:20,1');
 
     Route::post('/webhooks/ppr', [PprWebhookController::class, 'store']);
     Route::post('/webhooks/ppa', [PpaWebhookController::class, 'store']);

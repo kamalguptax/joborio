@@ -3,6 +3,7 @@ import { Geist_Mono, Manrope, Young_Serif } from "next/font/google";
 import "./globals.css";
 import SiteChrome from "@/components/SiteChrome";
 import CookieConsent from "@/components/cookies/CookieConsent";
+import ChatWidget from "@/components/chatbot/ChatWidget";
 import { APP_NAME } from "@/lib/config";
 
 /** Single brand family — weights used site-wide. */
@@ -29,7 +30,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s | ${APP_NAME}` },
   description:
-    "Find jobs, creators and opportunities. Earn USD on verified clicks and registrations.",
+    "Find opportunities. Grow your career. Earn on verified clicks and registrations with Upclift.",
+  icons: {
+    icon: [{ url: "/favicon.ico" }, { url: "/images/upclift-icon.png", type: "image/png" }],
+    apple: "/images/upclift-icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -44,6 +49,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col font-body antialiased">
         <SiteChrome>{children}</SiteChrome>
+        <ChatWidget />
         <CookieConsent />
       </body>
     </html>

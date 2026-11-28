@@ -241,7 +241,7 @@ export default function PublisherDashboardPage() {
           <p className="font-bold text-emerald-900">Publisher Network active</p>
           <p className="mt-1 text-sm text-emerald-800">
             Create communities, invite creators, view reports, and check your
-            commission (10–15% of the creator pool after JobOrio’s 30% fee).
+            commission (10–15% of the creator pool after Upclift’s 30% fee).
           </p>
         </div>
       )}

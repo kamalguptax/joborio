@@ -62,13 +62,13 @@ export default function PageTemplate({
             {c.features.map((f, i) => (
               <li
                 key={f.title}
-                className="group relative min-w-0 overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,27,61,0.04),0_18px_40px_-28px_rgba(15,27,61,0.25)] transition duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_28px_50px_-30px_rgba(91,53,213,0.45)] sm:p-8"
+                className="group relative min-w-0 overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(10,33,80,0.04),0_18px_40px_-28px_rgba(10,33,80,0.25)] transition duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_28px_50px_-30px_rgba(10,95,207,0.45)] sm:p-8"
               >
                 <span
                   aria-hidden="true"
-                  className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-gradient-to-r from-[#7C3AED] to-[#2563EB] transition-transform duration-300 group-hover:scale-x-100"
+                  className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] transition-transform duration-300 group-hover:scale-x-100"
                 />
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-50 to-blue-50 text-sm font-bold text-violet-700 ring-1 ring-violet-100">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-50 to-fuchsia-500 text-sm font-bold text-violet-700 ring-1 ring-violet-100">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <h3 className="text-card-heading mt-6">{f.title}</h3>
@@ -95,9 +95,9 @@ export default function PageTemplate({
           items={c.faqs.items.map((f) => ({ question: f.q, answer: f.a }))}
           cta={{
             title: "Still have questions?",
-            text: "Browse the full help center or get in touch.",
-            label: "Visit help center",
-            href: "/faq",
+            text: "Get in touch and we will point you in the right direction.",
+            label: "Contact us",
+            href: "/contact",
           }}
         />
       ) : null}

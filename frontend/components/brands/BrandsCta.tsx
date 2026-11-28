@@ -6,7 +6,7 @@ export default function BrandsCta() {
     <section className="mx-auto w-full max-w-[1400px] px-4 pb-14 sm:px-8 md:pb-20">
       <div
         className="relative overflow-hidden rounded-3xl px-6 py-8 text-white shadow-[0_30px_60px_-34px_rgba(27,16,85,0.9)] sm:px-10 sm:py-10"
-        style={{ backgroundImage: "linear-gradient(135deg, #1B1055 0%, #241476 60%, #2E1A8C 100%)" }}
+        style={{ backgroundImage: "linear-gradient(135deg, #0a2150 0%, #0a2a60 60%, #0a3d91 100%)" }}
       >
         <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="relative flex flex-col items-start gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -17,14 +17,14 @@ export default function BrandsCta() {
             <div>
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Your audience is waiting. Let&apos;s reach them.</h2>
               <p className="mt-1.5 text-[15px] text-indigo-100/85">
-                Launch measurable campaigns and connect with relevant audiences through JobOrio.
+                Launch measurable campaigns and connect with relevant audiences through Upclift.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
               href="/brand/register"
-              className="inline-flex min-h-12 items-center rounded-full bg-white px-7 py-3 text-base font-semibold text-[#2E1A8C] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex min-h-12 items-center rounded-full bg-white px-7 py-3 text-base font-semibold text-[#0a3d91] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Create Brand Account
             </Link>

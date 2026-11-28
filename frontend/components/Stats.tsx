@@ -8,7 +8,7 @@ import type { PointerEvent } from "react";
 /* ------------------------------------------------------------------ */
 
 const tones = {
-  violet: { bg: "bg-violet-100", fg: "text-violet-600", line: "#8B5CF6", spot: "rgba(139,92,246,0.10)" },
+  violet: { bg: "bg-violet-100", fg: "text-violet-600", line: "#1F73E6", spot: "rgba(139,92,246,0.10)" },
   sky: { bg: "bg-sky-100", fg: "text-sky-500", line: "#3B9BF5", spot: "rgba(59,155,245,0.10)" },
   orange: { bg: "bg-orange-100", fg: "text-orange-500", line: "#F97316", spot: "rgba(249,115,22,0.10)" },
   green: { bg: "bg-emerald-100", fg: "text-emerald-500", line: "#34D399", spot: "rgba(52,211,153,0.12)" },
@@ -220,7 +220,7 @@ export default function Stats() {
             >
               <div
                 onPointerMove={onMove}
-                className="group relative flex h-full min-h-[168px] flex-col overflow-hidden rounded-2xl bg-white p-4 shadow-[0_12px_40px_rgba(30,27,75,0.12)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(76,29,149,0.14)] sm:min-h-[220px] sm:rounded-3xl sm:p-6 md:min-h-[250px]"
+                className="group relative flex h-full min-h-[168px] flex-col overflow-hidden rounded-2xl bg-white p-4 shadow-[0_12px_40px_rgba(30,27,75,0.12)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(10,61,145,0.14)] sm:min-h-[220px] sm:rounded-3xl sm:p-6 md:min-h-[250px]"
               >
                 <div
                   aria-hidden="true"
@@ -239,7 +239,7 @@ export default function Stats() {
                 </div>
 
                 <div className="relative mt-4 sm:mt-8">
-                  <p className="text-[clamp(1.25rem,4vw,1.75rem)] font-bold leading-none tracking-tight text-[#0F1B3D]">
+                  <p className="text-[clamp(1.25rem,4vw,1.75rem)] font-bold leading-none tracking-tight text-[#0A2150]">
                     <CountUp to={s.value} decimals={s.decimals} prefix={s.prefix} suffix={s.suffix} active={active} delay={idx * 90 + 200} />
                   </p>
                   <p className="mt-2 text-sm text-slate-500 sm:text-base">{s.label}</p>

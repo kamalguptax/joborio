@@ -44,7 +44,7 @@ export default function SiteChrome({
   // onboarding screens use their own shells, so the marketing Header/Footer is hidden.
   const hideChrome =
     AUTH_ROUTES.has(pathname) ||
-    ["/onboarding", "/auth", "/admin", "/creator", "/employer", "/publisher", "/network", "/p", "/verify", "/ppr"].some(
+    ["/onboarding", "/auth", "/admin", "/creator", "/brand", "/publisher", "/network", "/p", "/verify", "/ppr"].some(
       (base) => inArea(pathname, base),
     );
   if (hideChrome) {

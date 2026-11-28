@@ -59,7 +59,7 @@ const FAQS = [
   },
   {
     q: "What is the override?",
-    a: "For a limited number of months, you earn a percent of JobOrio’s platform fee on their earnings. It is not taken from their creator share.",
+    a: "For a limited number of months, you earn a percent of Upclift’s platform fee on their earnings. It is not taken from their creator share.",
   },
   {
     q: "What do Shares and Onboarding mean?",
@@ -146,11 +146,11 @@ export default function CreatorReferralsPage() {
 
   const nativeShare = async () => {
     if (!inviteLink || !data) return;
-    const text = `Join JobOrio with my invite code ${data.referral_code}: ${inviteLink}`;
+    const text = `Join Upclift with my invite code ${data.referral_code}: ${inviteLink}`;
     try {
       if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({
-          title: "Join JobOrio",
+          title: "Join Upclift",
           text,
           url: inviteLink,
         });
@@ -215,7 +215,7 @@ export default function CreatorReferralsPage() {
         </p>
         <p className="mt-2 text-slate-500">
           Share your link or code. Referred creators keep about 75% of revenue;
-          you earn 2–5% from JobOrio’s platform fee on their earnings.
+          you earn 2–5% from Upclift’s platform fee on their earnings.
         </p>
       </div>
 
@@ -228,7 +228,7 @@ export default function CreatorReferralsPage() {
       {data ? (
         <>
           {/* Refer card */}
-          <div className="rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 p-6 text-white shadow-sm">
+          <div className="rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-600 via-indigo-600 to-fuchsia-500 p-6 text-white shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-white/70">
@@ -323,7 +323,7 @@ export default function CreatorReferralsPage() {
 
           {/* How it works */}
           <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-[#0F1B3D]">How it works</h2>
+            <h2 className="text-lg font-bold text-[#0A2150]">How it works</h2>
             <p className="mt-1 text-sm text-slate-500">
               Four steps from share to payout.
             </p>
@@ -336,7 +336,7 @@ export default function CreatorReferralsPage() {
                   <p className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-600 text-sm font-bold text-white">
                     {item.step}
                   </p>
-                  <p className="mt-3 font-semibold text-[#0F1B3D]">
+                  <p className="mt-3 font-semibold text-[#0A2150]">
                     {item.title}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">{item.body}</p>
@@ -347,7 +347,7 @@ export default function CreatorReferralsPage() {
 
           {/* FAQ */}
           <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-[#0F1B3D]">FAQ</h2>
+            <h2 className="text-lg font-bold text-[#0A2150]">FAQ</h2>
             <p className="mt-1 text-sm text-slate-500">
               Common questions about referring creators.
             </p>
@@ -362,7 +362,7 @@ export default function CreatorReferralsPage() {
                       className="flex w-full items-center justify-between gap-3 py-3 text-left"
                       aria-expanded={open}
                     >
-                      <span className="font-semibold text-[#0F1B3D]">
+                      <span className="font-semibold text-[#0A2150]">
                         {item.q}
                       </span>
                       <ChevronDown
@@ -422,7 +422,7 @@ export default function CreatorReferralsPage() {
                     rows={2}
                     maxLength={500}
                     placeholder="Optional note for selected creators…"
-                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-normal text-[#0F1B3D] outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-normal text-[#0A2150] outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
                   />
                 </label>
                 <div className="flex flex-wrap items-center gap-2">

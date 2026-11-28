@@ -59,7 +59,7 @@ export default function NewsletterForm() {
           type="submit"
           disabled={status === "loading"}
           aria-label="Subscribe"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#2563EB] text-white shadow-lg shadow-violet-900/40 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0A5FCF] to-[#2563EB] text-white shadow-lg shadow-violet-900/40 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
         >
           {status === "done" ? <Check size={18} /> : <ArrowRight size={18} />}
         </button>

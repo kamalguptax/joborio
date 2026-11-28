@@ -21,7 +21,7 @@ const stats = [
 export default function StatsBar() {
   return (
     <section aria-label="Platform statistics" className="w-full bg-white px-5 py-4 sm:py-5">
-      <div className="mx-auto max-w-[1460px] rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/80 via-white to-indigo-50/80 px-4 py-4 shadow-[0_8px_30px_rgba(79,70,229,0.08)] sm:px-6 sm:py-5">
+      <div className="mx-auto max-w-[1460px] rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/80 via-white to-indigo-50/80 px-4 py-4 shadow-[0_8px_30px_rgba(31,115,230,0.08)] sm:px-6 sm:py-5">
         <dl className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-5 lg:gap-0">
           {stats.map(({ icon: Icon, value, label }, i) => (
             <div

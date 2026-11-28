@@ -1,5 +1,5 @@
 /** A simple friendly illustrated character (head + shoulders). */
-export default function Character({ hoodie = "#8B5CF6", className = "" }: { hoodie?: string; className?: string }) {
+export default function Character({ hoodie = "#1F73E6", className = "" }: { hoodie?: string; className?: string }) {
   const hair = "#2A1A22";
   return (
     <svg viewBox="0 0 200 240" preserveAspectRatio="xMidYMax meet" className={className} aria-hidden="true">

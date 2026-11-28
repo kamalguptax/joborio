@@ -18,9 +18,8 @@ export default function Footer() {
                 </span>
 
                 <span className="font-logo text-2xl">
-                  Job
                   <span className="bg-gradient-to-r from-blue-300 to-pink-300 bg-clip-text text-transparent">
-                    Orio
+                  Upclift
                   </span>
                 </span>
               </Link>
@@ -71,7 +70,7 @@ export default function Footer() {
 
               <div className="mt-5 flex flex-col gap-3">
                 {[
-                  ["FAQ", "/faq"],
+                  ["Feedback", "/feedback"],
                   ["Blog", "/blog"],
                   ["Contact", "/contact"],
                   ["Privacy", "/privacy"],
@@ -96,8 +95,8 @@ export default function Footer() {
 
               <div className="mt-5 flex flex-col gap-3">
                 {[
-                  ["Hire Creators", "/employer/onboarding"],
-                  ["Post a Job", "/employer/programs/new"],
+                  ["Hire Creators", "/brand/setup"],
+                  ["Post a Job", "/brand/programs/new"],
                   ["Promote a post", "/promote"],
                   ["Partner With Us", "/contact"],
                   ["Support", "/contact"],
@@ -118,7 +117,7 @@ export default function Footer() {
           <div className="mt-14 flex flex-col gap-5 border-t border-white/10 pt-7 sm:flex-row sm:items-center sm:justify-between">
 
             <p className="text-xs text-white/35">
-              © {new Date().getFullYear()} JobOrio. All rights reserved.
+              © {new Date().getFullYear()} Upclift. All rights reserved.
             </p>
 
             <div className="flex flex-wrap items-center gap-5">

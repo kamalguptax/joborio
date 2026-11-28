@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function BrandSectionPlaceholder({
   title,
   description,
-  ctaHref = "/employer/programs",
+  ctaHref = "/brand/programs",
   ctaLabel = "Go to My Campaigns",
 }: {
   title: string;
@@ -19,7 +19,7 @@ export default function BrandSectionPlaceholder({
         <p className="text-sm font-semibold uppercase tracking-wider text-violet-600">
           Brand
         </p>
-        <h1 className="mt-1 text-3xl font-bold text-[#0F1B3D]">{title}</h1>
+        <h1 className="mt-1 text-3xl font-bold text-[#0A2150]">{title}</h1>
         <p className="mt-2 max-w-2xl text-slate-500">{description}</p>
       </div>
       <div className="rounded-3xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center shadow-sm">

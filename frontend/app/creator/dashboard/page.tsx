@@ -5,10 +5,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
   Check,
+  ChevronDown,
   Copy,
   Gift,
   Users,
   MousePointerClick,
+  Search,
   UserPlus,
   TrendingUp,
   Wallet,
@@ -18,9 +20,11 @@ import PageHeader from "@/components/layout/PageHeader";
 import ReferAndEarnPopup from "@/components/creator/ReferAndEarnPopup";
 import {
   fetchCreatorDashboard,
+  fetchTrackLink,
 } from "@/lib/api/creator";
 import { formatMoney } from "@/lib/money";
 import { StatCardsSkeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 
 type RangeKey = "1d" | "yesterday" | "3d" | "7d" | "30d" | "all";
 type CampaignKey =
@@ -92,6 +96,48 @@ function eventMatchesCampaign(
   return pricing === campaign;
 }
 
+function eventChipClass(type: string): string {
+  switch (type) {
+    case "job_apply":
+      return "bg-violet-50 text-violet-700";
+    case "click":
+      return "bg-sky-50 text-sky-700";
+    default:
+      return "bg-slate-100 text-slate-600";
+  }
+}
+
+/** Copies text that is still being fetched. Uses a ClipboardItem promise so Safari keeps the click permission. */
+async function copyTextLater(getText: Promise<string>): Promise<void> {
+  if (
+    typeof navigator !== "undefined" &&
+    navigator.clipboard &&
+    typeof ClipboardItem !== "undefined"
+  ) {
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/plain": getText.then((t) => new Blob([t], { type: "text/plain" })),
+        }),
+      ]);
+      return;
+    } catch {
+      /* fall through to the plain approach below */
+    }
+  }
+  const text = await getText;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const el = document.createElement("textarea");
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+  }
+}
+
 function ReferralMiniCard({
   code,
   signups,
@@ -160,7 +206,7 @@ function ReferralMiniCard({
             className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
               copied
                 ? "bg-emerald-400 text-emerald-950"
-                : "bg-white text-[#14296B] hover:bg-indigo-50"
+                : "bg-white text-[#0B3D91] hover:bg-indigo-50"
             }`}
           >
             {copied ? (
@@ -204,6 +250,10 @@ export default function CreatorDashboardPage() {
     "all" | "payable" | "duplicate" | "mixed"
   >("all");
   const [trafficEvent, setTrafficEvent] = useState<"all" | string>("all");
+  const [trafficSort, setTrafficSort] = useState<"latest" | "clicks">("latest");
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [copyBusyKey, setCopyBusyKey] = useState<string | null>(null);
+  const trackUrlCache = useRef(new Map<number, string>());
   const liveCampaignsRef = useRef<HTMLDivElement | null>(null);
   const skipCampaignScroll = useRef(true);
 
@@ -438,24 +488,67 @@ export default function CreatorDashboardPage() {
           .toLowerCase();
         return hay.includes(q);
       })
+      .sort((a, b) =>
+        trafficSort === "clicks"
+          ? b.click_count - a.click_count ||
+            b.total_earning_usd - a.total_earning_usd
+          : 0,
+      )
       .slice(0, 25);
-  }, [recentTraffic, trafficQuery, trafficStatus, trafficEvent]);
+  }, [recentTraffic, trafficQuery, trafficStatus, trafficEvent, trafficSort]);
 
   const trafficSummary = useMemo(() => {
     let clicks = 0;
     let duplicates = 0;
+    let payable = 0;
     let earning = 0;
     for (const row of filteredTraffic) {
       clicks += row.click_count;
       duplicates += row.duplicate_count;
+      payable += row.counted_count;
       earning += row.total_earning_usd;
     }
-    return { clicks, duplicates, earning };
+    return { clicks, duplicates, payable, earning };
   }, [filteredTraffic]);
 
   const trafficFilterField =
     "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-[#172b63] outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-500/10";
+  const trafficLabel =
+    "block text-[11px] font-semibold uppercase tracking-wide text-slate-400";
+  const trafficControl = `${trafficFilterField} h-10`;
+  const hasTrafficFilters =
+    Boolean(trafficQuery) ||
+    trafficStatus !== "all" ||
+    trafficEvent !== "all" ||
+    trafficSort !== "latest";
+  const clearTrafficFilters = () => {
+    setTrafficQuery("");
+    setTrafficStatus("all");
+    setTrafficEvent("all");
+    setTrafficSort("latest");
+  };
   const dedupMinutes = Number(data?.click_dedup_minutes ?? 10);
+
+  const copyTrackedLink = async (key: string, listingId: number) => {
+    if (copyBusyKey || listingId <= 0) return;
+    setCopyBusyKey(key);
+    try {
+      const cached = trackUrlCache.current.get(listingId);
+      const urlPromise = cached
+        ? Promise.resolve(cached)
+        : fetchTrackLink(listingId).then((res) => {
+            trackUrlCache.current.set(listingId, res.tracked_url);
+            return res.tracked_url;
+          });
+      await copyTextLater(urlPromise);
+      setCopiedKey(key);
+      window.setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 1800);
+    } catch {
+      toast.error("Could not copy the link. Please try again.");
+    } finally {
+      setCopyBusyKey(null);
+    }
+  };
   const campaignLabel =
     campaignFilters.find((f) => f.id === campaign)?.label ?? "All campaigns";
 
@@ -601,8 +694,8 @@ export default function CreatorDashboardPage() {
       <PageHeader title="Dashboard" />
 
       <section
-        className="relative isolate mb-6 overflow-hidden rounded-3xl p-6 text-white shadow-[0_28px_60px_-34px_rgba(46,34,151,0.75)] sm:p-8"
-        style={{ backgroundImage: "linear-gradient(135deg, #0B1D4F 0%, #14296B 48%, #2E2297 100%)" }}
+        className="relative isolate mb-6 overflow-hidden rounded-3xl p-6 text-white shadow-[0_28px_60px_-34px_rgba(10,61,145,0.75)] sm:p-8"
+        style={{ backgroundImage: "linear-gradient(135deg, #0A2150 0%, #0B3D91 48%, #0A3D91 100%)" }}
       >
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-violet-500/35 blur-[90px]" />
@@ -710,8 +803,12 @@ export default function CreatorDashboardPage() {
               <Link
                 key={label}
                 href={href}
-                className="group relative block overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,27,61,0.04),0_14px_30px_-24px_rgba(15,27,61,0.3)] transition duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_22px_40px_-26px_rgba(91,53,213,0.45)]"
+                className="group relative block overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(10,33,80,0.04),0_14px_30px_-24px_rgba(10,33,80,0.3)] transition duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_22px_40px_-26px_rgba(10,95,207,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
               >
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${tone} opacity-80`}
+                />
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-[13px] font-medium text-slate-500">{label}</p>
                   <div
@@ -720,15 +817,22 @@ export default function CreatorDashboardPage() {
                     <Icon size={18} />
                   </div>
                 </div>
-                <p className="mt-3 text-[1.75rem] font-bold leading-none tracking-tight">{value}</p>
-                <p className="mt-3 text-xs font-semibold text-emerald-700 opacity-80 group-hover:opacity-100">
+                <p className="mt-3 text-[1.75rem] font-bold leading-none tracking-tight tabular-nums text-[#0A2150]">
+                  {value}
+                </p>
+                <p className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-violet-700 opacity-80 transition group-hover:opacity-100">
                   {cta}
+                  <ArrowUpRight
+                    size={12}
+                    aria-hidden="true"
+                    className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  />
                 </p>
               </Link>
             ))}
           </div>
 
-          <div className="mt-8 dash-card p-6">
+          <div className="mt-8 dash-card p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h2 className="text-lg font-bold">Earnings by type</h2>
@@ -739,9 +843,10 @@ export default function CreatorDashboardPage() {
               </div>
               <Link
                 href="/creator/performance"
-                className="text-sm font-semibold text-purple-600"
+                className="inline-flex items-center gap-1 rounded-full border border-violet-200 px-3 py-1 text-sm font-semibold text-violet-700 transition hover:bg-violet-50"
               >
-                Full performance →
+                Full performance
+                <ArrowUpRight size={14} aria-hidden="true" />
               </Link>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -764,14 +869,21 @@ export default function CreatorDashboardPage() {
                           : (type as CampaignKey),
                       )
                     }
-                    className={`rounded-xl border px-4 py-3 text-left transition ${
+                    aria-pressed={active}
+                    className={`rounded-xl border px-4 py-3 text-left transition duration-200 hover:-translate-y-0.5 ${
                       active
-                        ? "border-purple-300 bg-purple-50 ring-2 ring-purple-200"
-                        : "border-slate-100 bg-slate-50 opacity-70"
+                        ? "border-violet-300 bg-gradient-to-br from-violet-50 to-white shadow-sm ring-1 ring-violet-200"
+                        : "border-slate-200 bg-slate-50/70 opacity-80 hover:border-violet-200 hover:opacity-100"
                     }`}
                   >
-                    <p className="text-xs font-bold uppercase text-slate-400">{type}</p>
-                    <p className="mt-1 text-lg font-bold">
+                    <p
+                      className={`inline-flex rounded-md px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
+                        active ? "bg-violet-600 text-white" : "bg-slate-200/70 text-slate-500"
+                      }`}
+                    >
+                      {type}
+                    </p>
+                    <p className="mt-2 text-lg font-bold tabular-nums text-[#0A2150]">
                       {formatMoney(total, String(data?.currency ?? "USD"))}
                     </p>
                     <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
@@ -794,7 +906,7 @@ export default function CreatorDashboardPage() {
             />
           </div>
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-5">
+          <div className="mt-8 ">
             <div className="dash-card p-6 lg:col-span-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold">
@@ -830,204 +942,351 @@ export default function CreatorDashboardPage() {
           </div>
 
           {recentTraffic.length > 0 ? (
-            <div className="mt-8 dash-card p-6">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h2 className="text-lg font-bold">Recent traffic</h2>
-                  <p className="mt-1 text-xs text-slate-500">
+            <section
+              aria-labelledby="recent-traffic-heading"
+              className="mt-8 dash-card p-5 sm:p-6"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+                <div className="min-w-0">
+                  <h2
+                    id="recent-traffic-heading"
+                    className="text-lg font-bold text-[#172b63]"
+                  >
+                    Recent traffic
+                  </h2>
+                  <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-500">
                     Same job clicks are grouped. Duplicates (same IP + device
                     within {dedupMinutes} min) are logged but not paid.
                   </p>
                 </div>
                 <Link
                   href="/creator/earnings#clicks"
-                  className="text-sm font-semibold text-purple-700"
+                  className="inline-flex shrink-0 items-center gap-1 rounded-full border border-violet-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-violet-700 transition hover:bg-violet-50"
                 >
                   All clicks
+                  <ArrowUpRight size={14} aria-hidden="true" />
                 </Link>
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <label className={trafficLabel}>
                   Search
-                  <input
-                    type="search"
-                    value={trafficQuery}
-                    onChange={(e) => setTrafficQuery(e.target.value)}
-                    placeholder="Job, IP, event…"
-                    className={`mt-1 ${trafficFilterField}`}
-                  />
+                  <span className="relative mt-1.5 block">
+                    <Search
+                      size={15}
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                    <input
+                      type="search"
+                      value={trafficQuery}
+                      onChange={(e) => setTrafficQuery(e.target.value)}
+                      placeholder="Job, IP, event…"
+                      className={`${trafficControl} pl-9`}
+                    />
+                  </span>
                 </label>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <label className={trafficLabel}>
                   Status
-                  <select
-                    value={trafficStatus}
-                    onChange={(e) =>
-                      setTrafficStatus(
-                        e.target.value as
-                          | "all"
-                          | "payable"
-                          | "duplicate"
-                          | "mixed",
-                      )
-                    }
-                    className={`mt-1 ${trafficFilterField}`}
-                  >
-                    <option value="all">All statuses</option>
-                    <option value="payable">Payable / counted</option>
-                    <option value="duplicate">Has duplicate</option>
-                    <option value="mixed">Counted + duplicate</option>
-                  </select>
+                  <span className="relative mt-1.5 block">
+                    <select
+                      value={trafficStatus}
+                      onChange={(e) =>
+                        setTrafficStatus(
+                          e.target.value as
+                            | "all"
+                            | "payable"
+                            | "duplicate"
+                            | "mixed",
+                        )
+                      }
+                      className={`${trafficControl} appearance-none pr-9`}
+                    >
+                      <option value="all">All statuses</option>
+                      <option value="payable">Payable / counted</option>
+                      <option value="duplicate">Has duplicate</option>
+                      <option value="mixed">Counted + duplicate</option>
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      aria-hidden="true"
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                  </span>
                 </label>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <label className={trafficLabel}>
                   Event type
-                  <select
-                    value={trafficEvent}
-                    onChange={(e) => setTrafficEvent(e.target.value)}
-                    className={`mt-1 ${trafficFilterField}`}
-                  >
-                    {trafficEventOptions.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt === "all" ? "All events" : opt}
-                      </option>
-                    ))}
-                  </select>
+                  <span className="relative mt-1.5 block">
+                    <select
+                      value={trafficEvent}
+                      onChange={(e) => setTrafficEvent(e.target.value)}
+                      className={`${trafficControl} appearance-none pr-9`}
+                    >
+                      {trafficEventOptions.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt === "all" ? "All events" : opt}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      aria-hidden="true"
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                  </span>
+                </label>
+                <label className={trafficLabel}>
+                  Sort by
+                  <span className="relative mt-1.5 block">
+                    <select
+                      value={trafficSort}
+                      onChange={(e) =>
+                        setTrafficSort(e.target.value as "latest" | "clicks")
+                      }
+                      className={`${trafficControl} appearance-none pr-9`}
+                    >
+                      <option value="latest">Latest first</option>
+                      <option value="clicks">High clicks first</option>
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      aria-hidden="true"
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                  </span>
                 </label>
               </div>
 
-              {(trafficQuery ||
-                trafficStatus !== "all" ||
-                trafficEvent !== "all") && (
-                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-xs text-slate-500">
-                    Showing {filteredTraffic.length} of {recentTraffic.length}{" "}
-                    job groups
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTrafficQuery("");
-                      setTrafficStatus("all");
-                      setTrafficEvent("all");
-                    }}
-                    className="text-xs font-semibold text-violet-700 hover:underline"
-                  >
-                    Clear filters
-                  </button>
-                </div>
-              )}
-
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                    Total click
-                  </p>
-                  <p className="mt-1 text-2xl font-bold tabular-nums text-[#172b63]">
-                    {trafficSummary.clicks}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700/80">
-                    Duplicate
-                  </p>
-                  <p className="mt-1 text-2xl font-bold tabular-nums text-amber-800">
-                    {trafficSummary.duplicates}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700/80">
-                    Total earning
-                  </p>
-                  <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-800">
-                    {formatMoney(
+              <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {[
+                  {
+                    label: "Total click",
+                    value: String(trafficSummary.clicks),
+                    Icon: MousePointerClick,
+                    card: "border-slate-200 bg-slate-50",
+                    icon: "bg-white text-slate-500 ring-slate-200",
+                    text: "text-[#172b63]",
+                    sub: "text-slate-500",
+                  },
+                  {
+                    label: "Duplicate click",
+                    value: String(trafficSummary.duplicates),
+                    Icon: Copy,
+                    card: "border-amber-200 bg-amber-50/70",
+                    icon: "bg-white text-amber-600 ring-amber-200",
+                    text: "text-amber-800",
+                    sub: "text-amber-700/80",
+                  },
+                  {
+                    label: "Payable",
+                    value: String(trafficSummary.payable),
+                    Icon: Check,
+                    card: "border-emerald-200 bg-emerald-50/70",
+                    icon: "bg-white text-emerald-600 ring-emerald-200",
+                    text: "text-emerald-800",
+                    sub: "text-emerald-700/80",
+                  },
+                  {
+                    label: "Total earning",
+                    value: formatMoney(
                       trafficSummary.earning,
                       String(data?.currency ?? "USD"),
-                    )}
-                  </p>
-                </div>
+                    ),
+                    Icon: Wallet,
+                    card: "border-violet-200 bg-violet-50/70",
+                    icon: "bg-white text-violet-600 ring-violet-200",
+                    text: "text-violet-800",
+                    sub: "text-violet-700/80",
+                  },
+                ].map(({ label, value, Icon, card, icon, text, sub }) => (
+                  <div
+                    key={label}
+                    className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 ${card}`}
+                  >
+                    <span
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ${icon}`}
+                    >
+                      <Icon size={18} aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0">
+                      <p
+                        className={`truncate text-[11px] font-semibold uppercase tracking-wide ${sub}`}
+                      >
+                        {label}
+                      </p>
+                      <p
+                        className={`truncate text-2xl font-bold leading-tight tabular-nums ${text}`}
+                      >
+                        {value}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="mt-5">
+              <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
                 {filteredTraffic.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+                  <p className="px-4 py-10 text-center text-sm text-slate-500">
                     No traffic matches these filters.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredTraffic.map((row) => (
-                      <article
-                        key={`${row.event_type}-${row.title}`}
-                        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-                      >
-                        <p className="line-clamp-2 font-semibold text-[#172b63]">
-                          {row.title}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          {row.event_type}
-                          {" · "}
-                          {formatClickTime(
-                            row.meta?.clicked_at ?? row.created_at,
-                          )}
-                        </p>
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                          <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                              Total click
-                            </p>
-                            <p className="mt-0.5 text-lg font-bold tabular-nums text-[#172b63]">
-                              {row.click_count}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700/80">
-                              Duplicate
-                            </p>
-                            <p
-                              className={`mt-0.5 text-lg font-bold tabular-nums ${
-                                row.duplicate_count > 0
-                                  ? "text-amber-700"
-                                  : "text-slate-400"
-                              }`}
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[830px] table-fixed border-collapse text-left text-sm">
+                      <colgroup>
+                        <col />
+                        <col className="w-[100px]" />
+                        <col className="w-[130px]" />
+                        <col className="w-[100px]" />
+                        <col className="w-[130px]" />
+                        <col className="w-[130px]" />
+                      </colgroup>
+                      <thead>
+                        <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                          <th scope="col" className="px-4 py-3">
+                            Job
+                          </th>
+                          <th scope="col" className="px-4 py-3 text-right">
+                            Total click
+                          </th>
+                          <th scope="col" className="px-4 py-3 text-right">
+                            Duplicate click
+                          </th>
+                          <th scope="col" className="px-4 py-3 text-right">
+                            Payable
+                          </th>
+                          <th scope="col" className="px-4 py-3 text-right">
+                            Total earning
+                          </th>
+                          <th scope="col" className="px-4 py-3 text-right">
+                            Link
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredTraffic.map((row) => {
+                          const rowKey = `${row.event_type}-${row.title}`;
+                          const listingId = Number(
+                            (row.listing as { id?: number } | undefined)?.id ??
+                              0,
+                          );
+                          const copied = copiedKey === rowKey;
+                          const busy = copyBusyKey === rowKey;
+                          return (
+                            <tr
+                              key={rowKey}
+                              className="transition-colors hover:bg-slate-50/70"
                             >
-                              {row.duplicate_count}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700/80">
-                              Payable
-                            </p>
-                            <p
-                              className={`mt-0.5 text-lg font-bold tabular-nums ${
-                                row.counted_count > 0
-                                  ? "text-emerald-700"
-                                  : "text-slate-400"
-                              }`}
-                            >
-                              {row.counted_count}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-violet-700/80">
-                              Total earning
-                            </p>
-                            <p className="mt-0.5 text-lg font-bold tabular-nums text-violet-700">
-                              {formatMoney(
-                                row.total_earning_usd,
-                                String(data?.currency ?? "USD"),
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
+                              <td className="px-4 py-3.5 align-middle">
+                                <p
+                                  className="line-clamp-2 font-semibold leading-snug text-[#172b63]"
+                                  title={row.title}
+                                >
+                                  {row.title}
+                                </p>
+                                <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+                                  <span
+                                    className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${eventChipClass(
+                                      row.event_type,
+                                    )}`}
+                                  >
+                                    {row.event_type}
+                                  </span>
+                                  <span>
+                                    {formatClickTime(
+                                      row.meta?.clicked_at ?? row.created_at,
+                                    )}
+                                  </span>
+                                </p>
+                              </td>
+                              <td className="px-4 py-3.5 text-right align-middle text-[15px] font-bold tabular-nums text-[#172b63]">
+                                {row.click_count}
+                              </td>
+                              <td className="px-4 py-3.5 text-right align-middle">
+                                {row.duplicate_count > 0 ? (
+                                  <span className="inline-flex min-w-8 justify-center rounded-full bg-amber-50 px-2.5 py-0.5 text-[15px] font-bold tabular-nums text-amber-700 ring-1 ring-amber-200">
+                                    {row.duplicate_count}
+                                  </span>
+                                ) : (
+                                  <span className="text-[15px] font-bold tabular-nums text-slate-300">
+                                    0
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3.5 text-right align-middle">
+                                {row.counted_count > 0 ? (
+                                  <span className="inline-flex min-w-8 justify-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[15px] font-bold tabular-nums text-emerald-700 ring-1 ring-emerald-200">
+                                    {row.counted_count}
+                                  </span>
+                                ) : (
+                                  <span className="text-[15px] font-bold tabular-nums text-slate-300">
+                                    0
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3.5 text-right align-middle text-[15px] font-bold tabular-nums text-violet-700">
+                                {formatMoney(
+                                  row.total_earning_usd,
+                                  String(data?.currency ?? "USD"),
+                                )}
+                              </td>
+                              <td className="px-4 py-3.5 text-right align-middle">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void copyTrackedLink(rowKey, listingId)
+                                  }
+                                  disabled={listingId <= 0 || busy}
+                                  title={
+                                    listingId <= 0
+                                      ? "No tracked link for this row"
+                                      : "Copy your tracked share link"
+                                  }
+                                  className={`inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500 disabled:cursor-not-allowed disabled:opacity-40 ${
+                                    copied
+                                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                      : "border-violet-200 bg-white text-violet-700 hover:bg-violet-50"
+                                  }`}
+                                >
+                                  {copied ? (
+                                    <Check size={14} aria-hidden="true" />
+                                  ) : (
+                                    <Copy size={14} aria-hidden="true" />
+                                  )}
+                                  {copied
+                                    ? "Copied"
+                                    : busy
+                                      ? "Copying…"
+                                      : "Copy link"}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 )}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-500">
+                  <p>
+                    Showing {filteredTraffic.length} of {recentTraffic.length}{" "}
+                    job groups
+                  </p>
+                  {hasTrafficFilters ? (
+                    <button
+                      type="button"
+                      onClick={clearTrafficFilters}
+                      className="font-semibold text-violet-700 hover:underline"
+                    >
+                      Clear filters
+                    </button>
+                  ) : null}
+                </div>
               </div>
-            </div>
+            </section>
           ) : null}
 
-          <div className="mt-8 rounded-3xl border border-dashed border-purple-200 bg-white/80 p-6">
-            <h2 className="font-bold">Studio modules</h2>
+          <div className="mt-8 dash-card bg-gradient-to-br from-white to-violet-50/40 p-5 sm:p-6">
+            <h2 className="text-lg font-bold">Studio modules</h2>
             <p className="mt-1 text-sm text-slate-500">
               Jump to each part of your creator account.
             </p>
@@ -1036,7 +1295,7 @@ export default function CreatorDashboardPage() {
                 <Link
                   key={m.href}
                   href={m.href}
-                  className="group rounded-2xl border border-slate-200 bg-white p-4 transition duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_18px_34px_-24px_rgba(91,53,213,0.45)]"
+                  className="group rounded-2xl border border-slate-200 bg-white p-4 transition duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_18px_34px_-24px_rgba(10,95,207,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p className="font-bold text-indigo-950">{m.title}</p>
@@ -1054,23 +1313,42 @@ export default function CreatorDashboardPage() {
           </div>
 
           {topListings.length > 0 && campaign === "all" ? (
-            <div className="mt-8 dash-card p-6">
-              <h2 className="font-bold">Top listings by clicks</h2>
-              <ul className="mt-4 space-y-2 text-sm">
-                {topListings.map((row) => (
-                  <li
-                    key={row.listing_id}
-                    className="flex justify-between gap-2 border-b border-slate-50 py-2 last:border-0"
-                  >
-                    <span>
-                      {row.listing?.title ?? `Listing #${row.listing_id}`}
-                      {row.listing?.company_name
-                        ? ` · ${row.listing.company_name}`
-                        : ""}
-                    </span>
-                    <span className="font-semibold text-purple-600">{row.clicks} clicks</span>
-                  </li>
-                ))}
+            <div className="mt-8 dash-card p-5 sm:p-6">
+              <h2 className="text-lg font-bold">Top listings by clicks</h2>
+              <ul className="mt-4 space-y-3 text-sm">
+                {topListings.map((row, i) => {
+                  const max = Math.max(...topListings.map((r) => Number(r.clicks) || 0), 1);
+                  const pct = Math.max(4, Math.round(((Number(row.clicks) || 0) / max) * 100));
+                  return (
+                    <li key={row.listing_id} className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-xs font-bold text-violet-700">
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <span className="truncate font-medium text-[#0A2150]">
+                            {row.listing?.title ?? `Listing #${row.listing_id}`}
+                            {row.listing?.company_name ? (
+                              <span className="font-normal text-slate-500">
+                                {" · "}
+                                {row.listing.company_name}
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="shrink-0 text-xs font-semibold tabular-nums text-violet-700">
+                            {row.clicks} clicks
+                          </span>
+                        </div>
+                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ) : null}

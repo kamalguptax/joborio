@@ -17,7 +17,7 @@ const steps = [
   {
     n: "02",
     title: "Share tracked links",
-    text: "Copy JobOrio tracking URLs for jobs and courses, not raw employer links, so every click counts.",
+    text: "Copy Upclift tracking URLs for jobs and courses, not raw employer links, so every click counts.",
   },
   {
     n: "03",
@@ -35,7 +35,7 @@ export default function HowItWorksPage() {
         highlight="Verified performance. USD payouts."
         description="Three simple steps from signing up to getting paid for the audience you already have."
         primary={{ label: "Start as a creator", href: "/signup" }}
-        secondary={{ label: "Read the FAQ", href: "/faq" }}
+        secondary={{ label: "Contact us", href: "/contact" }}
         points={["Free to join", "Tracked links", "Paid in USD"]}
       />
 
@@ -49,9 +49,9 @@ export default function HowItWorksPage() {
           {steps.map((s) => (
             <li
               key={s.n}
-              className="relative rounded-3xl border border-slate-200/80 bg-white p-7 shadow-[0_1px_2px_rgba(15,27,61,0.04),0_18px_40px_-30px_rgba(15,27,61,0.25)] sm:p-8"
+              className="relative rounded-3xl border border-slate-200/80 bg-white p-7 shadow-[0_1px_2px_rgba(10,33,80,0.04),0_18px_40px_-30px_rgba(10,33,80,0.25)] sm:p-8"
             >
-              <span className="bg-gradient-to-br from-[#7C3AED] to-[#2563EB] bg-clip-text text-5xl font-bold leading-none tracking-tight text-transparent">
+              <span className="bg-gradient-to-br from-[#0A5FCF] to-[#2563EB] bg-clip-text text-5xl font-bold leading-none tracking-tight text-transparent">
                 {s.n}
               </span>
               <h3 className="text-card-heading mt-6">{s.title}</h3>

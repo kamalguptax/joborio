@@ -12,7 +12,7 @@ export default function Page() {
     <LiveTypedBrowse
       eyebrow="Courses"
       title="Courses worth sharing"
-      description="Live learning programmes from JobOrio listings and the opportunity feed. Share a course link and earn when people enrol."
+      description="Live learning programmes from Upclift listings and the opportunity feed. Share a course link and earn when people enrol."
       emptyHint="No course listings are live yet. Employers can launch a Courses campaign, or"
       ctaLabel="View course"
       listingTypes={["course"]}

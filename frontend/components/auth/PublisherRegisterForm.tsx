@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import MathCaptcha from "@/components/auth/MathCaptcha";
 import PasswordInput from "@/components/auth/PasswordInput";
-import MultiSelect from "@/components/ui/MultiSelect";
 import {
   authAlertError,
   authField,
@@ -14,39 +13,16 @@ import {
   authLink,
   authPrimaryButton,
 } from "@/components/auth/authStyles";
-import { fetchNiches } from "@/lib/api/creator";
 import { ApiClientError } from "@/lib/api/client";
 import {
   checkPublisherUsername,
   registerPublisher,
 } from "@/lib/api/publisherAuth";
-import type { Niche } from "@/lib/api/types";
 import { rememberPublicCode, setAuthToken } from "@/lib/auth/session";
 import { markOnboardingPending } from "@/lib/auth/onboardingFlag";
 
 const fieldOk = authField;
 const fieldErr = authFieldError;
-
-const countries = [
-  { value: "IN", label: "India" },
-  { value: "AE", label: "UAE" },
-  { value: "US", label: "USA" },
-] as const;
-
-const networkTypes = [
-  { value: "agency", label: "Agency" },
-  { value: "publisher", label: "Publisher" },
-  { value: "affiliate", label: "Affiliate" },
-  { value: "community", label: "Community" },
-] as const;
-
-const jobPrefs = [
-  { value: "full_time", label: "Full-time" },
-  { value: "part_time", label: "Part-time" },
-  { value: "remote", label: "Remote" },
-  { value: "internship", label: "Internship" },
-  { value: "fresher", label: "Fresher" },
-] as const;
 
 type FieldKey =
   | "fullName"
@@ -54,12 +30,6 @@ type FieldKey =
   | "email"
   | "password"
   | "confirm"
-  | "country"
-  | "networkType"
-  | "niches"
-  | "jobs"
-  | "socialUrl"
-  | "websiteUrl"
   | "accepted"
   | "captcha";
 
@@ -74,15 +44,6 @@ function FieldError({ message }: { message?: string }) {
   return <p className="mt-1 text-xs font-medium text-red-600">{message}</p>;
 }
 
-function isValidUrl(value: string): boolean {
-  try {
-    const u = new URL(value);
-    return u.protocol === "http:" || u.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
@@ -93,12 +54,6 @@ const apiFieldMap: Record<string, FieldKey> = {
   full_name: "fullName",
   password: "password",
   password_confirmation: "confirm",
-  country: "country",
-  network_type: "networkType",
-  niche_ids: "niches",
-  job_preferences: "jobs",
-  social_url: "socialUrl",
-  website_url: "websiteUrl",
   accepted_terms: "accepted",
   captcha_id: "captcha",
   captcha_answer: "captcha",
@@ -147,13 +102,6 @@ export default function PublisherRegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [country, setCountry] = useState<"" | "IN" | "AE" | "US">("");
-  const [networkType, setNetworkType] = useState("");
-  const [socialUrl, setSocialUrl] = useState("");
-  const [websiteUrl, setWebsiteUrl] = useState("");
-  const [selectedNiches, setSelectedNiches] = useState<number[]>([]);
-  const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
-  const [niches, setNiches] = useState<Niche[]>([]);
   const [accepted, setAccepted] = useState(false);
   const [captcha, setCaptcha] = useState({ captcha_id: "", captcha_answer: "" });
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -163,12 +111,6 @@ export default function PublisherRegisterForm() {
     "idle" | "checking" | "available" | "taken" | "invalid"
   >("idle");
   const [usernameHint, setUsernameHint] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchNiches()
-      .then(setNiches)
-      .catch(() => setNiches([]));
-  }, []);
 
   useEffect(() => {
     const value = username.trim().toLowerCase();
@@ -244,23 +186,11 @@ export default function PublisherRegisterForm() {
     });
   }
 
-  function toggleJob(value: string) {
-    setSelectedJobs((prev) => {
-      const next = prev.includes(value)
-        ? prev.filter((j) => j !== value)
-        : [...prev, value];
-      if (next.length > 0) clearError("jobs");
-      return next;
-    });
-  }
-
   function validate(): FieldErrors {
     const next: FieldErrors = {};
     const name = fullName.trim();
     const user = username.trim().toLowerCase();
     const mail = email.trim();
-    const social = socialUrl.trim();
-    const website = websiteUrl.trim();
 
     if (!name) next.fullName = "Full name is required.";
     else if (name.length < 2) next.fullName = "Enter your full name.";
@@ -289,31 +219,6 @@ export default function PublisherRegisterForm() {
     if (!confirm) next.confirm = "Confirm your password.";
     else if (password !== confirm) next.confirm = "Passwords do not match.";
 
-    if (!country) next.country = "Select a country.";
-    if (!networkType) next.networkType = "Select a network type.";
-
-    if (selectedNiches.length < 1) {
-      next.niches = "Select at least one audience niche.";
-    }
-    if (selectedJobs.length < 1) {
-      next.jobs = "Select at least one job preference.";
-    }
-
-    // At least one of social / website is required.
-    if (!social && !website) {
-      const either =
-        "Provide a social media URL or a website / community URL.";
-      next.socialUrl = either;
-      next.websiteUrl = either;
-    } else {
-      if (social && !isValidUrl(social)) {
-        next.socialUrl = "Enter a valid URL starting with https://";
-      }
-      if (website && !isValidUrl(website)) {
-        next.websiteUrl = "Enter a valid URL starting with https://";
-      }
-    }
-
     if (!accepted) next.accepted = "You must accept the Terms & Conditions.";
     if (!captcha.captcha_id || !captcha.captcha_answer.trim()) {
       next.captcha = "Complete the captcha.";
@@ -340,12 +245,6 @@ export default function PublisherRegisterForm() {
         email: email.trim(),
         password,
         password_confirmation: confirm,
-        country: country as "IN" | "AE" | "US",
-        niche_ids: selectedNiches,
-        job_preferences: selectedJobs,
-        network_type: networkType,
-        social_url: socialUrl.trim() || undefined,
-        website_url: websiteUrl.trim() || undefined,
         accepted_terms: true,
         captcha_id: captcha.captcha_id,
         captcha_answer: captcha.captcha_answer,
@@ -412,7 +311,7 @@ export default function PublisherRegisterForm() {
             }
             value={username}
             onChange={(e) => {
-              setUsername(e.target.value);
+              setUsername(e.target.value.toLowerCase());
               clearError("username");
             }}
             pattern="[a-zA-Z0-9_]{3,32}"
@@ -462,8 +361,7 @@ export default function PublisherRegisterForm() {
         <label className={authLabel}>
           Password
           <RequiredMark />
-          <input
-            type="password"
+          <PasswordInput
             className={errors.password ? fieldErr : fieldOk}
             value={password}
             onChange={(e) => {
@@ -478,8 +376,7 @@ export default function PublisherRegisterForm() {
         <label className={authLabel}>
           Confirm password
           <RequiredMark />
-          <input
-            type="password"
+          <PasswordInput
             className={errors.confirm ? fieldErr : fieldOk}
             value={confirm}
             onChange={(e) => {
@@ -490,154 +387,6 @@ export default function PublisherRegisterForm() {
             required
           />
           <FieldError message={errors.confirm} />
-        </label>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className={authLabel}>
-          Country
-          <RequiredMark />
-          <select
-            className={errors.country ? fieldErr : fieldOk}
-            value={country}
-            onChange={(e) => {
-              setCountry(e.target.value as "" | "IN" | "AE" | "US");
-              clearError("country");
-            }}
-            required
-          >
-            <option value="">Select country</option>
-            {countries.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-          <FieldError message={errors.country} />
-        </label>
-        <label className={authLabel}>
-          Network type
-          <RequiredMark />
-          <select
-            className={errors.networkType ? fieldErr : fieldOk}
-            value={networkType}
-            onChange={(e) => {
-              setNetworkType(e.target.value);
-              clearError("networkType");
-            }}
-            required
-          >
-            <option value="">Select network type</option>
-            {networkTypes.map((n) => (
-              <option key={n.value} value={n.value}>
-                {n.label}
-              </option>
-            ))}
-          </select>
-          <FieldError message={errors.networkType} />
-        </label>
-      </div>
-
-      <div>
-        <p className={authLabel}>
-          Audience niches
-          <RequiredMark />
-        </p>
-        <div
-          className={
-            errors.niches
-              ? "rounded-lg ring-2 ring-red-400/70 ring-offset-1"
-              : undefined
-          }
-        >
-          <MultiSelect
-            options={niches.map((n) => ({
-              value: String(n.id),
-              label: n.name,
-            }))}
-            value={selectedNiches.map(String)}
-            onChange={(next) => {
-              setSelectedNiches(next.map(Number));
-              if (next.length > 0) clearError("niches");
-            }}
-            disabled={niches.length === 0}
-            placeholder={
-              niches.length === 0 ? "Loading niches…" : "Search & select niches"
-            }
-            searchPlaceholder="Type to search niches…"
-            emptyLabel="No niches match your search"
-          />
-        </div>
-        <FieldError message={errors.niches} />
-      </div>
-
-      <div>
-        <p className={authLabel}>
-          Job preferences
-          <RequiredMark />
-        </p>
-        <div
-          className={`mt-2 flex flex-wrap gap-2 rounded-lg p-1 ${
-            errors.jobs ? "ring-2 ring-red-400/70" : ""
-          }`}
-        >
-          {jobPrefs.map((j) => {
-            const active = selectedJobs.includes(j.value);
-            return (
-              <button
-                key={j.value}
-                type="button"
-                onClick={() => toggleJob(j.value)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  active
-                    ? "border border-violet-600 bg-violet-600 text-white"
-                    : "border border-slate-200 bg-white text-slate-600 hover:border-violet-300"
-                }`}
-              >
-                {j.label}
-              </button>
-            );
-          })}
-        </div>
-        <FieldError message={errors.jobs} />
-      </div>
-
-      <div className="space-y-4">
-        <p className="text-xs text-slate-500">
-          Social media or website —{" "}
-          <span className="font-semibold text-violet-600">at least one required</span>
-          .
-        </p>
-        <label className={authLabel}>
-          Social media URL
-          <input
-            type="url"
-            className={errors.socialUrl ? fieldErr : fieldOk}
-            value={socialUrl}
-            onChange={(e) => {
-              setSocialUrl(e.target.value);
-              clearError("socialUrl");
-              clearError("websiteUrl");
-            }}
-            placeholder="https://…"
-          />
-          <FieldError message={errors.socialUrl} />
-        </label>
-
-        <label className={authLabel}>
-          Website / community URL
-          <input
-            type="url"
-            className={errors.websiteUrl ? fieldErr : fieldOk}
-            value={websiteUrl}
-            onChange={(e) => {
-              setWebsiteUrl(e.target.value);
-              clearError("websiteUrl");
-              clearError("socialUrl");
-            }}
-            placeholder="https://…"
-          />
-          <FieldError message={errors.websiteUrl} />
         </label>
       </div>
 

@@ -23,7 +23,7 @@ const columns = [
       { label: "Home", href: "/" },
       { label: "About", href: "/about" },
       { label: "Resources", href: "/resources" },
-      { label: "FAQ", href: "/faq" },
+      { label: "Feedback", href: "/feedback" },
     ],
   },
   {
@@ -55,19 +55,19 @@ function ReachingArt() {
     >
       <defs>
         <linearGradient id="reachA" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#7C3AED" stopOpacity="0" />
-          <stop offset="0.55" stopColor="#7C3AED" stopOpacity="0.55" />
+          <stop offset="0" stopColor="#0A5FCF" stopOpacity="0" />
+          <stop offset="0.55" stopColor="#0A5FCF" stopOpacity="0.55" />
           <stop offset="1" stopColor="#60A5FA" stopOpacity="0.95" />
         </linearGradient>
         <linearGradient id="reachB" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#2563EB" stopOpacity="0" />
           <stop offset="0.6" stopColor="#2563EB" stopOpacity="0.35" />
-          <stop offset="1" stopColor="#F0ABFC" stopOpacity="0.9" />
+          <stop offset="1" stopColor="#8AF7E6" stopOpacity="0.9" />
         </linearGradient>
         <radialGradient id="reachSpark">
           <stop offset="0" stopColor="#fff" stopOpacity="1" />
-          <stop offset="0.35" stopColor="#C4B5FD" stopOpacity="0.55" />
-          <stop offset="1" stopColor="#7C3AED" stopOpacity="0" />
+          <stop offset="0.35" stopColor="#8DBBFF" stopOpacity="0.55" />
+          <stop offset="1" stopColor="#0A5FCF" stopOpacity="0" />
         </radialGradient>
         <filter id="reachSoft" x="-10%" y="-30%" width="120%" height="160%">
           <feGaussianBlur stdDeviation="1.2" />
@@ -99,7 +99,7 @@ export default function Footer() {
     : columns;
 
   return (
-    <footer className="relative overflow-hidden bg-[#0B1D4F] text-slate-300">
+    <footer className="relative overflow-hidden bg-[#0A2150] text-slate-300">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/70 to-transparent" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-600/25 blur-3xl" />
       <div aria-hidden="true" className="pointer-events-none absolute -left-32 top-1/2 h-80 w-80 rounded-full bg-blue-500/15 blur-[110px]" />
@@ -168,7 +168,7 @@ export default function Footer() {
       {/* ---------- Giant faded wordmark ---------- */}
       <div aria-hidden="true" className="pointer-events-none relative -mt-2 select-none overflow-hidden text-center sm:-mt-4">
         <span className="font-logo block translate-y-[18%] bg-gradient-to-b from-white/[0.14] to-transparent bg-clip-text text-[clamp(5rem,23vw,24rem)] font-bold leading-[0.85] tracking-tight text-transparent">
-          JobOrio
+          Upclift
         </span>
       </div>
     </footer>

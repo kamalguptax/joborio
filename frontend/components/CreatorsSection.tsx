@@ -181,7 +181,7 @@ function PlatformIcon({
 
 export default function CreatorsSection() {
   return (
-    <section className="relative overflow-hidden bg-[#fff9fd] py-20 sm:py-24 lg:py-28">
+    <section className="relative overflow-hidden bg-[#f6faff] py-20 sm:py-24 lg:py-28">
 
       {/* =====================================================
           BACKGROUND
@@ -211,7 +211,7 @@ export default function CreatorsSection() {
 
             <p className="text-eyebrow mb-3 text-violet-600">Top Creators</p>
 
-            <h2 className="text-section-heading max-w-[560px] text-[#0F1B3D]">
+            <h2 className="text-section-heading max-w-[560px] text-[#0A2150]">
               Meet the creators
               <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
                 shaping opportunities.
@@ -320,7 +320,7 @@ export default function CreatorsSection() {
                 return (
                   <article
                     key={creator.name}
-                    className="group relative overflow-hidden rounded-[15px] border border-slate-200/80 bg-white p-3.5 shadow-[0_15px_45px_rgba(23,43,99,0.07)] transition-all duration-300 hover:-translate-y-2 hover:border-purple-200 hover:shadow-[0_25px_65px_rgba(124,58,237,0.13)]"
+                    className="group relative overflow-hidden rounded-[15px] border border-slate-200/80 bg-white p-3.5 shadow-[0_15px_45px_rgba(23,43,99,0.07)] transition-all duration-300 hover:-translate-y-2 hover:border-purple-200 hover:shadow-[0_25px_65px_rgba(10,95,207,0.13)]"
                   >
 
                     {/* Country */}
@@ -404,7 +404,7 @@ export default function CreatorsSection() {
                               )}`}
                               className={`rounded-xl px-1 py-2 text-center transition ${
                                 isTop
-                                  ? `bg-gradient-to-b from-purple-50 to-blue-50 ring-1 ring-purple-200`
+                                  ? `bg-gradient-to-b from-purple-50 to-fuchsia-500 ring-1 ring-purple-200`
                                   : "bg-slate-50"
                               }`}
                             >

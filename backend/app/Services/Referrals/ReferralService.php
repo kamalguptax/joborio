@@ -158,7 +158,7 @@ class ReferralService
             return false;
         }
 
-        // Override is a share of JobOrio's platform fee (not the referred creator's net).
+        // Override is a share of Upclift's platform fee (not the referred creator's net).
         $percent = $this->settings->referralTerms()['override_percent'] / 100;
         $feeBase = (float) $source->platform_fee_usd;
         if ($feeBase <= 0) {
@@ -320,7 +320,7 @@ class ReferralService
         $title = 'Message from your referrer';
         $body = trim((string) $message);
         if ($body === '') {
-            $body = '@'.$referrer->handle.' sent you a nudge on JobOrio. Keep promoting to unlock referral rewards together.';
+            $body = '@'.$referrer->handle.' sent you a nudge on Upclift. Keep promoting to unlock referral rewards together.';
         }
 
         $sent = 0;

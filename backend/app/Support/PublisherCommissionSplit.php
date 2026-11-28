@@ -3,9 +3,9 @@
 namespace App\Support;
 
 /**
- * JobOrio publisher network revenue split.
+ * Upclift publisher network revenue split.
  *
- * Campaign earnings → JobOrio platform fee (default 30%) → creator pool (70%).
+ * Campaign earnings → Upclift platform fee (default 30%) → creator pool (70%).
  * Publisher takes 10–15% of the pool; creators receive the remainder of the pool.
  */
 class PublisherCommissionSplit

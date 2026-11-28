@@ -3,7 +3,7 @@
 namespace App\Support;
 
 /**
- * Append JobOrio PPR attribution params to the employer destination URL.
+ * Append Upclift PPR attribution params to the employer destination URL.
  * Employer reads `joborio_token` (or legacy `token`) after registration and
  * posts it to POST /api/v1/webhooks/ppr.
  */

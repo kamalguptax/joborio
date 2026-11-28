@@ -146,7 +146,7 @@ export default function CredentialsPanel({
               <input
                 className={field}
                 type="url"
-                placeholder="https://your-site.com/hooks/joborio"
+                placeholder="https://your-site.com/hooks/upclift"
                 value={outboundUrl}
                 onChange={(e) => setOutboundUrl(e.target.value)}
               />

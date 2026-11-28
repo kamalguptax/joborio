@@ -6,14 +6,14 @@ import GuestOnly from "@/components/auth/GuestOnly";
 export const metadata: Metadata = {
   title: "Join as a Creator",
   description:
-    "Your audience has value. Share trusted campaigns, track real results, and get paid on JobOrio.",
+    "Your audience has value. Share trusted campaigns, track real results, and get paid on Upclift.",
 };
 
 export default function CreatorRegisterPage() {
   return (
     <GuestOnly>
     <AuthShell
-      title="Join JobOrio as a Creator"
+      title="Join Upclift as a Creator"
       subtitle="Share trusted campaigns, track real results, and get paid."
       topPrompt="Already a creator?"
       topLinkLabel="Creator login"

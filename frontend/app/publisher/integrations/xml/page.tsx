@@ -53,7 +53,7 @@ export default function PublisherXmlIntegrationPage() {
         </p>
         <p className="mt-2 max-w-2xl text-slate-500">
           XML is for publishers and partners that exchange jobs or campaign data
-          as a feed. JobOrio does not invent partner contracts — use the URL
+          as a feed. Upclift does not invent partner contracts — use the URL
           when your feed is provisioned.
         </p>
       </div>
@@ -72,7 +72,7 @@ export default function PublisherXmlIntegrationPage() {
         steps={[
           {
             title: "Get your feed hint URL",
-            body: "Each publisher has a dedicated XML path based on your publisher code. Copy it below once JobOrio (or your partner) provisions the feed.",
+            body: "Each publisher has a dedicated XML path based on your publisher code. Copy it below once Upclift (or your partner) provisions the feed.",
           },
           {
             title: "Confirm the partner contract",

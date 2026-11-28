@@ -45,7 +45,7 @@ function VerifyPprContent() {
           href="/"
           className="mt-8 inline-block rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-2.5 text-sm font-bold text-white"
         >
-          Back to JobOrio
+          Back to Upclift
         </Link>
       </div>
     </main>

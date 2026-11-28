@@ -273,7 +273,7 @@ class ProgramController extends Controller
     private function platformEmployer(User $admin): Employer
     {
         $existing = Employer::query()
-            ->where('company_name', 'JobOrio Platform')
+            ->whereIn('company_name', ['Upclift Platform', 'JobOrio Platform'])
             ->first();
         if ($existing) {
             return $existing;
@@ -290,7 +290,7 @@ class ProgramController extends Controller
 
         return Employer::create([
             'user_id' => $admin->id,
-            'company_name' => 'JobOrio Platform',
+            'company_name' => 'Upclift Platform',
             'website' => 'https://joborio.com',
             'country_code' => 'IN',
         ]);

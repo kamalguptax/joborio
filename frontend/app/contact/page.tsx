@@ -5,7 +5,7 @@ import PageHero from "@/components/layout/PageHero";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Questions about creators, payouts or partnerships? Reach the JobOrio team.",
+  description: "Questions about creators, payouts or partnerships? Reach the Upclift team.",
 };
 
 const cards = [
@@ -51,7 +51,7 @@ export default function ContactPage() {
             <Link
               key={title}
               href={href}
-              className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-7 shadow-[0_1px_2px_rgba(15,27,61,0.04),0_18px_40px_-30px_rgba(15,27,61,0.25)] transition duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_28px_50px_-30px_rgba(91,53,213,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+              className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-7 shadow-[0_1px_2px_rgba(10,33,80,0.04),0_18px_40px_-30px_rgba(10,33,80,0.25)] transition duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_28px_50px_-30px_rgba(10,95,207,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
             >
               <span className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${tint}`}>
                 <Icon size={22} />

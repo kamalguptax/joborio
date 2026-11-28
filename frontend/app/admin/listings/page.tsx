@@ -40,7 +40,7 @@ export default function AdminListingsPage() {
     try {
       await adminCreateListing({
         title: `Sample role ${Date.now()}`,
-        company_name: "JobOrio",
+        company_name: "Upclift",
         destination_url: "https://example.com/jobs/sample",
         country_code: "US",
         is_remote: true,

@@ -94,9 +94,9 @@ class AiPostStudioService
         $cityTag = $city !== '' ? preg_replace('/[^A-Za-z0-9]+/', '', $city).'Jobs' : 'Jobs';
 
         return match ($platform) {
-            'whatsapp' => "👋 Hi! Found a role worth sharing:\n\n*{$company} Looking for {$title}*\n📍 Location: {$loc}\n\nApply Now:\n{$url}\n\n— @{$handle} on JobOrio",
-            'instagram' => "{$company} is hiring – {$title}".($city !== '' ? " in {$city}" : '')."!\n\n{$company} is looking for skilled professionals to join its team.\n\nCheck my bio link to apply for this role\n{$url}\n\n#{$companyTag} #EngineeringJobs #{$cityTag} #JobOrio",
-            'linkedin' => "{$company} Looking for {$title}\n\n📍 Location: {$loc}\n\nApply Now:\n{$url}\n\n#Hiring #{$companyTag} #{$cityTag} #JobOrio",
+            'whatsapp' => "👋 Hi! Found a role worth sharing:\n\n*{$company} Looking for {$title}*\n📍 Location: {$loc}\n\nApply Now:\n{$url}\n\n— @{$handle} on Upclift",
+            'instagram' => "{$company} is hiring – {$title}".($city !== '' ? " in {$city}" : '')."!\n\n{$company} is looking for skilled professionals to join its team.\n\nCheck my bio link to apply for this role\n{$url}\n\n#{$companyTag} #EngineeringJobs #{$cityTag} #Upclift",
+            'linkedin' => "{$company} Looking for {$title}\n\n📍 Location: {$loc}\n\nApply Now:\n{$url}\n\n#Hiring #{$companyTag} #{$cityTag} #Upclift",
             'twitter' => "{$company} is hiring – {$title}".($city !== '' ? " in {$city}" : '')."!\n\nCheck my bio link to apply for this role\n{$url}\n\n#{$companyTag} #{$cityTag}",
             default => "{$title} — {$url}",
         };

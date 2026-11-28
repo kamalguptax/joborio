@@ -8,24 +8,24 @@ export type FaqItem = { question: string; answer: string };
 
 const defaultFaqs: FaqItem[] = [
   {
-    question: "How does JobOrio work for creators?",
+    question: "How does Upclift work for creators?",
     answer:
       "You share tracked job, course and campaign links with your audience. When someone clicks, signs up or applies through your link, you earn for those qualified actions. The more relevant shares you make, the more you can earn.",
   },
   {
     question: "How much of my earnings do I keep?",
     answer:
-      "Creators typically keep about 75% of qualified revenue. JobOrio’s platform fee is usually around 25%. Exact rates can be adjusted in platform settings, but the model is designed so you keep the majority of what you earn.",
+      "Creators typically keep about 75% of qualified revenue. Upclift’s platform fee is usually around 25%. Exact rates can be adjusted in platform settings, but the model is designed so you keep the majority of what you earn.",
   },
   {
     question: "What is Refer & Earn?",
     answer:
-      "Share your referral link or code so other creators can join JobOrio. When someone signs up with your code and starts earning, you receive a share of JobOrio’s platform fee on their earnings (typically 2–5%) for a limited override period — paid from the platform’s cut, not from theirs.",
+      "Share your referral link or code so other creators can join Upclift. When someone signs up with your code and starts earning, you receive a share of Upclift’s platform fee on their earnings (typically 2–5%) for a limited override period — paid from the platform’s cut, not from theirs.",
   },
   {
     question: "Example: Aman refers Pankaj — who gets what?",
     answer:
-      "If Pankaj generates $100 in qualified revenue, Pankaj receives about $75. JobOrio’s fee is about $25. Aman (the referrer) earns 2–5% of that platform fee for the override window. Pankaj’s 75% is not reduced by Aman’s share.",
+      "If Pankaj generates $100 in qualified revenue, Pankaj receives about $75. Upclift’s fee is about $25. Aman (the referrer) earns 2–5% of that platform fee for the override window. Pankaj’s 75% is not reduced by Aman’s share.",
   },
   {
     question: "Where do I enter a referral code?",
@@ -38,9 +38,9 @@ const defaultFaqs: FaqItem[] = [
       "Earnings move through a short hold window, then become payable. Once you reach the minimum payout threshold, you can withdraw to your linked payout method. Timing depends on earning type and verification.",
   },
   {
-    question: "Is JobOrio free for creators?",
+    question: "Is Upclift free for creators?",
     answer:
-      "Yes. Creating a profile, browsing opportunities and sharing links does not require an upfront fee. JobOrio earns through the platform fee on qualified revenue — not by charging you to join.",
+      "Yes. Creating a profile, browsing opportunities and sharing links does not require an upfront fee. Upclift earns through the platform fee on qualified revenue — not by charging you to join.",
   },
   {
     question: "How do I contact support?",
@@ -63,7 +63,7 @@ const tones = [
   {
     chip: "bg-violet-100 text-violet-600",
     open: "from-violet-50 to-indigo-50 border-violet-200",
-    bar: "from-[#7C3AED] to-[#2563EB]",
+    bar: "from-[#0A5FCF] to-[#2563EB]",
   },
   {
     chip: "bg-sky-100 text-sky-600",
@@ -82,10 +82,10 @@ const tones = [
   },
 ] as const;
 
-const ctaBg = { backgroundImage: "linear-gradient(135deg, #0B1D4F 0%, #14296B 48%, #2E2297 100%)" };
+const ctaBg = { backgroundImage: "linear-gradient(135deg, #0A2150 0%, #0B3D91 48%, #0A3D91 100%)" };
 
 type Props = {
-  /** Questions to show. Defaults to the main JobOrio FAQ. */
+  /** Questions to show. Defaults to the main Upclift FAQ. */
   items?: FaqItem[];
   title?: string;
   description?: string;
@@ -95,13 +95,13 @@ type Props = {
 };
 
 /**
- * The one FAQ design used across the site (home, /faq and every content page).
+ * The one FAQ design used across the site (home, brand page and every content page).
  * Pass `items` to show page-specific questions; everything else stays the same.
  */
 export default function FAQSection({
   items = defaultFaqs,
   title = "Frequently Asked Questions",
-  description = "Earnings, referrals, and how JobOrio pays creators.",
+  description = "Earnings, referrals, and how Upclift pays creators.",
   cta = defaultCta,
   id = "faq",
 }: Props) {
@@ -131,18 +131,18 @@ export default function FAQSection({
         {/* ---------- Left: label + heading ---------- */}
         <div className="min-w-0 lg:sticky lg:top-28 lg:self-start">
           <span className="inline-flex items-center gap-2.5 rounded-full bg-violet-100 py-1.5 pl-1.5 pr-4 text-sm font-semibold text-violet-700">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#2563EB] text-xs font-bold text-white shadow-sm">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#0A5FCF] to-[#2563EB] text-xs font-bold text-white shadow-sm">
               ?
             </span>
             FAQ
           </span>
 
-          <h2 className="mt-5 max-w-[18ch] text-balance text-[clamp(1.75rem,1.2rem+2.2vw,2.75rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-[#0F1B3D]">
+          <h2 className="mt-5 max-w-[18ch] text-balance text-[clamp(1.75rem,1.2rem+2.2vw,2.75rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-[#0A2150]">
             {firstPart}
             {lastWord ? (
               <>
                 {" "}
-                <span className="bg-gradient-to-r from-[#7C3AED] to-[#2563EB] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] bg-clip-text text-transparent">
                   {lastWord}
                 </span>
               </>
@@ -152,7 +152,7 @@ export default function FAQSection({
 
           {cta ? (
             <div
-              className="relative mt-8 hidden max-w-sm overflow-hidden rounded-3xl p-6 text-white shadow-[0_24px_50px_-30px_rgba(46,34,151,0.8)] lg:block"
+              className="relative mt-8 hidden max-w-sm overflow-hidden rounded-3xl p-6 text-white shadow-[0_24px_50px_-30px_rgba(10,61,145,0.8)] lg:block"
               style={ctaBg}
             >
               <div
@@ -166,7 +166,7 @@ export default function FAQSection({
                 ) : null}
                 <Link
                   href={cta.href}
-                  className="mt-5 inline-flex min-h-11 items-center rounded-full bg-white px-6 text-sm font-semibold text-[#2E2297] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className="mt-5 inline-flex min-h-11 items-center rounded-full bg-white px-6 text-sm font-semibold text-[#0A3D91] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   {cta.label}
                 </Link>
@@ -189,7 +189,7 @@ export default function FAQSection({
                   key={faq.question}
                   className={`relative overflow-hidden rounded-3xl border transition-all duration-300 ${
                     isOpen
-                      ? `bg-gradient-to-br ${tone.open} shadow-[0_18px_40px_-28px_rgba(76,29,149,0.45)]`
+                      ? `bg-gradient-to-br ${tone.open} shadow-[0_18px_40px_-28px_rgba(10,61,145,0.45)]`
                       : "border-slate-200/80 bg-white shadow-sm hover:border-violet-200 hover:shadow-md"
                   }`}
                 >
@@ -206,9 +206,9 @@ export default function FAQSection({
                       onClick={() => toggle(i)}
                       aria-expanded={isOpen}
                       aria-controls={panelId}
-                      className="flex w-full items-center justify-between gap-4 rounded-3xl px-5 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#633BFF] sm:px-8 sm:py-6"
+                      className="flex w-full items-center justify-between gap-4 rounded-3xl px-5 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0A5FCF] sm:px-8 sm:py-6"
                     >
-                      <span className="text-base font-semibold leading-snug text-[#0F1B3D] sm:text-lg">
+                      <span className="text-base font-semibold leading-snug text-[#0A2150] sm:text-lg">
                         {faq.question}
                       </span>
                       <span
@@ -250,7 +250,7 @@ export default function FAQSection({
               <p className="text-base font-semibold">{cta.title}</p>
               <Link
                 href={cta.href}
-                className="inline-flex min-h-11 items-center rounded-full bg-white px-6 text-sm font-semibold text-[#2E2297] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="inline-flex min-h-11 items-center rounded-full bg-white px-6 text-sm font-semibold text-[#0A3D91] transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 {cta.label}
               </Link>

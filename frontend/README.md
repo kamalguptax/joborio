@@ -1,4 +1,4 @@
-# JobOrio Frontend (Next.js)
+# Upclift Frontend (Next.js)
 
 UI designs live in this folder. The app talks to the Laravel API in `../backend`.
 
@@ -18,7 +18,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Variable | Example |
 |----------|---------|
 | `NEXT_PUBLIC_API_URL` | `http://127.0.0.1:8000` |
-| `NEXT_PUBLIC_APP_NAME` | `JobOrio` |
+| `NEXT_PUBLIC_APP_NAME` | `Upclift` |
 
 In `backend/.env`, set `FRONTEND_URL=http://localhost:3000` so OAuth redirects to `/auth/callback`.
 
@@ -58,7 +58,7 @@ Login as `admin@joborio.com` → header **Admin** → `/admin/listings`, `/admin
 | `/creator/settings` | Payout method |
 | `/jobs` | Marketplace browse + search |
 | `/p/[handle]` | Public creator page (share, listings) |
-| `/how-it-works`, `/faq`, `/contact`, `/privacy` | Marketing |
+| `/how-it-works`, `/feedback`, `/contact`, `/privacy` | Marketing |
 
 ## API
 

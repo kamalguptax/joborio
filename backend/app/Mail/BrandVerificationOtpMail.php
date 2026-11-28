@@ -21,7 +21,7 @@ class BrandVerificationOtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Verify your JobOrio brand account',
+            subject: 'Verify your Upclift brand account',
         );
     }
 
@@ -29,10 +29,10 @@ class BrandVerificationOtpMail extends Mailable
     {
         return new Content(
             htmlString: <<<HTML
-                <div style="font-family:ui-sans-serif,system-ui,sans-serif;line-height:1.5;color:#0F1B3D">
+                <div style="font-family:ui-sans-serif,system-ui,sans-serif;line-height:1.5;color:#0A2150">
                   <h2 style="margin:0 0 12px">Verify your brand account</h2>
                   <p>Hi {$this->brandName},</p>
-                  <p>Use this one-time code to activate your JobOrio brand account:</p>
+                  <p>Use this one-time code to activate your Upclift brand account:</p>
                   <p style="font-size:28px;font-weight:700;letter-spacing:0.2em;margin:20px 0">{$this->otp}</p>
                   <p>Or open this link: <a href="{$this->verifyUrl}">{$this->verifyUrl}</a></p>
                   <p style="color:#64748b;font-size:13px">This code expires in 15 minutes.</p>

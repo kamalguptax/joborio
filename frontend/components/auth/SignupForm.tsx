@@ -337,7 +337,7 @@ export default function SignupForm() {
           {...aria("accepted")}
         />
         <span>
-          I agree to JobOrio&apos;s{" "}
+          I agree to Upclift&apos;s{" "}
           <Link href="/terms" className={authLink}>
             Terms & Conditions
           </Link>

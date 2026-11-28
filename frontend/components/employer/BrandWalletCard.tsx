@@ -56,7 +56,7 @@ export default function BrandWalletCard() {
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Wallet
             </p>
-            <p className="mt-1 text-3xl font-bold tabular-nums text-[#0F1B3D]">
+            <p className="mt-1 text-3xl font-bold tabular-nums text-[#0A2150]">
               {balance == null ? "…" : money.format(balance)}
             </p>
             <p className="mt-1 text-sm text-slate-500">
@@ -76,7 +76,7 @@ export default function BrandWalletCard() {
             {showAddFund ? "Hide add fund" : "Add fund"}
           </button>
           <Link
-            href="/employer/billing"
+            href="/brand/billing"
             className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
           >
             Billing & Wallet

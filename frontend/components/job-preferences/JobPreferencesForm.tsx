@@ -123,7 +123,7 @@ function ChipInput({
   };
 
   return (
-    <label className="block text-sm font-semibold text-[#0F1B3D]">
+    <label className="block text-sm font-semibold text-[#0A2150]">
       {label}
       {hint ? <span className="ml-1 font-normal text-slate-400">{hint}</span> : null}
       <div className="mt-2 flex flex-wrap gap-2">
@@ -286,7 +286,7 @@ export default function JobPreferencesForm({
         <p className="text-xs font-bold uppercase tracking-wider text-violet-600">
           01 · Opportunity categories
         </p>
-        <p className="mt-1 text-sm font-semibold text-[#0F1B3D]">
+        <p className="mt-1 text-sm font-semibold text-[#0A2150]">
           What do you want to promote?
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -331,7 +331,7 @@ export default function JobPreferencesForm({
             onChange={(brands) => setTargeting((t) => ({ ...t, brands }))}
             placeholder="e.g. Google, Coursera"
           />
-          <label className="block text-sm font-semibold text-[#0F1B3D]">
+          <label className="block text-sm font-semibold text-[#0A2150]">
             Currency
             <select
               className={field}

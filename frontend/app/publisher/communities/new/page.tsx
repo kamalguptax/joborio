@@ -536,7 +536,7 @@ export default function PublisherCreateCommunityPage() {
                 Publisher commission (10–15% of creator pool) *
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                JobOrio keeps 30% platform fee first. Your rate is taken from the
+                Upclift keeps 30% platform fee first. Your rate is taken from the
                 remaining 70% pool (creators get the rest).
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -556,7 +556,7 @@ export default function PublisherCreateCommunityPage() {
                 ))}
               </div>
               <p className="mt-2 text-[11px] text-slate-500">
-                Example on $10 at {commissionPercent}%: JobOrio $3.00 · you $
+                Example on $10 at {commissionPercent}%: Upclift $3.00 · you $
                 {((7 * commissionPercent) / 100).toFixed(2)} · creators $
                 {(7 - (7 * commissionPercent) / 100).toFixed(2)}
               </p>

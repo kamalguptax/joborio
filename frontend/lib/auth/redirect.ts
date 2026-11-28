@@ -30,7 +30,7 @@ export function hasNoRole(me: User): boolean {
  *   admin          -> /admin/dashboard
  *   publisher      -> /publisher/dashboard   (/publisher/onboarding until finished)
  *   network member -> /network/dashboard     (/network/onboarding until finished)
- *   brand/employer -> /employer/dashboard    (/brand/onboarding until finished)
+ *   brand/employer -> /brand/dashboard    (/brand/onboarding until finished)
  *   creator        -> /creator/dashboard
  *   nothing yet    -> /onboarding (creator onboarding)
  * `prefer: "employer"` is for the brand login page: a user who is both a
@@ -60,7 +60,7 @@ export function homePathForUser(
   if (f.isEmployer && (opts?.prefer === "employer" || !f.isCreator)) {
     return isOnboardingPending(me.id, "employer")
       ? ONBOARDING_PATHS.employer
-      : "/employer/dashboard";
+      : "/brand/dashboard";
   }
   if (f.isCreator) {
     return isOnboardingPending(me.id, "creator")
@@ -78,10 +78,14 @@ export function canVisit(path: string, me: User): boolean {
   if (p.startsWith("/publisher")) return f.isPublisher;
   if (p.startsWith("/network")) return f.isNetworkMember;
   if (p.startsWith("/creator")) return f.isCreator;
-  if (p.startsWith("/employer/onboarding")) {
+  if (p.startsWith("/brand/setup")) {
     return !(f.isEmployer || f.isAdmin || f.isPublisher || f.isNetworkMember);
   }
-  if (p.startsWith("/employer")) return f.isEmployer;
+  if (p === "/brand" || p.startsWith("/brand/")) {
+    const open = ["/brand/login", "/brand/register", "/brand/verify", "/brand/onboarding"];
+    if (open.some((x) => p === x || p.startsWith(`${x}/`))) return true;
+    return f.isEmployer;
+  }
   if (p.startsWith("/onboarding")) {
     return hasNoRole(me) || isOnboardingPending(me.id, "creator");
   }
@@ -101,7 +105,7 @@ export function navigateTo(router: { replace: (path: string) => void }, path: st
  * Which login page the visitor used. Each role-specific login page only lets
  * its own account type in and sends it to its own dashboard.
  *   creator   -> /creator/login   -> /creator/dashboard
- *   employer  -> /brand/login     -> /employer/dashboard
+ *   employer  -> /brand/login     -> /brand/dashboard
  *   publisher -> /publisher/login -> /publisher/dashboard
  */
 export type LoginRole = "creator" | "employer" | "publisher";
@@ -111,7 +115,7 @@ export const LOGIN_ROLE_INFO: Record<
   { label: string; loginPath: string; area: string }
 > = {
   creator: { label: "Creator", loginPath: "/creator/login", area: "/creator" },
-  employer: { label: "Brand", loginPath: "/brand/login", area: "/employer" },
+  employer: { label: "Brand", loginPath: "/brand/login", area: "/brand" },
   publisher: { label: "Publisher", loginPath: "/publisher/login", area: "/publisher" },
 };
 
@@ -133,7 +137,7 @@ export function homePathForRole(me: User, role: LoginRole): string {
   if (role === "employer") {
     return isOnboardingPending(me.id, "employer")
       ? ONBOARDING_PATHS.employer
-      : "/employer/dashboard";
+      : "/brand/dashboard";
   }
   return isOnboardingPending(me.id, "publisher")
     ? ONBOARDING_PATHS.publisher

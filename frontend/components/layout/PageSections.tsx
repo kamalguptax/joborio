@@ -39,11 +39,11 @@ const wrap = "mx-auto w-full max-w-[1600px] px-4 sm:px-8 lg:px-10";
 export function StatsStrip({ items }: { items: { value: string; label: string }[] }) {
   return (
     <section className={`${wrap} relative z-10 pt-10 sm:pt-14`}>
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-slate-200 bg-slate-200 shadow-[0_24px_50px_-34px_rgba(15,27,61,0.35)] lg:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-slate-200 bg-slate-200 shadow-[0_24px_50px_-34px_rgba(10,33,80,0.35)] lg:grid-cols-4">
         {items.map((s) => (
           <div key={s.label} className="flex flex-col-reverse gap-1.5 bg-white px-5 py-6 text-center sm:px-6 sm:py-8">
             <dt className="text-sm leading-snug text-slate-500">{s.label}</dt>
-            <dd className="bg-gradient-to-r from-[#7C3AED] to-[#2563EB] bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
+            <dd className="bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
               {s.value}
             </dd>
           </div>
@@ -81,7 +81,7 @@ export function StepsSection({
           />
           {steps.map((s, i) => (
             <li key={s.title} className="relative flex gap-4 sm:gap-5">
-              <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#2563EB] text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(91,53,213,0.8)] ring-4 ring-slate-50">
+              <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#0A5FCF] to-[#2563EB] text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(10,95,207,0.8)] ring-4 ring-slate-50">
                 {i + 1}
               </span>
               <div className="min-w-0 flex-1 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
@@ -127,7 +127,7 @@ export function BenefitsSection({
             return (
               <li
                 key={b.title}
-                className={`group relative min-w-0 overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,27,61,0.04),0_18px_40px_-28px_rgba(15,27,61,0.25)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_50px_-30px_rgba(91,53,213,0.4)] sm:p-7 ${tone.hover}`}
+                className={`group relative min-w-0 overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(10,33,80,0.04),0_18px_40px_-28px_rgba(10,33,80,0.25)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_50px_-30px_rgba(10,95,207,0.4)] sm:p-7 ${tone.hover}`}
               >
                 <span
                   aria-hidden="true"
@@ -138,7 +138,7 @@ export function BenefitsSection({
                 >
                   <Icon size={22} strokeWidth={2} aria-hidden="true" />
                 </span>
-                <h3 className="relative mt-5 text-lg font-bold text-[#0F1B3D]">{b.title}</h3>
+                <h3 className="relative mt-5 text-lg font-bold text-[#0A2150]">{b.title}</h3>
                 <p className="text-body relative mt-2 leading-7 text-slate-500">{b.text}</p>
               </li>
             );
@@ -159,7 +159,7 @@ export function BenefitsSection({
           >
             <CheckIcon />
             <div className="min-w-0">
-              <h3 className="text-base font-semibold text-[#0F1B3D]">{b.title}</h3>
+              <h3 className="text-base font-semibold text-[#0A2150]">{b.title}</h3>
               <p className="text-body mt-1.5 text-slate-500">{b.text}</p>
             </div>
           </li>

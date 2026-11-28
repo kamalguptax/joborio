@@ -71,7 +71,7 @@ export default function ReferAndEarnPopup() {
         className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl shadow-indigo-900/20"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-gradient-to-br from-[#7C3AED] via-[#5B21B6] to-[#2563EB] px-6 pb-8 pt-6 text-white">
+        <div className="bg-gradient-to-br from-[#0A5FCF] via-[#0a4aa8] to-[#2563EB] px-6 pb-8 pt-6 text-white">
           <button
             type="button"
             onClick={close}
@@ -91,7 +91,7 @@ export default function ReferAndEarnPopup() {
           </h2>
           <p className="mt-2 text-sm text-violet-100">
             Share your invite link. They keep about 75% of revenue — you earn 2–5%
-            from JobOrio’s platform fee when they start earning.
+            from Upclift’s platform fee when they start earning.
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export default function ReferAndEarnPopup() {
             <Link
               href="/creator/referrals"
               onClick={close}
-              className="inline-flex flex-1 items-center justify-center rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/25"
+              className="inline-flex flex-1 items-center justify-center rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/25"
             >
               Open Referrals
             </Link>

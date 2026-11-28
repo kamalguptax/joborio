@@ -28,7 +28,7 @@ export default function CookieConsent() {
       >
         <div className="min-w-0 flex-1">
           <p id="cookie-consent-title" className="text-base font-bold text-[#172b63]">
-            Cookies on JobOrio
+            Cookies on Upclift
           </p>
           <p id="cookie-consent-body" className="mt-1 text-sm leading-6 text-slate-500">
             We use cookies to keep you signed in and to remember this choice. Accept allows optional cookies. Reject keeps only what the site needs to work.{" "}
@@ -48,7 +48,7 @@ export default function CookieConsent() {
           <button
             type="button"
             onClick={() => choose("accepted")}
-            className="rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110"
+            className="rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110"
           >
             Accept
           </button>

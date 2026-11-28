@@ -11,7 +11,7 @@ const nav = [
   { href: "/creator/campaigns", label: "Campaigns" },
   { href: "/jobs", label: "Courses" },
   { href: "/jobs", label: "Marketplace" },
-  { href: "/faq", label: "Resources" },
+  { href: "/resources", label: "Resources" },
 ];
 
 export default function Header({ authPage = false }: { authPage?: boolean }) {
@@ -36,12 +36,12 @@ export default function Header({ authPage = false }: { authPage?: boolean }) {
         <div className="mx-auto flex max-w-[1460px] items-center justify-between gap-4 px-5 py-3.5 lg:px-8">
           <Link
             href="/"
-            className="font-logo flex shrink-0 items-center gap-2 text-xl text-[#7030A0] lg:text-2xl"
+            className="font-logo flex shrink-0 items-center gap-2 text-xl text-[#0A4AA8] lg:text-2xl"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#7030A0] text-sm font-extrabold text-white">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0A4AA8] text-sm font-extrabold text-white">
               J
             </span>
-            Job<span className="text-slate-900">Orio</span>
+            <span className="text-slate-900">Up</span>clift
           </Link>
 
           <nav className="hidden items-center gap-6 xl:flex">
@@ -49,7 +49,7 @@ export default function Header({ authPage = false }: { authPage?: boolean }) {
               <Link
                 key={label}
                 href={href}
-                className="text-sm font-medium text-slate-600 transition hover:text-[#7030A0]"
+                className="text-sm font-medium text-slate-600 transition hover:text-[#0A4AA8]"
               >
                 {label}
               </Link>
@@ -60,14 +60,14 @@ export default function Header({ authPage = false }: { authPage?: boolean }) {
             {ready && isAdmin ? (
               <Link
                 href="/admin/listings"
-                className="hidden text-sm font-medium text-slate-500 hover:text-[#7030A0] md:block"
+                className="hidden text-sm font-medium text-slate-500 hover:text-[#0A4AA8] md:block"
               >
                 Admin
               </Link>
             ) : null}
             <Link
               href="/jobs"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[#7030A0]"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[#0A4AA8]"
               aria-label="Search opportunities"
             >
               <Search size={20} />
@@ -75,21 +75,21 @@ export default function Header({ authPage = false }: { authPage?: boolean }) {
             {ready && loggedIn ? (
               <Link
                 href="/creator/dashboard"
-                className="hidden rounded-full border border-[#7030A0]/30 px-4 py-2 text-sm font-semibold text-[#7030A0] sm:inline-flex"
+                className="hidden rounded-full border border-[#0A4AA8]/30 px-4 py-2 text-sm font-semibold text-[#0A4AA8] sm:inline-flex"
               >
                 {handle ? `@${handle}` : "Dashboard"}
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="hidden rounded-full border-2 border-[#7030A0] px-4 py-2 text-sm font-semibold text-[#7030A0] transition hover:bg-[#7030A0]/5 sm:inline-flex"
+                className="hidden rounded-full border-2 border-[#0A4AA8] px-4 py-2 text-sm font-semibold text-[#0A4AA8] transition hover:bg-[#0A4AA8]/5 sm:inline-flex"
               >
                 Login
               </Link>
             )}
             <Link
               href={loggedIn ? "/creator/campaigns" : "/signup"}
-              className="font-ui inline-flex items-center gap-1.5 rounded-full bg-[#7030A0] px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-[#7030A0]/25 transition hover:bg-[#5c2890] sm:px-5"
+              className="font-ui inline-flex items-center gap-1.5 rounded-full bg-[#0A4AA8] px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-[#0A4AA8]/25 transition hover:bg-[#0a4aa8] sm:px-5"
             >
               Get Started
               <ArrowRight size={15} />

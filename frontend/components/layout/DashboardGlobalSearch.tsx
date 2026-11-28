@@ -178,77 +178,77 @@ const BRAND_EXTRAS: DashboardSearchItem[] = [
   {
     id: "b-new",
     title: "Create Campaign",
-    href: "/employer/programs/new",
+    href: "/brand/programs/new",
     keywords: ["create", "launch", "campaign", "program"],
     group: "Campaigns",
   },
   {
     id: "b-programs",
     title: "My Campaigns",
-    href: "/employer/programs",
+    href: "/brand/programs",
     keywords: ["campaigns", "ppc", "ppr", "jobs", "programs"],
     group: "Campaigns",
   },
   {
     id: "b-performance",
     title: "Campaign Performance",
-    href: "/employer/performance",
+    href: "/brand/performance",
     keywords: ["analytics", "clicks", "roi"],
     group: "Campaigns",
   },
   {
     id: "b-reports",
     title: "Reports & Content Complaints",
-    href: "/employer/reports",
+    href: "/brand/reports",
     keywords: ["reports", "complaints", "content"],
     group: "Insights",
   },
   {
     id: "b-leads",
     title: "Lead Quality Centre",
-    href: "/employer/lead-quality",
+    href: "/brand/lead-quality",
     keywords: ["leads", "quality", "approve"],
     group: "Insights",
   },
   {
     id: "b-tracking",
     title: "Tracking & Integrations",
-    href: "/employer/tracking",
+    href: "/brand/tracking",
     keywords: ["pixel", "postback", "crm"],
     group: "Tools",
   },
   {
     id: "b-assets",
     title: "Campaign Assets",
-    href: "/employer/assets",
+    href: "/brand/assets",
     keywords: ["creatives", "briefs", "brand kit"],
     group: "Tools",
   },
   {
     id: "b-billing",
     title: "Billing & Wallet",
-    href: "/employer/billing",
+    href: "/brand/billing",
     keywords: ["invoice", "card", "wallet", "payment"],
     group: "Account",
   },
   {
     id: "b-profile",
     title: "Brand Profile",
-    href: "/employer/profile",
+    href: "/brand/profile",
     keywords: ["account", "settings", "company"],
     group: "Account",
   },
   {
     id: "b-team",
     title: "Team & Permissions",
-    href: "/employer/team",
+    href: "/brand/team",
     keywords: ["invite", "roles", "access"],
     group: "Account",
   },
   {
     id: "b-notifications",
     title: "Notifications",
-    href: "/employer/notifications",
+    href: "/brand/notifications",
     keywords: ["alerts", "inbox"],
     group: "Account",
   },
@@ -256,10 +256,10 @@ const BRAND_EXTRAS: DashboardSearchItem[] = [
 
 const HELP_ITEMS: DashboardSearchItem[] = [
   {
-    id: "help-faq",
-    title: "FAQ",
-    href: "/faq",
-    keywords: ["help", "support", "questions"],
+    id: "help-feedback",
+    title: "Share feedback",
+    href: "/feedback",
+    keywords: ["feedback", "suggestion", "report", "problem"],
     group: "Help",
   },
   {
@@ -282,7 +282,7 @@ function audienceFromNav(nav: DashboardNavItem[]): "creator" | "publisher" | "br
   const href = nav[0]?.href ?? "";
   if (href.startsWith("/creator")) return "creator";
   if (href.startsWith("/publisher")) return "publisher";
-  if (href.startsWith("/employer") || href.startsWith("/brand")) return "brand";
+  if (href.startsWith("/brand")) return "brand";
   return "other";
 }
 
@@ -474,7 +474,7 @@ export default function DashboardGlobalSearch({
                   }
                 }}
                 placeholder="Search pages, campaigns, wallet, settings…"
-                className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[#0F1B3D] outline-none placeholder:text-slate-400"
+                className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[#0A2150] outline-none placeholder:text-slate-400"
               />
               <button
                 type="button"
@@ -503,7 +503,7 @@ export default function DashboardGlobalSearch({
                       }`}
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-[#0F1B3D]">
+                        <p className="truncate text-sm font-semibold text-[#0A2150]">
                           {item.title}
                         </p>
                         <p className="truncate text-xs text-slate-500">

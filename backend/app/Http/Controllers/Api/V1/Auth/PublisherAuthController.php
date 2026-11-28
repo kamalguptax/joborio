@@ -50,7 +50,7 @@ class PublisherAuthController extends Controller
         CaptchaService $captcha,
         PublisherRegistrationService $publishers,
     ): JsonResponse {
-        // Empty strings → null so `nullable|url` skips blank fields; at least one is required below.
+        // Empty strings → null so `nullable|url` skips blank fields.
         $request->merge([
             'social_url' => filled($request->input('social_url'))
                 ? trim((string) $request->input('social_url'))
@@ -65,12 +65,13 @@ class PublisherAuthController extends Controller
             'username' => ['required', 'string', 'max:32'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'country' => ['required', 'string', 'in:IN,AE,US'],
-            'niche_ids' => ['required', 'array', 'min:1'],
+            // Collected later in onboarding (PUT /publisher/settings/profile), optional here.
+            'country' => ['nullable', 'string', 'in:IN,AE,US'],
+            'niche_ids' => ['nullable', 'array'],
             'niche_ids.*' => ['integer', 'exists:niches,id'],
-            'job_preferences' => ['required', 'array', 'min:1'],
+            'job_preferences' => ['nullable', 'array'],
             'job_preferences.*' => ['string', 'in:full_time,part_time,remote,internship,fresher'],
-            'network_type' => ['required', 'string', 'in:agency,publisher,affiliate,community'],
+            'network_type' => ['nullable', 'string', 'in:agency,publisher,affiliate,community'],
             'social_url' => ['nullable', 'string', 'max:500', 'url'],
             'website_url' => ['nullable', 'string', 'max:500', 'url'],
             'integration_preference' => ['nullable', 'string', 'in:dashboard,api,xml,webhook'],
@@ -80,18 +81,6 @@ class PublisherAuthController extends Controller
         ], [
             'email.unique' => 'This email is already registered. Sign in or use a different email.',
         ]);
-
-        if (empty($data['social_url']) && empty($data['website_url'])) {
-            return $this->error(
-                'VALIDATION_ERROR',
-                'Provide a social media URL or a website / community URL.',
-                422,
-                [
-                    'social_url' => ['Provide a social media URL or a website / community URL.'],
-                    'website_url' => ['Provide a social media URL or a website / community URL.'],
-                ],
-            );
-        }
 
         $captcha->assertValid($data['captcha_id'], $data['captcha_answer']);
 

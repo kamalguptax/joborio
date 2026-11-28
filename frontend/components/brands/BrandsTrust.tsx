@@ -54,7 +54,7 @@ export default function BrandsTrust() {
         <span className="inline-flex rounded-full bg-violet-100 px-4 py-1.5 text-sm font-semibold text-violet-700">
           Quality &amp; trust
         </span>
-        <h2 className="mt-4 text-[clamp(1.6rem,1.1rem+1.8vw,2.4rem)] font-bold tracking-tight text-[#0F1B3D]">
+        <h2 className="mt-4 text-[clamp(1.6rem,1.1rem+1.8vw,2.4rem)] font-bold tracking-tight text-[#0A2150]">
           How we keep your results real
         </h2>
         <p className="mt-3 text-base text-slate-600 sm:text-lg">
@@ -67,12 +67,12 @@ export default function BrandsTrust() {
         {items.map(({ title, text, icon: Icon, tone }) => (
           <li
             key={title}
-            className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_22px_40px_-26px_rgba(91,53,213,0.45)]"
+            className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_22px_40px_-26px_rgba(10,95,207,0.45)]"
           >
             <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${tone}`}>
               <Icon size={22} aria-hidden="true" />
             </span>
-            <h3 className="mt-4 text-lg font-semibold text-[#0F1B3D]">{title}</h3>
+            <h3 className="mt-4 text-lg font-semibold text-[#0A2150]">{title}</h3>
             <p className="mt-2 text-[15px] leading-relaxed text-slate-600">{text}</p>
           </li>
         ))}

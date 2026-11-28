@@ -83,7 +83,7 @@ export default function SyndicatedJobClient() {
 
   if (missing) {
     return (
-      <main className="flex min-h-svh items-center justify-center bg-[#fff9fd] px-5 pt-24 text-[#172b63]">
+      <main className="flex min-h-svh items-center justify-center bg-[#f6faff] px-5 pt-24 text-[#172b63]">
         <div className="max-w-md rounded-3xl border border-amber-200 bg-amber-50 p-8 text-center">
           <h1 className="text-2xl font-bold">This job is not live</h1>
           <p className="mt-3 text-sm leading-6 text-amber-950">
@@ -104,7 +104,7 @@ export default function SyndicatedJobClient() {
     const referenceId = typeof window !== "undefined" ? referenceFromLocation() : "";
     const returnTo = referenceId ? syndicatedJobPath(referenceId) : "/opportunities";
     return (
-      <main className="flex min-h-svh items-center justify-center bg-[#fff9fd] px-5 pt-24 text-[#172b63]">
+      <main className="flex min-h-svh items-center justify-center bg-[#f6faff] px-5 pt-24 text-[#172b63]">
         <div className="max-w-md text-center">
           <h1 className="text-2xl font-bold">Sign in to view this job</h1>
           <p className="mt-3 text-sm text-slate-500">
@@ -122,7 +122,7 @@ export default function SyndicatedJobClient() {
   }
 
   return (
-    <main className="min-h-svh bg-[#fff9fd] pb-20 pt-32 text-[#172b63]">
+    <main className="min-h-svh bg-[#f6faff] pb-20 pt-32 text-[#172b63]">
       <div className="mx-auto max-w-2xl px-5 sm:px-8">
         <Link href="/opportunities" className="text-sm font-semibold text-purple-600">
           ← All opportunities

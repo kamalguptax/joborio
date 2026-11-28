@@ -2,7 +2,7 @@ import Link from "next/link";
 
 /** Brand gradient kept inline so the band never depends on a generated class. */
 const BAND_BG =
-  "linear-gradient(135deg, #0B1D4F 0%, #14296B 42%, #3F2AA8 100%)";
+  "linear-gradient(135deg, #0A2150 0%, #0B3D91 42%, #0a4aa8 100%)";
 
 function LinkIcon() {
   return (
@@ -37,7 +37,7 @@ function LinkPreview() {
         <div className="flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-200">Your link</p>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-400 text-[#0B1D4F]">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-400 text-[#0A2150]">
               <CheckIcon />
             </span>
             Verified
@@ -85,7 +85,7 @@ export default function CtaBand({
     <section className="mx-auto w-full max-w-[1600px] px-4 pb-16 sm:px-8 md:pb-24 lg:px-10">
       <div
         className="relative isolate overflow-hidden rounded-[28px] px-6 py-12 text-white sm:rounded-[44px] sm:px-12 sm:py-16 lg:px-16 lg:py-20"
-        style={{ backgroundImage: BAND_BG, backgroundColor: "#14296B" }}
+        style={{ backgroundImage: BAND_BG, backgroundColor: "#0B3D91" }}
       >
         {/* Background depth */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
@@ -112,7 +112,7 @@ export default function CtaBand({
               {label}
               <span
                 className="flex h-10 w-10 items-center justify-center rounded-full text-white transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none"
-                style={{ backgroundImage: "linear-gradient(135deg, #7C3AED, #2563EB)" }}
+                style={{ backgroundImage: "linear-gradient(135deg, #0A5FCF, #2563EB)" }}
               >
                 <svg
                   className="h-4 w-4"

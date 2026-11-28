@@ -188,7 +188,7 @@ export default function IndustryKeywordSelect({
   return (
     <div className="space-y-5">
       <div>
-        <label className="block text-sm font-semibold text-[#0F1B3D]">
+        <label className="block text-sm font-semibold text-[#0A2150]">
           Industry
         </label>
         <p className="mt-0.5 text-xs text-slate-500">
@@ -206,7 +206,7 @@ export default function IndustryKeywordSelect({
           <ul className="mt-2 space-y-1 text-sm text-slate-600">
             {industry.map((name) => (
               <li key={name}>
-                <span className="font-semibold text-[#0F1B3D]">{name}</span>
+                <span className="font-semibold text-[#0A2150]">{name}</span>
                 {" — "}
                 {formatCount(industryCounts[name], loadingIndustry)}
               </li>
@@ -216,7 +216,7 @@ export default function IndustryKeywordSelect({
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-[#0F1B3D]">
+        <label className="block text-sm font-semibold text-[#0A2150]">
           Keywords
         </label>
         <p className="mt-0.5 text-xs text-slate-500">
@@ -234,7 +234,7 @@ export default function IndustryKeywordSelect({
           <ul className="mt-2 space-y-1 text-sm text-slate-600">
             {keywords.map((name) => (
               <li key={name}>
-                <span className="font-semibold text-[#0F1B3D]">{name}</span>
+                <span className="font-semibold text-[#0A2150]">{name}</span>
                 {" — "}
                 {formatCount(keywordCounts[name], loadingKeywords)}
               </li>

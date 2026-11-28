@@ -132,7 +132,7 @@ export default function MultiSelect({
           if (disabled) return;
           setOpen((v) => !v);
         }}
-        className={`flex min-h-11 w-full items-start gap-2 rounded-lg border bg-white px-3 py-2 text-left text-sm text-[#0F1B3D] transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`flex min-h-11 w-full items-start gap-2 rounded-lg border bg-white px-3 py-2 text-left text-sm text-[#0A2150] transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60 ${
           invalid
             ? "border-rose-400 bg-rose-50 focus:border-rose-500 focus:ring-rose-500/15"
             : "border-slate-200 focus:border-violet-500 focus:ring-violet-500/15"
@@ -194,7 +194,7 @@ export default function MultiSelect({
                 }
               }}
               placeholder={searchPlaceholder}
-              className="h-9 w-full bg-transparent text-sm text-[#0F1B3D] outline-none placeholder:text-slate-400"
+              className="h-9 w-full bg-transparent text-sm text-[#0A2150] outline-none placeholder:text-slate-400"
             />
           </div>
           <ul

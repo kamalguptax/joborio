@@ -44,7 +44,7 @@ export default function GoPage() {
   }, []);
 
   return (
-    <main className="flex min-h-svh items-center justify-center bg-[#fff9fd] px-5 text-[#172b63]">
+    <main className="flex min-h-svh items-center justify-center bg-[#f6faff] px-5 text-[#172b63]">
       <p className="text-lg font-semibold">{message}</p>
     </main>
   );

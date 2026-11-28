@@ -53,7 +53,7 @@ export default function CreatorLeaderboardBoard({
     if (blurOthers && !isYou) {
       return (
         <span
-          className={`inline-block truncate font-semibold text-[#0F1B3D] blur-[5px] select-none ${className}`}
+          className={`inline-block truncate font-semibold text-[#0A2150] blur-[5px] select-none ${className}`}
           title="Hidden on leaderboard"
           aria-label="Creator name hidden"
         >
@@ -72,7 +72,7 @@ export default function CreatorLeaderboardBoard({
     return (
       <Link
         href={creatorProfilePath(r.handle)}
-        className={`truncate font-semibold text-[#0F1B3D] hover:text-violet-600 ${className}`}
+        className={`truncate font-semibold text-[#0A2150] hover:text-violet-600 ${className}`}
       >
         @{r.handle}
       </Link>
@@ -87,7 +87,7 @@ export default function CreatorLeaderboardBoard({
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
           <Trophy size={26} />
         </span>
-        <p className="mt-5 text-lg font-bold text-[#0F1B3D]">
+        <p className="mt-5 text-lg font-bold text-[#0A2150]">
           No ranked creators yet
         </p>
         <p className="mx-auto mt-2 max-w-sm text-sm text-slate-500">
@@ -103,7 +103,7 @@ export default function CreatorLeaderboardBoard({
         {top.map((r, i) => (
           <li
             key={r.handle}
-            className="rounded-3xl border border-slate-200/80 bg-white p-6 text-center shadow-[0_1px_2px_rgba(15,27,61,0.04),0_18px_40px_-30px_rgba(15,27,61,0.25)]"
+            className="rounded-3xl border border-slate-200/80 bg-white p-6 text-center shadow-[0_1px_2px_rgba(10,33,80,0.04),0_18px_40px_-30px_rgba(10,33,80,0.25)]"
           >
             <span
               className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br text-lg font-bold ring-1 ${podiumTint[i]}`}
@@ -114,7 +114,7 @@ export default function CreatorLeaderboardBoard({
             <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
               {r.trust_tier}
             </p>
-            <p className="mt-4 text-2xl font-bold tabular-nums text-[#0F1B3D]">
+            <p className="mt-4 text-2xl font-bold tabular-nums text-[#0A2150]">
               {r.verified_clicks_30d.toLocaleString()}
             </p>
             <p className="text-xs text-slate-500">verified clicks</p>
@@ -132,7 +132,7 @@ export default function CreatorLeaderboardBoard({
           {rest.map((r) => (
             <li
               key={r.handle}
-              className="flex items-center gap-4 rounded-2xl border border-slate-200/80 bg-white px-4 py-3.5 shadow-[0_1px_2px_rgba(15,27,61,0.04)]"
+              className="flex items-center gap-4 rounded-2xl border border-slate-200/80 bg-white px-4 py-3.5 shadow-[0_1px_2px_rgba(10,33,80,0.04)]"
             >
               <span className="w-8 text-center text-sm font-bold text-violet-600">
                 #{r.rank}
@@ -141,7 +141,7 @@ export default function CreatorLeaderboardBoard({
               <span className="hidden text-[11px] font-semibold uppercase tracking-wide text-slate-400 sm:block">
                 {r.trust_tier}
               </span>
-              <span className="text-right text-sm font-bold tabular-nums text-[#0F1B3D]">
+              <span className="text-right text-sm font-bold tabular-nums text-[#0A2150]">
                 {r.verified_clicks_30d.toLocaleString()} clicks
                 {typeof r.earnings_usd_30d === "number" ? (
                   <span className="mt-0.5 block text-xs font-semibold text-emerald-700">

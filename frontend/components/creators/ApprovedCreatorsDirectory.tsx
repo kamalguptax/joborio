@@ -27,7 +27,7 @@ function formatPaid(amount: number, code?: string | null): string {
 /** Accent colour of the creator, only if it is a plain #hex value. */
 function accentOf(creator: PublicCreator): string {
   const c = creator.accent_color?.trim();
-  return c && /^#[0-9a-fA-F]{6}$/.test(c) ? c : "#7C3AED";
+  return c && /^#[0-9a-fA-F]{6}$/.test(c) ? c : "#0A5FCF";
 }
 
 function CreatorCard({ creator }: { creator: PublicCreator }) {
@@ -49,7 +49,7 @@ function CreatorCard({ creator }: { creator: PublicCreator }) {
     <li className="min-w-0">
       <Link
         href={creatorProfilePath(creator.handle)}
-        className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,27,61,0.04),0_16px_32px_-26px_rgba(15,27,61,0.25)] transition duration-200 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_24px_44px_-28px_rgba(91,53,213,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+        className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(10,33,80,0.04),0_16px_32px_-26px_rgba(10,33,80,0.25)] transition duration-200 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_24px_44px_-28px_rgba(10,95,207,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
       >
         <div
           aria-hidden="true"
@@ -73,7 +73,7 @@ function CreatorCard({ creator }: { creator: PublicCreator }) {
             </span>
           </div>
 
-          <h3 className="mt-3 truncate text-[15px] font-bold leading-tight text-[#0F1B3D]">
+          <h3 className="mt-3 truncate text-[15px] font-bold leading-tight text-[#0A2150]">
             {displayName}
           </h3>
           {showHandle ? (
@@ -199,14 +199,14 @@ export default function ApprovedCreatorsDirectory() {
     return (
       <section className={SECTION}>
         <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50/60 p-10 text-center">
-          <h2 className="text-xl font-bold text-[#0F1B3D]">Real creator profiles</h2>
+          <h2 className="text-xl font-bold text-[#0A2150]">Real creator profiles</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
             Approved creators appear here with their public profile. Pending accounts stay private
-            until JobOrio approves them.
+            until Upclift approves them.
           </p>
           <Link
             href="/creator/register"
-            className="btn-tap mt-6 inline-flex h-11 items-center rounded-full bg-gradient-to-r from-[#7C3AED] to-[#2563EB] px-6 text-sm font-semibold text-white shadow-[0_14px_30px_-14px_rgba(99,102,241,0.8)] transition hover:brightness-110"
+            className="btn-tap mt-6 inline-flex h-11 items-center rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] px-6 text-sm font-semibold text-white shadow-[0_14px_30px_-14px_rgba(31,115,230,0.8)] transition hover:brightness-110"
           >
             Become the first creator
           </Link>
@@ -219,7 +219,7 @@ export default function ApprovedCreatorsDirectory() {
     <section className={SECTION}>
       <SectionHeading
         className="max-w-3xl min-w-0"
-        eyebrow="Live on JobOrio"
+        eyebrow="Live on Upclift"
         title="Real creator profiles"
         description={`${total} approved creator${total === 1 ? "" : "s"} with public pages. Open a profile to see what they share and how they earn.`}
       />

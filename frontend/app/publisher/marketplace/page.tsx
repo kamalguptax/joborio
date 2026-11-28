@@ -187,7 +187,7 @@ export default function PublisherMarketplacePage() {
   async function shareAssignment(a: PublisherAssignment) {
     const link = assignmentShareUrl(publicCode, a);
     const title = a.program?.title ?? "Campaign";
-    const text = `Check out ${title} on JobOrio: ${link}`;
+    const text = `Check out ${title} on Upclift: ${link}`;
     try {
       if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({ title, text, url: link });

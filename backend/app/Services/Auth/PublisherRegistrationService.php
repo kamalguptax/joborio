@@ -27,15 +27,17 @@ class PublisherRegistrationService
             ]);
         }
 
-        $country = strtoupper((string) $data['country']);
-        if (! in_array($country, Publisher::COUNTRIES, true)) {
+        // Country, network type, niches, job preferences and links are optional at sign-up:
+        // the publisher fills them in during onboarding.
+        $country = filled($data['country'] ?? null) ? strtoupper((string) $data['country']) : null;
+        if ($country !== null && ! in_array($country, Publisher::COUNTRIES, true)) {
             throw ValidationException::withMessages([
                 'country' => ['Country must be India, UAE, or USA.'],
             ]);
         }
 
-        $networkType = Str::lower((string) $data['network_type']);
-        if (! in_array($networkType, Publisher::NETWORK_TYPES, true)) {
+        $networkType = filled($data['network_type'] ?? null) ? Str::lower((string) $data['network_type']) : null;
+        if ($networkType !== null && ! in_array($networkType, Publisher::NETWORK_TYPES, true)) {
             throw ValidationException::withMessages([
                 'network_type' => ['Invalid network type.'],
             ]);
@@ -48,20 +50,10 @@ class PublisherRegistrationService
         }
 
         $nicheIds = array_values(array_unique(array_map('intval', $data['niche_ids'] ?? [])));
-        if (count($nicheIds) < 1) {
-            throw ValidationException::withMessages([
-                'niche_ids' => ['Select at least one audience niche.'],
-            ]);
-        }
 
         $jobPrefs = array_values(array_unique(array_map('strval', $data['job_preferences'] ?? [])));
         $allowedJobs = ['full_time', 'part_time', 'remote', 'internship', 'fresher'];
         $jobPrefs = array_values(array_intersect($jobPrefs, $allowedJobs));
-        if (count($jobPrefs) < 1) {
-            throw ValidationException::withMessages([
-                'job_preferences' => ['Select at least one job preference.'],
-            ]);
-        }
 
         return DB::transaction(function () use ($data, $username, $country, $networkType, $integration, $nicheIds, $jobPrefs) {
             $user = User::create([

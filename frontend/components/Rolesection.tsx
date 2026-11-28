@@ -20,7 +20,7 @@ const roles: RoleCardProps[] = [
     description:
       "Launch campaigns, set budgets and reach verified creators who fit your brand.",
     cta: "Launch Campaign",
-    href: "/employer/onboarding",
+    href: "/brand/setup",
     image: "/images/brand.png",
     imageAlt: "Employer launching a campaign",
   },

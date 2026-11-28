@@ -7,7 +7,7 @@ import { FormSkeleton } from "@/components/ui/Skeleton";
 
 export const metadata: Metadata = {
   title: "Publisher login",
-  description: "Sign in to your JobOrio publisher studio.",
+  description: "Sign in to your Upclift publisher studio.",
 };
 
 export default function PublisherLoginPage() {

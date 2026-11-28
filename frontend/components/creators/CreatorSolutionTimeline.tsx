@@ -7,8 +7,8 @@ import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import SocialIcon, { SOCIAL_BG, type SocialKey } from "@/components/creators/SocialIcon";
 
 /* ——— Palette: site theme (navy text, violet accent) ——— */
-const NAVY = "text-[#0F1B3D]";
-const ACCENT = "#7C3AED";
+const NAVY = "text-[#0A2150]";
+const ACCENT = "#0A5FCF";
 
 /* ——— Small shared pieces ——— */
 
@@ -186,7 +186,7 @@ function JobShareCard() {
       className="relative h-[230px] w-full max-w-[390px] overflow-hidden rounded-[28px] bg-[linear-gradient(120deg,#0B1D4F_0%,#14296B_50%,#2E2297_100%)] shadow-[0_34px_60px_-34px_rgba(30,27,90,0.5)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_40px_64px_-32px_rgba(30,27,90,0.6)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
       <div className="absolute left-0 top-0 flex max-w-[calc(100%-3rem)] text-[10.5px] font-medium sm:text-[11px]">
-        <span className="whitespace-nowrap rounded-br-xl bg-[#7C3AED] px-2.5 py-1.5 text-white sm:px-3">
+        <span className="whitespace-nowrap rounded-br-xl bg-[#0A5FCF] px-2.5 py-1.5 text-white sm:px-3">
           Jobs &amp; Careers
         </span>
         <span className="whitespace-nowrap bg-white/10 px-2.5 py-1.5 text-white/80 sm:px-3">Courses</span>
@@ -198,7 +198,7 @@ function JobShareCard() {
         <Heart size={14} />
       </span>
       <div className="absolute bottom-0 left-0 h-[86%] w-[40%] opacity-90">
-        <Character hoodie="#6D3CF0" className="h-full w-full" />
+        <Character hoodie="#0A5FCF" className="h-full w-full" />
       </div>
       <div className="absolute inset-y-0 right-0 flex w-[58%] flex-col justify-center pr-5 text-white">
         <p className="text-[1.6rem] font-semibold leading-[1.05]">Data Analyst</p>
@@ -378,7 +378,7 @@ export default function CreatorSolutionTimeline() {
                     aria-hidden="true"
                     className={`absolute left-5 top-14 z-10 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border text-[12px] font-semibold tabular-nums transition-all duration-300 motion-reduce:transition-none md:left-1/2 md:top-1/2 md:-translate-y-1/2 ${
                       isActive
-                        ? "scale-105 border-[#7C3AED] bg-[#7C3AED] text-white shadow-[0_10px_24px_-6px_rgba(124,58,237,0.55)] ring-[10px] ring-[#7C3AED]/20"
+                        ? "scale-105 border-[#0A5FCF] bg-[#0A5FCF] text-white shadow-[0_10px_24px_-6px_rgba(10,95,207,0.55)] ring-[10px] ring-[#0A5FCF]/20"
                         : "border-slate-300 bg-white text-slate-500"
                     }`}
                   >
@@ -391,7 +391,7 @@ export default function CreatorSolutionTimeline() {
                         textLeft ? "md:col-start-1 md:text-right" : "md:col-start-2"
                       } ${isActive ? "opacity-100" : "opacity-60"}`}
                     >
-                      <p className="text-[11px] font-semibold tracking-[0.2em] text-[#7C3AED]">STEP {number}</p>
+                      <p className="text-[11px] font-semibold tracking-[0.2em] text-[#0A5FCF]">STEP {number}</p>
                       <h3 className={`mt-2 text-balance text-[1.6rem] font-semibold leading-tight tracking-tight md:text-[1.9rem] ${NAVY}`}>
                         {step.title}
                       </h3>

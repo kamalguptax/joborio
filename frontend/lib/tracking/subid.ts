@@ -35,7 +35,7 @@ function publicSiteBase(): string {
 /**
  * Link a creator / network member copies.
  * Member reference is always in the URL as `code` (and mirrored as `subid`).
- * Opening it on JobOrio counts the click, then sends the visitor outbound with the same subid.
+ * Opening it on Upclift counts the click, then sends the visitor outbound with the same subid.
  */
 export function shareJobUrl(code: string, referenceId: string): string {
   const memberRef = code.trim();

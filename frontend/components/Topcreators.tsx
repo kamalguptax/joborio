@@ -156,7 +156,7 @@ export default function TopCreators({
 }: TopCreatorsProps) {
   return (
     <section aria-labelledby="top-creators-heading" className="">
-      <div className="rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/70 via-white to-indigo-50/70 p-5 shadow-[0_8px_30px_rgba(79,70,229,0.08)] sm:p-6">
+      <div className="rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50/70 via-white to-indigo-50/70 p-5 shadow-[0_8px_30px_rgba(31,115,230,0.08)] sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2
             id="top-creators-heading"

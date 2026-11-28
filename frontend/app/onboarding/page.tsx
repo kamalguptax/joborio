@@ -28,12 +28,12 @@ const steps: StepDef[] = [
     icon: UserRound,
     title: "Build your profile",
     description:
-      "Tell us a little about yourself so we can personalize your JobOrio experience.",
+      "Tell us a little about yourself so we can personalize your Upclift experience.",
   },
   {
     number: 2,
     icon: Rocket,
-    title: "Choose how you'll use JobOrio",
+    title: "Choose how you'll use Upclift",
     description:
       "Pick the option that fits you best. You can always change this later.",
   },
@@ -48,7 +48,7 @@ const steps: StepDef[] = [
     number: 4,
     icon: Target,
     title: "Set your goals",
-    description: "Tell us what you want to find and share on JobOrio.",
+    description: "Tell us what you want to find and share on Upclift.",
   },
   {
     number: 5,
@@ -197,7 +197,7 @@ export default function OnboardingPage() {
 
     if (selectedRole === "recruiter") {
       finishOnboarding();
-      router.push("/employer/onboarding");
+      router.push("/brand/setup");
       return;
     }
 
@@ -246,7 +246,7 @@ export default function OnboardingPage() {
       clearSignupRoleIntent();
       finishOnboarding();
       // "Both": creator profile is done, now set up the company too.
-      router.push(selectedRole === "both" ? "/employer/onboarding" : "/creator/dashboard");
+      router.push(selectedRole === "both" ? "/brand/setup" : "/creator/dashboard");
     } catch (err) {
       setSubmitError(
         err instanceof ApiClientError
@@ -304,7 +304,7 @@ export default function OnboardingPage() {
     <OnboardingShell
       steps={visibleSteps}
       current={visibleIndex}
-      intro="Get started by setting up your JobOrio profile in a few quick steps."
+      intro="Get started by setting up your Upclift profile in a few quick steps."
       error={submitError}
       exitHref="/creator/dashboard"
       exitLabel="Skip for now"
@@ -375,7 +375,7 @@ export default function OnboardingPage() {
                 }}
                 className={`flex items-center gap-4 rounded-xl border bg-white p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 ${
                   selected
-                    ? "border-violet-500 shadow-[inset_0_0_0_1px_rgba(124,58,237,0.5)]"
+                    ? "border-violet-500 shadow-[inset_0_0_0_1px_rgba(10,95,207,0.5)]"
                     : "border-slate-200 hover:border-violet-300"
                 }`}
               >
@@ -383,7 +383,7 @@ export default function OnboardingPage() {
                   {role.icon}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-bold text-[#0F1B3D]">{role.title}</span>
+                  <span className="block text-[15px] font-bold text-[#0A2150]">{role.title}</span>
                   <span className="mt-0.5 block text-[13px] text-slate-500">{role.description}</span>
                 </span>
                 <span
@@ -431,7 +431,7 @@ export default function OnboardingPage() {
                 onClick={() => toggleGoal(goal.title)}
                 className={`flex items-center gap-4 rounded-xl border bg-white p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 ${
                   selected
-                    ? "border-violet-500 shadow-[inset_0_0_0_1px_rgba(124,58,237,0.5)]"
+                    ? "border-violet-500 shadow-[inset_0_0_0_1px_rgba(10,95,207,0.5)]"
                     : "border-slate-200 hover:border-violet-300"
                 }`}
               >
@@ -439,7 +439,7 @@ export default function OnboardingPage() {
                   {goal.icon}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-bold text-[#0F1B3D]">{goal.title}</span>
+                  <span className="block text-[15px] font-bold text-[#0A2150]">{goal.title}</span>
                   <span className="mt-0.5 block text-[13px] text-slate-500">{goal.description}</span>
                 </span>
                 <span
@@ -464,7 +464,7 @@ export default function OnboardingPage() {
               id="ob-handle"
               type="text"
               value={handle}
-              onChange={(e) => setHandle(e.target.value)}
+              onChange={(e) => setHandle(e.target.value.toLowerCase())}
               placeholder="yourname"
               className={authField}
             />

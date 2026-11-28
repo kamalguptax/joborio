@@ -104,7 +104,7 @@ export default function LiveActivity() {
     <section aria-label="Live activity" className="mx-auto mt-4 w-full max-w-[1600px] px-4 sm:mt-5 sm:px-8 lg:px-10">
       <style dangerouslySetInnerHTML={{ __html: marqueeCss }} />
 
-      <div className="flex flex-col gap-4 overflow-hidden rounded-3xl border border-indigo-100 bg-white p-4 shadow-[0_8px_30px_rgba(76,29,149,0.08)] md:flex-row md:items-center md:gap-6 md:px-6 lg:gap-8 lg:rounded-full lg:py-4 lg:pl-6 lg:pr-5">
+      <div className="flex flex-col gap-4 overflow-hidden rounded-3xl border border-indigo-100 bg-white p-4 shadow-[0_8px_30px_rgba(10,61,145,0.08)] md:flex-row md:items-center md:gap-6 md:px-6 lg:gap-8 lg:rounded-full lg:py-4 lg:pl-6 lg:pr-5">
         {/* Label */}
         <div className="flex shrink-0 items-center gap-3">
           <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">

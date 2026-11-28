@@ -73,64 +73,64 @@ const EXTRA_ROUTES: Array<{ href: string; label: string; parentHref?: string }> 
   { href: "/publisher/settings", label: "Settings", parentHref: "/publisher/dashboard" },
   { href: "/publisher/profile", label: "Profile", parentHref: "/publisher/dashboard" },
   {
-    href: "/employer/profile",
+    href: "/brand/profile",
     label: "Brand Profile",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
-    href: "/employer/programs",
+    href: "/brand/programs",
     label: "My Campaigns",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
-    href: "/employer/programs/new",
+    href: "/brand/programs/new",
     label: "Create Campaign",
-    parentHref: "/employer/programs",
+    parentHref: "/brand/programs",
   },
   {
-    href: "/employer/performance",
+    href: "/brand/performance",
     label: "Campaign Performance",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
-    href: "/employer/reports",
+    href: "/brand/reports",
     label: "Reports & Content Complaints",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
-    href: "/employer/lead-quality",
+    href: "/brand/lead-quality",
     label: "Lead Quality Centre",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
-    href: "/employer/tracking",
+    href: "/brand/tracking",
     label: "Tracking & Integrations",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
-    href: "/employer/assets",
+    href: "/brand/assets",
     label: "Campaign Assets",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
-    href: "/employer/billing",
+    href: "/brand/billing",
     label: "Billing & Wallet",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
-    href: "/employer/team",
+    href: "/brand/team",
     label: "Team & Permissions",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
-    href: "/employer/notifications",
+    href: "/brand/notifications",
     label: "Notifications",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
-    href: "/employer/job-preferences",
+    href: "/brand/job-preferences",
     label: "Job preferences",
-    parentHref: "/employer/dashboard",
+    parentHref: "/brand/dashboard",
   },
   {
     href: "/publisher/network",
@@ -166,7 +166,7 @@ function labelForSegment(segment: string): string {
 function homeForArea(area: string): { href: string; label: string } {
   if (area === "publisher") return { href: "/publisher/dashboard", label: "Home" };
   if (area === "employer" || area === "brand")
-    return { href: "/employer/dashboard", label: "Home" };
+    return { href: "/brand/dashboard", label: "Home" };
   if (area === "network") return { href: "/network/dashboard", label: "Home" };
   return { href: "/creator/dashboard", label: "Home" };
 }
@@ -311,7 +311,7 @@ export default function DashboardBreadcrumb({
               )}
               {isLast || !item.href ? (
                 <span
-                  className={isLast ? "text-[#0F1B3D]" : undefined}
+                  className={isLast ? "text-[#0A2150]" : undefined}
                   aria-current={isLast ? "page" : undefined}
                 >
                   {item.label}

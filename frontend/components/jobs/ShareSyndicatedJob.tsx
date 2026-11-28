@@ -46,7 +46,7 @@ export default function ShareSyndicatedJob({
 
   const shareText = useMemo(() => {
     const who = company ? ` at ${company}` : "";
-    return `Hiring: ${title}${who} — apply via JobOrio: ${shareUrl}`;
+    return `Hiring: ${title}${who} — apply via Upclift: ${shareUrl}`;
   }, [company, title, shareUrl]);
 
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(shareText)}`;

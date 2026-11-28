@@ -116,7 +116,7 @@ export default function CreatorPayoutAccount() {
         }
       >
         <p className="mb-4 text-sm text-slate-500">
-          This is the account JobOrio uses when your payable balance reaches{" "}
+          This is the account Upclift uses when your payable balance reaches{" "}
           {formatMoney(minUsd, currency, 0)}.
         </p>
         {error ? (
@@ -143,7 +143,7 @@ export default function CreatorPayoutAccount() {
           </div>
 
           <fieldset>
-            <legend className="text-sm font-bold text-[#0F1B3D]">Where should we pay you?</legend>
+            <legend className="text-sm font-bold text-[#0A2150]">Where should we pay you?</legend>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               {methods.map((item) => (
                 <label
@@ -161,7 +161,7 @@ export default function CreatorPayoutAccount() {
                     checked={method === item.id}
                     onChange={() => setMethod(item.id)}
                   />
-                  <span className="block text-sm font-semibold text-[#0F1B3D]">{item.label}</span>
+                  <span className="block text-sm font-semibold text-[#0A2150]">{item.label}</span>
                   <span className="mt-1 block text-xs text-slate-500">{item.hint}</span>
                 </label>
               ))}

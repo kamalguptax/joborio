@@ -26,7 +26,7 @@ import {
 import { toast } from "@/components/ui/Toast";
 
 const field =
-  "mt-2 h-12 w-full rounded-xl border border-indigo-100 bg-white px-4 text-base text-[#0F1B3D] placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15";
+  "mt-2 h-12 w-full rounded-xl border border-indigo-100 bg-white px-4 text-base text-[#0A2150] placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/15";
 
 export default function JoinInviteClient() {
   const search = useSearchParams();
@@ -248,8 +248,7 @@ export default function JoinInviteClient() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block text-sm font-semibold text-slate-700">
                       Password
-                      <input
-                        type="password"
+                      <PasswordInput
                         className={field}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -258,8 +257,7 @@ export default function JoinInviteClient() {
                     </label>
                     <label className="block text-sm font-semibold text-slate-700">
                       Confirm
-                      <input
-                        type="password"
+                      <PasswordInput
                         className={field}
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}

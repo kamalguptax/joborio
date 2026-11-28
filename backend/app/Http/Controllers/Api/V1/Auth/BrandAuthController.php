@@ -96,7 +96,7 @@ class BrandAuthController extends Controller
         return $this->success([
             'user' => $user,
             'token' => $token,
-            'message' => 'Email verified. Welcome to JobOrio.',
+            'message' => 'Email verified. Welcome to Upclift.',
         ]);
     }
 

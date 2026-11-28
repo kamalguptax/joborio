@@ -55,7 +55,7 @@ class DemoSeeder extends Seeder
             ],
             [
                 'title' => 'Full Stack Web Development',
-                'company_name' => 'JobOrio Learn',
+                'company_name' => 'Upclift Learn',
                 'location_label' => 'Online',
                 'country_code' => 'IN',
                 'is_remote' => true,
@@ -77,7 +77,7 @@ class DemoSeeder extends Seeder
             ],
             [
                 'title' => 'Creator Analytics Toolkit',
-                'company_name' => 'JobOrio Tools',
+                'company_name' => 'Upclift Tools',
                 'location_label' => 'Online',
                 'country_code' => 'US',
                 'is_remote' => true,
@@ -99,7 +99,7 @@ class DemoSeeder extends Seeder
             ],
             [
                 'title' => 'Summer Brand Awareness Push',
-                'company_name' => 'JobOrio Demo Hiring',
+                'company_name' => 'Upclift Demo Hiring',
                 'location_label' => 'India',
                 'country_code' => 'IN',
                 'type' => 'branding',
@@ -134,7 +134,7 @@ class DemoSeeder extends Seeder
         $employer = Employer::firstOrCreate(
             ['user_id' => $employerUser->id],
             [
-                'company_name' => 'JobOrio Demo Hiring',
+                'company_name' => 'Upclift Demo Hiring',
                 'country_code' => 'IN',
                 'website' => 'https://joborio.com',
             ]

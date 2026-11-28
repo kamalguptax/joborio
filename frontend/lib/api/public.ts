@@ -25,3 +25,33 @@ export function verifyPprRegistration(id: number, token: string) {
     `/api/v1/ppr/verify/${id}?token=${encodeURIComponent(token)}`,
   );
 }
+
+export type FeedbackType = "suggestion" | "bug" | "compliment" | "other";
+
+export type FeedbackPayload = {
+  type: FeedbackType;
+  rating?: number | null;
+  message: string;
+  name?: string;
+  email?: string;
+  page_url?: string;
+  /** Honeypot — must stay empty. */
+  website?: string;
+};
+
+export function submitFeedback(payload: FeedbackPayload) {
+  return apiFetch<{ received: boolean }>("/api/v1/feedback", {
+    method: "POST",
+    auth: true,
+    body: JSON.stringify(payload),
+  });
+}
+
+export type ChatMessage = { role: "user" | "assistant"; content: string };
+
+export function sendChatMessage(messages: ChatMessage[]) {
+  return apiFetch<{ reply: string; source: "ai" | "kb" }>("/api/v1/chatbot/message", {
+    method: "POST",
+    body: JSON.stringify({ messages }),
+  });
+}

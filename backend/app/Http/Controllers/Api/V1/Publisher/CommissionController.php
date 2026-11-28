@@ -33,7 +33,7 @@ class CommissionController extends Controller
         return $this->success([
             'permitted_percentages' => PublisherCommissionSplit::permittedPublisherPercents(),
             'platform_fee_percent' => PublisherCommissionSplit::PLATFORM_FEE_PERCENT,
-            'note' => 'JobOrio keeps a 30% platform fee. The remaining 70% is the creator pool. Your commission is 10–15% of that pool; creators receive the rest.',
+            'note' => 'Upclift keeps a 30% platform fee. The remaining 70% is the creator pool. Your commission is 10–15% of that pool; creators receive the rest.',
             'example_split' => PublisherCommissionSplit::split(10, $publisherPct),
             'commission' => $active ? [
                 'commission_percent' => $active->commission_percent,
@@ -93,7 +93,7 @@ class CommissionController extends Controller
             'permitted_percentages' => PublisherCommissionSplit::permittedPublisherPercents(),
             'platform_fee_percent' => PublisherCommissionSplit::PLATFORM_FEE_PERCENT,
             'example_split' => PublisherCommissionSplit::split(10, (float) $row->commission_percent),
-            'message' => 'Publisher commission updated (10–15% of the creator pool after JobOrio’s 30% fee).',
+            'message' => 'Publisher commission updated (10–15% of the creator pool after Upclift’s 30% fee).',
         ]);
     }
 }

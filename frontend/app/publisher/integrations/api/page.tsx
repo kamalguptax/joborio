@@ -93,7 +93,7 @@ export default function PublisherApiIntegrationPage() {
           API integration
         </p>
         <p className="mt-2 max-w-2xl text-slate-500">
-          Use JobOrio APIs to automate member invites and publisher workflows.
+          Use Upclift APIs to automate member invites and publisher workflows.
           Keep keys private — rotate or revoke anytime.
         </p>
       </div>
@@ -116,7 +116,7 @@ export default function PublisherApiIntegrationPage() {
 
       <GuideSteps
         title="How API integration works"
-        intro="Your server calls JobOrio with an API key. JobOrio never stores the raw key after creation — only a hash — so copy it when it appears."
+        intro="Your server calls Upclift with an API key. Upclift never stores the raw key after creation — only a hash — so copy it when it appears."
         steps={[
           {
             title: "Generate credentials",

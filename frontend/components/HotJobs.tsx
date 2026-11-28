@@ -154,7 +154,7 @@ export default function HotJobs() {
 
           <Link
             href="/jobs"
-            className="hidden shrink-0 items-center gap-1 text-sm font-semibold text-[#633BFF] transition hover:text-[#4f2ee0] sm:flex"
+            className="hidden shrink-0 items-center gap-1 text-sm font-semibold text-[#0A5FCF] transition hover:text-[#0a5fcf] sm:flex"
           >
             View All Jobs
             <ArrowRight size={15} />
@@ -187,7 +187,7 @@ export default function HotJobs() {
                 className="w-[calc(50%_-_6px)] shrink-0 snap-start sm:w-[calc(33.333%_-_8px)] lg:w-[calc(20%_-_9.6px)]"
               >
                 <div className="group h-full rounded-2xl border border-[#E9EEF6] bg-white p-4 transition duration-300">
-                  <div className="flex h-14 items-center justify-center rounded-xl bg-[#FAFBFD] text-lg font-bold text-[#633BFF]">
+                  <div className="flex h-14 items-center justify-center rounded-xl bg-[#FAFBFD] text-lg font-bold text-[#0A5FCF]">
                     {(job.company ?? "J").slice(0, 2).toUpperCase()}
                   </div>
                   <div className="mt-3">
@@ -241,7 +241,7 @@ export default function HotJobs() {
                 onClick={() => goToDot(i)}
                 aria-label={`Go to slide ${i + 1}`}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === activeDot ? "w-6 bg-[#633BFF]" : "w-1.5 bg-[#E1E6F0]"
+                  i === activeDot ? "w-6 bg-[#0A5FCF]" : "w-1.5 bg-[#E1E6F0]"
                 }`}
               />
             ))}
@@ -251,7 +251,7 @@ export default function HotJobs() {
         <div className="mt-5 flex justify-center sm:hidden">
           <Link
             href="/jobs"
-            className="flex items-center gap-1 text-sm font-semibold text-[#633BFF]"
+            className="flex items-center gap-1 text-sm font-semibold text-[#0A5FCF]"
           >
             View All Jobs
             <ArrowRight size={15} />

@@ -134,7 +134,7 @@ function jobHashtags(p: PostStudioPick, extras: string[] = []): string {
     loc ? hashToken(loc) : "",
     "#Hiring",
     "#JobAlert",
-    "#JobOrio",
+    "#Upclift",
     ...extras.map((t) => (t.startsWith("#") ? t : `#${t}`)),
   ].filter(Boolean);
   return [...new Set(tags)].slice(0, 10).join(" ");
@@ -363,7 +363,7 @@ export function buildPostDraft(
     case "whatsapp":
       if (many) {
         return [
-          "🚨 *Hiring opportunities from JobOrio*",
+          "🚨 *Hiring opportunities from Upclift*",
           "",
           listLines(picks),
           "",
@@ -392,7 +392,7 @@ export function buildPostDraft(
           "Apply links:",
           ...picks.slice(0, 3).map((p) => applyLink(p)),
           "",
-          "#Hiring #JobOrio",
+          "#Hiring #Upclift",
         ].join("\n");
       }
       return reelPost(one);

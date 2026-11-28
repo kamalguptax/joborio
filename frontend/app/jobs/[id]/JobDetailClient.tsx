@@ -88,7 +88,7 @@ export default function JobDetailClient() {
   if (!signedIn || !listing) {
     const returnTo = idParam ? listingJobPath(idParam) : "/jobs";
     return (
-      <main className="flex min-h-svh items-center justify-center bg-[#fff9fd] px-5 text-[#172b63]">
+      <main className="flex min-h-svh items-center justify-center bg-[#f6faff] px-5 text-[#172b63]">
         <div className="max-w-md text-center">
           <h1 className="text-2xl font-bold">Sign in to view this job</h1>
           <Link
@@ -103,7 +103,7 @@ export default function JobDetailClient() {
   }
 
   return (
-    <main className="min-h-svh bg-[#fff9fd] pb-20 pt-32 text-[#172b63]">
+    <main className="min-h-svh bg-[#f6faff] pb-20 pt-32 text-[#172b63]">
       <div className="mx-auto max-w-2xl px-5 sm:px-8">
         <Link href="/jobs" className="text-sm font-semibold text-purple-600">
           ← All opportunities

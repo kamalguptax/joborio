@@ -67,7 +67,7 @@ function MetricCard({ label, value, hint, hintTone = "neutral" }: MetricCardProp
           <Info size={14} />
         </span>
       </div>
-      <p className="mt-3 text-2xl font-bold tracking-tight text-[#0F1B3D] tabular-nums sm:text-[1.65rem]">
+      <p className="mt-3 text-2xl font-bold tracking-tight text-[#0A2150] tabular-nums sm:text-[1.65rem]">
         {value}
       </p>
       <p className={`mt-1.5 text-xs font-medium ${hintClass}`}>{hint}</p>
@@ -119,7 +119,7 @@ export default function CampaignCommandCenter({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#0F1B3D] sm:text-3xl">
+        <h1 className="text-2xl font-bold tracking-tight text-[#0A2150] sm:text-3xl">
           Campaign command center
         </h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -171,7 +171,7 @@ export default function CampaignCommandCenter({
 
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm lg:col-span-1">
-          <h2 className="text-base font-bold text-[#0F1B3D]">
+          <h2 className="text-base font-bold text-[#0A2150]">
             Campaign performance trend
           </h2>
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -200,7 +200,7 @@ export default function CampaignCommandCenter({
         </section>
 
         <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-          <h2 className="text-base font-bold text-[#0F1B3D]">Budget utilisation</h2>
+          <h2 className="text-base font-bold text-[#0A2150]">Budget utilisation</h2>
           <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
             <div
               className="h-full rounded-full bg-violet-500"
@@ -219,7 +219,7 @@ export default function CampaignCommandCenter({
                 className="flex items-center justify-between gap-3 border-b border-slate-100 pb-2 last:border-0 last:pb-0"
               >
                 <span className="text-slate-500">{row.label}</span>
-                <span className="font-semibold tabular-nums text-[#0F1B3D]">
+                <span className="font-semibold tabular-nums text-[#0A2150]">
                   {row.value}
                 </span>
               </li>
@@ -232,13 +232,13 @@ export default function CampaignCommandCenter({
         </section>
 
         <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-          <h2 className="text-base font-bold text-[#0F1B3D]">Conversion funnel</h2>
+          <h2 className="text-base font-bold text-[#0A2150]">Conversion funnel</h2>
           <ul className="mt-5 space-y-3.5">
             {FUNNEL.map((row) => (
               <li key={row.label}>
                 <div className="mb-1.5 flex items-center justify-between gap-2 text-sm">
                   <span className="text-slate-600">{row.label}</span>
-                  <span className="font-semibold tabular-nums text-[#0F1B3D]">
+                  <span className="font-semibold tabular-nums text-[#0A2150]">
                     {formatNum(row.value)}
                   </span>
                 </div>

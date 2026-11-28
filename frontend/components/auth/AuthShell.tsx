@@ -59,7 +59,7 @@ export default function AuthShell({
         <main className="flex flex-1 flex-col justify-center px-5 pb-12 pt-4 sm:px-10">
           <div className={`mx-auto w-full ${wide ? "max-w-[520px]" : "max-w-[420px]"}`}>
             <div className="text-center">
-              <h1 className="text-[1.65rem] font-bold leading-tight tracking-tight text-[#0F1B3D] sm:text-[1.9rem]">
+              <h1 className="text-[1.65rem] font-bold leading-tight tracking-tight text-[#0A2150] sm:text-[1.9rem]">
                 {title}
               </h1>
               {subtitle ? (
@@ -77,7 +77,7 @@ export default function AuthShell({
       </div>
 
       <aside
-        aria-label="About JobOrio"
+        aria-label="About Upclift"
         className="relative hidden overflow-hidden lg:order-1 bg-[linear-gradient(135deg,#0B1D4F_0%,#14296B_45%,#3F2AA8_100%)] text-white lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col lg:items-center lg:justify-center lg:gap-14 lg:px-12"
       >
         <div
