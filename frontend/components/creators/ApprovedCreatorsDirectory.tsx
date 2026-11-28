@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, BadgeCheck, Wallet } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, RefreshCw, Wallet } from "lucide-react";
 import SectionHeading from "@/components/layout/SectionHeading";
 import { getApiBaseUrl } from "@/lib/config";
 import { creatorProfilePath } from "@/lib/staticExport";
 import { currencySymbol } from "@/lib/money";
 import { initialsOf, nameRepeatsHandle } from "@/lib/creatorIdentity";
+import { photoOf } from "@/lib/topEarners";
 import type { PublicCreator } from "@/components/public/PublicCreatorView";
 
 const SECTION = "mx-auto w-full max-w-[1600px] px-4 py-16 sm:px-8 md:py-24 lg:px-10";
@@ -24,6 +25,50 @@ function formatPaid(amount: number, code?: string | null): string {
   return `${currencySymbol(code)}${num}`;
 }
 
+
+type Loaded = { list: PublicCreator[]; total: number };
+
+/** Accepts `{data: []}`, `{data: {data: []}}` (paginated) or `{creators: []}`. */
+function extractList(json: unknown): { list: PublicCreator[]; total: number } | null {
+  const j = json as Record<string, unknown> | null;
+  if (!j || j.success === false) return null;
+  const d = j.data as unknown;
+  const arr = Array.isArray(d)
+    ? d
+    : Array.isArray((d as { data?: unknown } | undefined)?.data)
+      ? ((d as { data: unknown[] }).data)
+      : Array.isArray(j.creators)
+        ? (j.creators as unknown[])
+        : null;
+  if (!arr) return null;
+  const list = (arr as PublicCreator[]).filter((c) => c && typeof c.handle === "string" && c.handle);
+  const meta = (j.meta ?? (d as { meta?: unknown } | undefined)?.meta) as { total?: unknown } | undefined;
+  const total = Number(meta?.total ?? (d as { total?: unknown } | undefined)?.total ?? list.length) || list.length;
+  return { list, total };
+}
+
+/**
+ * Tries the largest page first and falls back to smaller / default pages, because some API
+ * versions reject a big `per_page` (422) which used to leave this section empty.
+ * Throws only when every attempt failed, so "no creators yet" and "request failed" differ.
+ */
+async function loadCreators(): Promise<Loaded> {
+  const base = `${getApiBaseUrl()}/api/v1/public/creators`;
+  const urls = [`${base}?per_page=24`, `${base}?per_page=12`, base];
+  let lastError: unknown = new Error("Creators API did not respond");
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      const parsed = extractList(await res.json());
+      if (parsed) return parsed;
+      lastError = new Error(`Creators API returned an unexpected response (${res.status})`);
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw lastError;
+}
+
 /** Accent colour of the creator, only if it is a plain #hex value. */
 function accentOf(creator: PublicCreator): string {
   const c = creator.accent_color?.trim();
@@ -34,6 +79,7 @@ function CreatorCard({ creator }: { creator: PublicCreator }) {
   const accent = accentOf(creator);
   const displayName = creator.name?.trim() || `@${creator.handle}`;
   const initials = initialsOf(creator.name, creator.handle);
+  const photo = photoOf(creator as unknown as Record<string, unknown>);
   // Don't print the same name twice ("Jonathan Mark" + "@jonathanmark").
   const showHandle = !nameRepeatsHandle(creator.name, creator.handle);
 
@@ -62,10 +108,15 @@ function CreatorCard({ creator }: { creator: PublicCreator }) {
         <div className="flex flex-1 flex-col px-4 pb-4">
           <div className="-mt-7 flex items-end justify-between gap-2">
             <div
-              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-base font-bold text-white shadow-md ring-4 ring-white"
+              className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-base font-bold text-white shadow-md ring-4 ring-white"
               style={{ background: `linear-gradient(135deg, ${accent}, #2563EB)` }}
             >
-              {initials}
+              {photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photo} alt="" loading="lazy" className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
             <span className="mb-0.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-100">
               <BadgeCheck size={11} aria-hidden="true" />
@@ -150,29 +201,22 @@ function CardSkeleton() {
 export default function ApprovedCreatorsDirectory() {
   const [creators, setCreators] = useState<PublicCreator[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const [total, setTotal] = useState(0);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${getApiBaseUrl()}/api/v1/public/creators?per_page=24`, {
-      headers: { Accept: "application/json" },
-    })
-      .then(async (res) => {
-        const json = await res.json();
+    loadCreators()
+      .then(({ list, total: t }) => {
         if (cancelled) return;
-        if (!json?.success) {
-          setCreators([]);
-          setTotal(0);
-          return;
-        }
-        setCreators((json.data as PublicCreator[]) ?? []);
-        setTotal(Number(json.meta?.total ?? json.data?.length ?? 0));
+        setCreators(list);
+        setTotal(t);
       })
-      .catch(() => {
-        if (!cancelled) {
-          setCreators([]);
-          setTotal(0);
-        }
+      .catch((e) => {
+        if (cancelled) return;
+        console.error("[creators] could not load public profiles", e);
+        setFailed(true);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -180,7 +224,7 @@ export default function ApprovedCreatorsDirectory() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt]);
 
   if (loading) {
     return (
@@ -195,6 +239,31 @@ export default function ApprovedCreatorsDirectory() {
     );
   }
 
+  if (failed) {
+    return (
+      <section className={SECTION}>
+        <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50/60 p-10 text-center">
+          <h2 className="text-xl font-bold text-[#0A2150]">Real creator profiles</h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
+            We could not load the creator profiles right now. Check your connection and try again.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setFailed(false);
+              setLoading(true);
+              setAttempt((n) => n + 1);
+            }}
+            className="btn-tap mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-[#0A5FCF] to-[#2563EB] px-6 text-sm font-semibold text-white transition hover:brightness-110"
+          >
+            <RefreshCw size={15} aria-hidden="true" />
+            Try again
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   if (creators.length === 0) {
     return (
       <section className={SECTION}>
@@ -202,7 +271,7 @@ export default function ApprovedCreatorsDirectory() {
           <h2 className="text-xl font-bold text-[#0A2150]">Real creator profiles</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
             Approved creators appear here with their public profile. Pending accounts stay private
-            until Upclift approves them.
+            until JobOrio approves them.
           </p>
           <Link
             href="/creator/register"
@@ -219,7 +288,7 @@ export default function ApprovedCreatorsDirectory() {
     <section className={SECTION}>
       <SectionHeading
         className="max-w-3xl min-w-0"
-        eyebrow="Live on Upclift"
+        eyebrow="Live on JobOrio"
         title="Real creator profiles"
         description={`${total} approved creator${total === 1 ? "" : "s"} with public pages. Open a profile to see what they share and how they earn.`}
       />

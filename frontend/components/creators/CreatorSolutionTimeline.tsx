@@ -1,288 +1,338 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { CirclePlus, Heart, Pencil, Share2 } from "lucide-react";
-import Character from "@/components/art/Character";
+import {
+  BadgeCheck,
+  Briefcase,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  Clock,
+  GraduationCap,
+  Globe,
+  Laptop,
+  Megaphone,
+  MousePointerClick,
+  Play,
+  Rocket,
+  Star,
+  User,
+  Users,
+  Wallet,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import { DEFAULT_AVATAR } from "@/lib/defaultAvatar";
 import SocialIcon, { SOCIAL_BG, type SocialKey } from "@/components/creators/SocialIcon";
 
-/* ——— Palette: site theme (navy text, violet accent) ——— */
+/* ——— Palette: site theme (navy text, brand blue accent) ——— */
 const NAVY = "text-[#0A2150]";
 const ACCENT = "#0A5FCF";
 
-/* ——— Small shared pieces ——— */
+/* ——— Shared pieces ——— */
 
 function MockCard({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={`w-full max-w-[390px] rounded-[28px] bg-white p-4 shadow-[0_34px_60px_-34px_rgba(30,27,90,0.35)] ring-1 ring-black/[0.04] transition duration-300 hover:-translate-y-1 hover:shadow-[0_40px_64px_-32px_rgba(30,27,90,0.45)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${className}`}
+      className={`w-full max-w-[420px] rounded-3xl border border-[#0A5FCF]/10 bg-white p-4 shadow-[0_28px_50px_-34px_rgba(10,33,80,0.35)] sm:p-5 ${className}`}
     >
       {children}
     </div>
   );
 }
 
-function Toggle({ on }: { on: boolean }) {
+function IconDisc({
+  icon: Icon,
+  className,
+  size = 20,
+}: {
+  icon: LucideIcon;
+  className: string;
+  size?: number;
+}) {
   return (
-    <span
-      className={`relative inline-block h-[18px] w-9 shrink-0 rounded-full ${on ? "bg-emerald-200" : "bg-slate-200"}`}
-    >
-      <span
-        className={`absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full ${
-          on ? "right-1 bg-emerald-500" : "left-1 bg-slate-600"
-        }`}
-      />
+    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${className}`}>
+      <Icon size={size} aria-hidden="true" />
     </span>
   );
 }
 
-/** Round brand button used on the profile card (LinkedIn, Instagram, TikTok, Telegram, YouTube, WhatsApp channel). */
-function SocialDot({ platform }: { platform: SocialKey }) {
+/* ——— The seven mock UI cards (content taken from the JobOrio "How it works" design) ——— */
+
+/** 01: pick a role. */
+function RoleCard() {
+  const tile = "relative flex flex-col items-center gap-2 rounded-2xl border px-3 py-5 text-[14px] font-semibold";
   return (
-    <span
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white"
-      style={{ background: SOCIAL_BG[platform] }}
-    >
-      <SocialIcon platform={platform} size={13} />
-    </span>
+    <MockCard>
+      <div className="grid grid-cols-2 gap-3">
+        <div className={`${tile} border-[#0A5FCF] bg-[#EEF5FF] text-[#0A5FCF] shadow-[0_0_0_3px_rgba(10,95,207,0.12)]`}>
+          <span className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#0A5FCF] text-white">
+            <Check size={12} strokeWidth={3} />
+          </span>
+          <User size={30} className="text-[#3B7BE0]" />
+          Creator
+        </div>
+        <div className={`${tile} border-slate-200 bg-slate-50 text-[#0A2150]/80`}>
+          <Globe size={30} className="text-slate-400" />
+          Publisher
+        </div>
+      </div>
+    </MockCard>
   );
 }
 
-/* ——— The five mock UI cards ——— */
-
+/** 02: profile with trust checks. */
 function ProfileCard() {
   return (
     <MockCard>
-      <div className="h-24 rounded-2xl bg-[linear-gradient(115deg,#79D3B8_0%,#C6E7A6_38%,#F6E4A0_64%,#F7C8B8_100%)]" />
-      <div className="-mt-10 flex flex-col items-center">
-        <span className="block h-20 w-20 overflow-hidden rounded-full bg-white ring-4 ring-white">
+      <div className="flex items-center gap-4">
+        <span className="block h-16 w-16 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-4 ring-[#EEF5FF]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={DEFAULT_AVATAR} alt="" className="h-full w-full object-cover" />
         </span>
-      </div>
-      <div className="-mt-9 flex items-center justify-between px-1">
-        <span className="flex gap-1.5">
-          <SocialDot platform="linkedin" />
-          <SocialDot platform="instagram" />
-          <SocialDot platform="tiktok" />
-        </span>
-        <span className="flex gap-1.5">
-          <SocialDot platform="telegram" />
-          <SocialDot platform="youtube" />
-          <SocialDot platform="whatsapp" />
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500">
-            <Share2 size={13} />
-          </span>
-        </span>
-      </div>
-      <div className="mt-2 text-center">
-        <p className="text-[1.15rem] font-semibold text-slate-900">Aarav Mehta</p>
-        <p className="text-[11px] text-slate-500">@aarav_shares</p>
-        <p className="mt-2 text-[12px] text-slate-500">
-          Careers <span className="px-1 text-slate-300">|</span>
-          <span className="font-semibold text-slate-800">Jobs &amp; Education</span>
-          <span className="px-1 text-slate-300">|</span> Campaigns
-        </p>
-      </div>
-      <div className="mt-3 grid grid-cols-2 rounded-2xl border border-slate-200 bg-white py-3 text-center">
-        <div className="border-r border-slate-200">
-          <p className="text-base font-semibold text-slate-900">12.4k</p>
-          <p className="text-[11px] text-slate-500">Followers</p>
-        </div>
-        <div>
-          <p className="text-base font-semibold text-slate-900">38k</p>
-          <p className="text-[11px] text-slate-500">Subscribers</p>
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-1.5 text-[15px] font-semibold text-[#0A2150]">
+            Your Profile
+            <BadgeCheck size={16} className="text-[#0A5FCF]" />
+          </p>
+          <div className="mt-2.5 h-2 w-3/4 rounded-full bg-slate-200" />
+          <div className="mt-2 h-2 w-1/2 rounded-full bg-slate-100" />
         </div>
       </div>
+      <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-100 pt-3.5 text-[12px] font-medium text-slate-700">
+        {["Email Verified", "Social Linked", "Website Added"].map((t) => (
+          <li key={t} className="flex items-center gap-1.5">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white">
+              <Check size={10} strokeWidth={3.5} />
+            </span>
+            {t}
+          </li>
+        ))}
+      </ul>
     </MockCard>
   );
 }
 
-/** The four ways a creator can earn (PPC, PPR, PPA, PPE). Values are examples. */
-const RATES: { title: string; hint: string; value: string; unit?: string; example?: boolean }[] = [
-  { title: "Pay per click (PPC)", hint: "Earn for every verified click", value: "$0.04", unit: "per click" },
-  { title: "Pay per registration (PPR)", hint: "Earn when someone signs up", value: "Example: $1.20 per registration", example: true },
-  { title: "Pay per action (PPA)", hint: "Earn for a lead or an application", value: "Example: $0.80 per application", example: true },
-  { title: "Pay per engagement (PPE)", hint: "Earn when you like, comment or repost", value: "Example: $0.25 per engagement", example: true },
+/** 03: audience type chips. */
+const AUDIENCES: { label: string; icon: LucideIcon; selected?: boolean }[] = [
+  { label: "Students", icon: GraduationCap, selected: true },
+  { label: "Job Seekers", icon: Briefcase },
+  { label: "Tech Professionals", icon: Laptop },
+  { label: "Course Learners", icon: Play },
+  { label: "Entrepreneurs", icon: Rocket },
 ];
 
-function RatesCard() {
+function AudienceCard() {
   return (
-    <MockCard className="p-5">
-      <p className="text-center text-[1.05rem] font-semibold text-slate-900">Pick Your Campaigns</p>
-      <p className="mx-auto mt-1.5 max-w-[17rem] text-center text-[12px] leading-snug text-slate-500">
-        Choose what your audience will find useful. The reward is shown before you share.
-      </p>
-      <div className="mt-4 space-y-2.5 rounded-2xl bg-slate-50 p-3">
-        {RATES.map((r) => (
-          <div key={r.title}>
-            <p className="text-[13px] font-medium text-slate-900">{r.title}</p>
-            <p className="text-[11px] text-slate-500">{r.hint}</p>
-            <div
-              className={`mt-1.5 rounded-xl bg-white px-3 py-2.5 text-[14px] ${
-                r.example ? "text-slate-400" : "font-medium text-slate-900"
-              }`}
-            >
-              {r.example ? (
-                r.value
-              ) : (
-                <>
-                  {r.value} <span className="text-[12px] font-normal text-slate-500">{r.unit}</span>
-                </>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </MockCard>
-  );
-}
-
-function LinksCard() {
-  const rows: { platform: SocialKey; label: string; link: string; on: boolean }[] = [
-    { platform: "linkedin", label: "LinkedIn profile", link: "jobrio.link/aarav-in", on: true },
-    { platform: "instagram", label: "Instagram bio", link: "jobrio.link/aarav", on: true },
-    { platform: "telegram", label: "Telegram group", link: "jobrio.link/aarav-tg", on: true },
-    { platform: "youtube", label: "YouTube channel", link: "jobrio.link/aarav-yt", on: false },
-    { platform: "whatsapp", label: "WhatsApp channel", link: "jobrio.link/aarav-wa", on: false },
-  ];
-  return (
-    <MockCard className="p-5">
-      <p className="text-center text-[1.05rem] font-medium text-slate-800">Your Share Links</p>
-      <div className="mt-2 space-y-0.5">
-        {rows.map((r) => (
-          <div key={r.label}>
-            <div className="flex items-center justify-between px-1 pt-2 text-[13px] text-slate-500">
-              <span className="flex items-center gap-2">
-                <span
-                  className="flex h-5 w-5 items-center justify-center rounded-full text-white"
-                  style={{ background: SOCIAL_BG[r.platform] }}
-                >
-                  <SocialIcon platform={r.platform} size={11} />
-                </span>
-                {r.label}
-              </span>
-              <CirclePlus size={16} className="text-slate-400" />
-            </div>
-            <div className="mt-1 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-[13px] text-slate-800">
-              <span>{r.link}</span>
-              <span className="flex items-center gap-3">
-                <Pencil size={13} className="text-slate-400" />
-                <Toggle on={r.on} />
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </MockCard>
-  );
-}
-
-function JobShareCard() {
-  return (
-    <div
-      aria-hidden="true"
-      className="relative h-[230px] w-full max-w-[390px] overflow-hidden rounded-[28px] bg-[linear-gradient(120deg,#0B1D4F_0%,#14296B_50%,#2E2297_100%)] shadow-[0_34px_60px_-34px_rgba(30,27,90,0.5)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_40px_64px_-32px_rgba(30,27,90,0.6)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-    >
-      <div className="absolute left-0 top-0 flex max-w-[calc(100%-3rem)] text-[10.5px] font-medium sm:text-[11px]">
-        <span className="whitespace-nowrap rounded-br-xl bg-[#0A5FCF] px-2.5 py-1.5 text-white sm:px-3">
-          Jobs &amp; Careers
-        </span>
-        <span className="whitespace-nowrap bg-white/10 px-2.5 py-1.5 text-white/80 sm:px-3">Courses</span>
-        <span className="whitespace-nowrap bg-white/10 px-2.5 py-1.5 text-white/80 sm:px-3">
-          Other Campaigns
-        </span>
-      </div>
-      <span className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white text-slate-700">
-        <Heart size={14} />
-      </span>
-      <div className="absolute bottom-0 left-0 h-[86%] w-[40%] opacity-90">
-        <Character hoodie="#0A5FCF" className="h-full w-full" />
-      </div>
-      <div className="absolute inset-y-0 right-0 flex w-[58%] flex-col justify-center pr-5 text-white">
-        <p className="text-[1.6rem] font-semibold leading-[1.05]">Data Analyst</p>
-        <p className="mt-1 text-[12px] text-white/70">Acme Hiring · Remote</p>
-        <p className="mt-2 text-[11px] text-white/80">
-          <span className="font-semibold">2.4k</span> clicks <span className="px-1 text-white/40">|</span>
-          <span className="font-semibold">86</span> sign-ups
-        </p>
-        <div className="mt-3 flex items-center gap-3">
-          <p className="leading-none">
-            <span className="text-[1.5rem] font-semibold">$1.20</span>
-            <span className="block text-[10px] text-white/70">per registration</span>
-          </p>
-          <span className="rounded-full bg-gradient-to-r from-violet-300 to-violet-600 px-4 py-2 text-[12px] font-medium text-white">
-            Share link
+    <MockCard>
+      <div className="flex flex-wrap gap-2.5">
+        {AUDIENCES.map(({ label, icon: Icon, selected }) => (
+          <span
+            key={label}
+            className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-[13px] ${
+              selected
+                ? "border-[#0A5FCF]/40 bg-[#EEF5FF] font-semibold text-[#0A5FCF]"
+                : "border-slate-200 bg-white font-medium text-[#0A2150]/80"
+            }`}
+          >
+            <Icon size={15} className={selected ? "text-[#0A5FCF]" : "text-[#0A2150]/70"} />
+            {label}
           </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EarningsCard() {
-  return (
-    <MockCard className="p-5">
-      <p className="text-center text-[1.05rem] font-medium text-slate-900">Earnings Summary</p>
-      <div className="mt-3 space-y-2.5 rounded-2xl bg-slate-50 p-2.5">
-        {[
-          { t: "Verified clicks", s: "1,050 clicks", v: "$42.00" },
-          { t: "Registrations", s: "86 sign-ups", v: "$103.20" },
-        ].map((r) => (
-          <div key={r.t} className="flex items-center justify-between rounded-xl bg-white px-3.5 py-3">
-            <div>
-              <p className="text-[13px] font-medium text-slate-900">{r.t}</p>
-              <p className="text-[11px] text-slate-500">{r.s}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[1.05rem] font-semibold text-slate-900">{r.v}</p>
-              <p className="text-[10px] text-slate-500">Verified</p>
-            </div>
-          </div>
         ))}
-      </div>
-      <div className="mt-3 rounded-2xl bg-slate-50 px-3.5 py-3">
-        <p className="text-[11px] text-slate-500">All campaigns this month</p>
-        <div className="mt-0.5 flex items-center justify-between">
-          <p className="text-[1.05rem] text-slate-900">Total Earned</p>
-          <p className="text-[1.05rem] font-semibold text-slate-900">$145.20</p>
-        </div>
-      </div>
-      <div className="mt-3 flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-violet-300 via-violet-500 to-violet-700 text-[14px] font-medium text-white">
-        Request payout
       </div>
     </MockCard>
   );
 }
 
-/* ——— Steps ——— */
+/** 04: the four campaign types. */
+const CAMPAIGN_TYPES: { label: string; icon: LucideIcon; tone: string }[] = [
+  { label: "PPC", icon: MousePointerClick, tone: "bg-blue-100 text-blue-600" },
+  { label: "PPR", icon: Megaphone, tone: "bg-rose-100 text-rose-500" },
+  { label: "PPA", icon: Users, tone: "bg-sky-100 text-sky-600" },
+  { label: "PPE", icon: Star, tone: "bg-amber-100 text-amber-500" },
+];
 
-const STEPS: { title: string; text: string; card: ReactNode }[] = [
+function CampaignTypesCard() {
+  return (
+    <MockCard>
+      <div className="grid grid-cols-4 gap-2.5">
+        {CAMPAIGN_TYPES.map(({ label, icon, tone }) => (
+          <div
+            key={label}
+            className="flex flex-col items-center gap-2.5 rounded-2xl border border-slate-200 bg-white px-1 py-3.5 text-[13px] font-semibold text-[#0A2150]"
+          >
+            <IconDisc icon={icon} className={tone} />
+            {label}
+          </div>
+        ))}
+      </div>
+    </MockCard>
+  );
+}
+
+/** 05: where to share. */
+const PLATFORMS: { label: string; key?: SocialKey }[] = [
+  { label: "WhatsApp", key: "whatsapp" },
+  { label: "Telegram", key: "telegram" },
+  { label: "Instagram", key: "instagram" },
+  { label: "YouTube", key: "youtube" },
+  { label: "LinkedIn", key: "linkedin" },
+  { label: "Website" },
+];
+
+function PlatformsCard() {
+  return (
+    <MockCard>
+      <div className="grid grid-cols-3 gap-2.5">
+        {PLATFORMS.map(({ label, key }) => (
+          <div
+            key={label}
+            className="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white px-1 py-3 text-[12px] font-semibold text-[#0A2150]"
+          >
+            <span
+              className="flex h-10 w-10 items-center justify-center rounded-full text-white"
+              style={{ background: key ? SOCIAL_BG[key] : ACCENT }}
+            >
+              {key ? <SocialIcon platform={key} size={19} /> : <Globe size={19} />}
+            </span>
+            {label}
+          </div>
+        ))}
+      </div>
+    </MockCard>
+  );
+}
+
+/** 06: live numbers and a trend line. Values are illustrative. */
+const STATS: { label: string; value: string; dot: string }[] = [
+  { label: "Clicks", value: "12,450", dot: "bg-blue-500" },
+  { label: "Sign-Ups", value: "3,248", dot: "bg-emerald-500" },
+  { label: "Verified", value: "3,120", dot: "bg-violet-600" },
+];
+
+const TREND: [number, number][] = [
+  [6, 68], [36, 52], [66, 56], [96, 40], [126, 54], [156, 34], [186, 30], [216, 36], [246, 24], [274, 16],
+];
+
+function TrackCard() {
+  const line = TREND.map(([x, y]) => `${x},${y}`).join(" ");
+  const area = `6,80 ${line} 274,80`;
+  return (
+    <MockCard>
+      <div className="grid grid-cols-3 gap-2">
+        {STATS.map((s) => (
+          <div key={s.label} className="rounded-xl border border-slate-200 px-3 py-2.5">
+            <p className="flex items-center gap-1.5 text-[11px] text-slate-500">
+              <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
+              {s.label}
+            </p>
+            <p className="mt-1 text-[1.05rem] font-bold tabular-nums text-[#0A2150]">{s.value}</p>
+          </div>
+        ))}
+      </div>
+      <div className="relative mt-3 rounded-xl bg-[#F3F8FF] px-2 pb-2 pt-3">
+        <svg viewBox="0 0 280 84" className="h-24 w-full" role="presentation">
+          <defs>
+            <linearGradient id="trendFill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor={ACCENT} stopOpacity="0.22" />
+              <stop offset="100%" stopColor={ACCENT} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <polygon points={area} fill="url(#trendFill)" />
+          <polyline points={line} fill="none" stroke={ACCENT} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+          {[1, 3, 5, 7, 9].map((i) => (
+            <circle key={i} cx={TREND[i][0]} cy={TREND[i][1]} r="3.2" fill="#fff" stroke={ACCENT} strokeWidth="2" />
+          ))}
+        </svg>
+        <span className="absolute bottom-2 right-2 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-medium text-slate-500">
+          Illustrative
+        </span>
+      </div>
+    </MockCard>
+  );
+}
+
+/** 07: earnings status chain and the two withdrawal options. */
+const PAYOUT_FLOW: { label: string; icon: LucideIcon; tone: string }[] = [
+  { label: "Pending", icon: Clock, tone: "bg-blue-100 text-blue-600" },
+  { label: "Verified", icon: Check, tone: "bg-emerald-100 text-emerald-600" },
+  { label: "Payable", icon: Wallet, tone: "bg-violet-100 text-violet-600" },
+  { label: "Withdrawn", icon: Check, tone: "bg-emerald-500 text-white" },
+];
+
+function PayoutCard() {
+  return (
+    <MockCard>
+      <div className="flex items-start justify-between">
+        {PAYOUT_FLOW.map(({ label, icon, tone }, i) => (
+          <div key={label} className="flex flex-1 items-start">
+            <div className="flex flex-1 flex-col items-center gap-2 text-[12px] font-semibold text-[#0A2150]">
+              <IconDisc icon={icon} className={tone} size={19} />
+              {label}
+            </div>
+            {i < PAYOUT_FLOW.length - 1 ? (
+              <ChevronRight size={16} className="mt-3 shrink-0 text-slate-300" />
+            ) : null}
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2.5">
+        <span className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-[#0A5FCF] px-2 text-[12.5px] font-semibold text-white">
+          <Zap size={14} />
+          Instant Withdrawal
+        </span>
+        <span className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-[#0A5FCF] bg-white px-2 text-[12.5px] font-semibold text-[#0A5FCF]">
+          <CalendarDays size={14} />
+          Scheduled Withdrawal
+        </span>
+      </div>
+    </MockCard>
+  );
+}
+
+/* ——— Steps (the order and wording come from the JobOrio design) ——— */
+
+const STEPS: { title: string; text: ReactNode; card: ReactNode }[] = [
   {
-    title: "Set up your creator profile",
-    text: "Sign up and add your niche and platforms. Your profile gets one link you can share anywhere.",
+    title: "Choose Creator or Publisher",
+    text: (
+      <>
+        <span className="block">Creator: promote to your own audience.</span>
+        <span className="block">Publisher: distribute through your website, community or network.</span>
+      </>
+    ),
+    card: <RoleCard />,
+  },
+  {
+    title: "Create Your Profile",
+    text: "Set up your account and verify your social channels, website or community.",
     card: <ProfileCard />,
   },
   {
-    title: "Pick campaigns that fit",
-    text: "Browse jobs, courses and campaigns. See the reward for each one before you share it.",
-    card: <RatesCard />,
+    title: "Choose Your Audience Type",
+    text: "Select the audience you reach so JobOrio can match relevant campaigns.",
+    card: <AudienceCard />,
   },
   {
-    title: "Share one link anywhere",
-    text: "Post your tracked link on Instagram, WhatsApp, Telegram or YouTube. Pause any link whenever you like.",
-    card: <LinksCard />,
+    title: "Pick Relevant Campaigns",
+    text: "Review campaign details and reward before sharing.",
+    card: <CampaignTypesCard />,
   },
   {
-    title: "Your audience clicks and registers",
-    text: "Every click and sign-up is tracked and verified, so you can follow real results as they happen.",
-    card: <JobShareCard />,
+    title: "Share Across Your Platforms",
+    text: "Use your unique tracking links across the channels your audience trusts.",
+    card: <PlatformsCard />,
   },
   {
-    title: "Earn from verified results",
-    text: "You are paid for qualified actions. Every click, registration and payout shows up in your earnings.",
-    card: <EarningsCard />,
+    title: "Track Performance Live",
+    text: "Monitor verified clicks, sign-ups and conversions with duplicate-click filtering.",
+    card: <TrackCard />,
+  },
+  {
+    title: "Earn & Withdraw Payouts",
+    text: "Earnings move from Pending to Verified to Payable, then Instant or Scheduled Withdrawal.",
+    card: <PayoutCard />,
   },
 ];
 
@@ -340,7 +390,7 @@ export default function CreatorSolutionTimeline() {
         <div className="text-center">
           <p className="text-eyebrow flex items-center justify-center gap-3 text-violet-600">
             <span aria-hidden="true" className="h-px w-6 bg-violet-400" />
-            THE SOLUTION
+            How it works
             <span aria-hidden="true" className="h-px w-6 bg-violet-400" />
           </p>
           <h2
@@ -349,9 +399,12 @@ export default function CreatorSolutionTimeline() {
           >
             Turn your audience into income. One link. Verified pay.
           </h2>
+          <p className="text-section-copy mx-auto mt-4">
+            From choosing the right opportunity to getting paid, manage every step with JobOrio.
+          </p>
         </div>
 
-        <div ref={wrapRef} className="relative mt-16 md:mt-20">
+        <div ref={wrapRef} className="relative mt-12 md:mt-16">
           {/* Track + progress */}
           <div aria-hidden="true" className="absolute bottom-0 left-5 top-0 w-px rounded-full bg-slate-300 md:left-1/2" />
           <div
@@ -369,14 +422,14 @@ export default function CreatorSolutionTimeline() {
                 <li
                   key={step.title}
                   aria-current={isActive ? "step" : undefined}
-                  className="relative py-10 pl-14 md:py-16 md:pl-0"
+                  className="relative py-8 pl-14 md:py-12 md:pl-0"
                 >
                   <span
                     ref={(el) => {
                       nodeRefs.current[i] = el;
                     }}
                     aria-hidden="true"
-                    className={`absolute left-5 top-14 z-10 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border text-[12px] font-semibold tabular-nums transition-all duration-300 motion-reduce:transition-none md:left-1/2 md:top-1/2 md:-translate-y-1/2 ${
+                    className={`absolute left-5 top-12 z-10 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border text-[12px] font-semibold tabular-nums transition-all duration-300 motion-reduce:transition-none md:left-1/2 md:top-1/2 md:-translate-y-1/2 ${
                       isActive
                         ? "scale-105 border-[#0A5FCF] bg-[#0A5FCF] text-white shadow-[0_10px_24px_-6px_rgba(10,95,207,0.55)] ring-[10px] ring-[#0A5FCF]/20"
                         : "border-slate-300 bg-white text-slate-500"
@@ -391,8 +444,7 @@ export default function CreatorSolutionTimeline() {
                         textLeft ? "md:col-start-1 md:text-right" : "md:col-start-2"
                       } ${isActive ? "opacity-100" : "opacity-60"}`}
                     >
-                      <p className="text-[11px] font-semibold tracking-[0.2em] text-[#0A5FCF]">STEP {number}</p>
-                      <h3 className={`mt-2 text-balance text-[1.6rem] font-semibold leading-tight tracking-tight md:text-[1.9rem] ${NAVY}`}>
+                      <h3 className={`text-balance text-[1.6rem] font-semibold leading-tight tracking-tight md:text-[1.9rem] ${NAVY}`}>
                         {step.title}
                       </h3>
                       <p

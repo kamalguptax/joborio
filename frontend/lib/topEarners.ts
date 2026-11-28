@@ -19,7 +19,7 @@ const PHOTO_KEYS = [
 ] as const;
 
 /** Turns whatever the API returns (full URL, "/path" or a storage path) into a usable URL. */
-function resolvePhotoUrl(raw: unknown): string | null {
+export function resolvePhotoUrl(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const v = raw.trim();
   if (!v) return null;
@@ -29,7 +29,7 @@ function resolvePhotoUrl(raw: unknown): string | null {
   return `${base}/storage/${v.replace(/^storage\//, "")}`;
 }
 
-function photoOf(c: Record<string, unknown>): string | null {
+export function photoOf(c: Record<string, unknown>): string | null {
   for (const key of PHOTO_KEYS) {
     const url = resolvePhotoUrl(c[key]);
     if (url) return url;
