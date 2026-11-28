@@ -45,7 +45,7 @@ type NavItem = {
 };
 
 type NavGroup = {
-  id: "explore" | "earn";
+  id: "earn";
   label: string;
   items: NavItem[];
 };
@@ -57,33 +57,8 @@ const topLinks = [
   { label: "About", href: "/about" },
 ] as const;
 
-/* Only shown after login (logged-out visitors never see these in the menu) */
-const memberLinks = [
-  { label: "Opportunities", href: "/opportunities" },
-  { label: "Jobs", href: "/jobs" },
-] as const;
-
 const iconCls = "h-5 w-5";
 
-const IconCampaigns = () => (
-  <svg className={iconCls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />
-    <path d="M15 4h5v5M20 4l-6 6" />
-  </svg>
-);
-const IconCourses = () => (
-  <svg className={iconCls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-  </svg>
-);
-const IconMarket = () => (
-  <svg className={iconCls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M3 9l1-5h16l1 5" />
-    <path d="M3 9v11a1 1 0 001 1h16a1 1 0 001-1V9" />
-    <path d="M9 22V12h6v10" />
-  </svg>
-);
 const IconRefer = () => (
   <svg className={iconCls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <circle cx="18" cy="5" r="3" />
@@ -99,63 +74,8 @@ const IconPartner = () => (
     <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
   </svg>
 );
-const IconResources = () => (
-  <svg className={iconCls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-    <path d="M8 7h8M8 11h6" />
-  </svg>
-);
-const IconFeedback = () => (
-  <svg className={iconCls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-    <path d="M8 9h8M8 13h5" />
-  </svg>
-);
 
 const navGroups: NavGroup[] = [
-  {
-    id: "explore",
-    label: "Explore",
-    items: [
-      {
-        label: "Campaigns",
-        href: "/campaigns",
-        description: "PPC, PPR and PPA offers to promote",
-        icon: <IconCampaigns />,
-      },
-      {
-        label: "Promote a post",
-        href: "/promote",
-        description: "Creators like, comment and repost your post",
-        icon: <IconCampaigns />,
-      },
-      {
-        label: "Courses",
-        href: "/courses",
-        description: "Learning products your audience can take",
-        icon: <IconCourses />,
-      },
-      {
-        label: "Marketplace",
-        href: "/marketplace",
-        description: "Tools and offers ready to share",
-        icon: <IconMarket />,
-      },
-      {
-        label: "Resources",
-        href: "/resources",
-        description: "Guides, tips and growth playbooks",
-        icon: <IconResources />,
-      },
-      {
-        label: "Share feedback",
-        href: "/feedback",
-        description: "Tell us what to improve",
-        icon: <IconFeedback />,
-      },
-    ],
-  },
   {
     id: "earn",
     label: "Earn",
@@ -353,7 +273,7 @@ export default function Header() {
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const visibleTopLinks: ReadonlyArray<{ label: string; href: string }> =
-    authReady && user ? [...topLinks, ...memberLinks] : topLinks;
+    topLinks;
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
   const [loginOpen, setLoginOpen] = useState(false);
